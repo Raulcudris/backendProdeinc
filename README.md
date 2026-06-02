@@ -1,4 +1,4 @@
-# 03. Microservicios
+#  Microservicios
 
 ## 1. Descripción general
 
@@ -22,7 +22,7 @@ msvc-evidencias
 
 ---
 
-## 3. Microservicios de infraestructura
+##  Microservicios de infraestructura
 
 ### `msvc-config`
 
