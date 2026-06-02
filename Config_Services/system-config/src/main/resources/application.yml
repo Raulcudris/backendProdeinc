@@ -1,0 +1,14 @@
+server:
+  port: 8089
+Spring:
+  cloud:
+    config:
+      server:
+        git:
+          default-label: main
+          uri: https://github.com/Raulcudris/backendProdeinc.git
+          username: Raulcudris
+          password: ra1065808524*
+          search-paths: config-data
+  application:
+    name: system-config

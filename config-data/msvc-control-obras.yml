@@ -1,0 +1,13 @@
+server:
+  port: 6074
+  servlet:
+    context-path: /api/utility
+    
+eureka:
+  client:
+    fetch-registry: true
+    register-whit-eureka: true
+    service-url:
+      defaultZone: http://192.168.2.101:8761/eureka
+    instance:
+      hostname: localhost
