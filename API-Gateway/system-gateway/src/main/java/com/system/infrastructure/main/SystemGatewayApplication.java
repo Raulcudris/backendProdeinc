@@ -5,8 +5,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication(scanBasePackages = {
 		"com.system.infrastructure",
-		"com.system.crosscutting",
-		"com.system.infrastructure.configuration"})
+		"com.system.crosscutting"})
 @EnableDiscoveryClient
 public class SystemGatewayApplication {
 

@@ -1,28 +1,12 @@
-version: '3.8'
+version: '3'
 services:
   srv_system_gateway:
     build:
       context: ../  # Contexto del build, cambia a la carpeta system-gateway
       dockerfile: Docker/Dockerfile
+    restart: always
     container_name: msvc_system_gateway
-    security_opt:
-      - apparmor:unconfined
-      - seccomp:unconfined
     ports:
       - "8088:8088"
-    restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 1024M
-          cpus: 0.5
-        reservations:
-          memory: 1024M
-          cpus: 0.5
-    networks:
-      - docker_default
-
-networks:
-  docker_default:
-    external: true
-
+    volumes:
+      - ../build/libs:/home

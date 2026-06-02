@@ -17,85 +17,10 @@ spring:
         locator:
           enabled: true
 
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-        - name: ConditionalAuthFilter
-
       routes:
-        - id: msvc-eventstream
-          uri: lb://msvc-eventstream
-          predicates:
-            - Path=/api/eventstream/**
-
-        - id: gallery-services
-          uri: lb://msvc-gallery
-          predicates:
-            - Path=/api/gallery/**
-
-        - id: prices-services
-          uri: lb://msvc-prices
-          predicates:
-            - Path=/api/prices/**
-
-        - id: comments-services
-          uri: lb://msvc-comments
-          predicates:
-            - Path=/api/comments/**
-
-        - id: utility-services
-          uri: lb://msvc-utility
-          predicates:
-            - Path=/api/utility/**
-
-        - id: filter-services
-          uri: lb://msvc-filter
-          predicates:
-            - Path=/api/filter/**
-
-        - id: profile-services
-          uri: lb://msvc-profile
-          predicates:
-            - Path=/api/profile/**
-
-        - id: users-services
-          uri: lb://msvc-users
-          predicates:
-            - Path=/api/users/**
-
-        - id: usersaccess-services
-          uri: lb://msvc-usersaccess
-          predicates:
-            - Path=/api/useraccess/**
-
-        - id: homeNav-services
-          uri: lb://msvc-homenav
-          predicates:
-            - Path=/api/homenav/**
 
         - id: offers-services
           uri: lb://msvc-offers
           predicates:
             - Path=/api/offers/**
 
-        - id: penality-services
-          uri: lb://msvc-penality
-          predicates:
-            - Path=/api/penality/**
-
-        - id: msvc-requestmanagment
-          uri: lb://msvc-requestmanagment
-          predicates:
-            - Path=/api/request/**
-
-        - id: msvc-ia-agent
-          uri: lb://msvc-ia-agent
-          predicates:
-            - Path=/api/agent/**
-
-loochon:
-  auth:
-    super-user-enabled: ${LOOCHON_SUPER_USER_ENABLED:true}
-    super-username: ${LOOCHON_SUPER_USERNAME:loochon}
-    super-password: ${LOOCHON_SUPER_PASSWORD:jmam}
-    jwt-secret: ${LOOCHON_JWT_SECRET:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikxvb2Nob24iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyfQ.uyQ34kGtA1cEsZif4Csyv3vKgMjM2yIBbc4ifRunoYo}
-    jwt-expiration-ms: ${LOOCHON_JWT_EXPIRATION_MS:86400000}

@@ -1,33 +1,18 @@
-# Etapa 1: Build
-FROM eclipse-temurin:11-jdk AS builder
 
-RUN apt-get update && apt-get install -y \
-    curl \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
+FROM openjdk:11.0-jdk-slim-stretch
 
-WORKDIR /home
-
-# Copiar todo el contexto primero
-COPY . .
-
-# Dar permisos y construir
-RUN chmod +x ./gradlew
-RUN ./gradlew clean build -x test --no-daemon
-
-# Etapa 2: Runtime
-FROM eclipse-temurin:11-jre
+RUN apt-get install -y tzdata
 
 ENV TZ=America/Bogota
 
+# Set the working directory to /home
 WORKDIR /home
-COPY --from=builder /home/build/libs/*.jar app.jar
 
-RUN adduser --system --group appuser && \
-    chown appuser:appuser app.jar
+# Copy the built JAR file into the container
+COPY ./build/libs/*.jar system-gateway-0.0.1-SNAPSHOT.jar
 
-USER appuser
-
+# Expose the default port for the app
 EXPOSE 8088
 
-CMD ["java", "-jar", "app.jar"]
+# Start the app when the container launches
+CMD ["java", "-jar", "system-gateway-0.0.1-SNAPSHOT.jar"]
