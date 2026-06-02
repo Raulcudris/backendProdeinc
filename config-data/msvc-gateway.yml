@@ -18,9 +18,22 @@ spring:
           enabled: true
 
       routes:
-
-        - id: offers-services
-          uri: lb://msvc-offers
+        - id: msvc-control-obras
+          uri: lb://msvc-control-obras
           predicates:
-            - Path=/api/offers/**
+            - Path=/api/control-obras/**
 
+        - id: msvc-equipos-maquinaria
+          uri: lb://msvc-equipos-maquinaria
+          predicates:
+            - Path=/api/equipos-maquinaria/**
+
+        - id: msvc-documentos-obra
+          uri: lb://msvc-documentos-obra
+          predicates:
+            - Path=/api/documentos-obra/**
+
+        - id: msvc-evidencias
+          uri: lb://msvc-evidencias
+          predicates:
+            - Path=/api/evidencias/**

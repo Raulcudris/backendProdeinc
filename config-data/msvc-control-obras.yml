@@ -1,13 +1,59 @@
 server:
-  port: 6074
-  servlet:
-    context-path: /api/utility
-    
+  port: ${SERVER_PORT:6091}
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:db_prodeinc_obras}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+
+    hikari:
+      pool-name: HikariPool-ControlObras
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:5}
+      minimum-idle: ${DB_POOL_MIN_IDLE:1}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT:300000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME:1800000}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:none}
+    show-sql: ${JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: ${JPA_FORMAT_SQL:false}
+
 eureka:
   client:
-    fetch-registry: true
-    register-whit-eureka: true
+    enabled: ${EUREKA_ENABLED:true}
+    register-with-eureka: ${EUREKA_REGISTER:true}
+    fetch-registry: ${EUREKA_FETCH:true}
     service-url:
-      defaultZone: http://192.168.2.101:8761/eureka
-    instance:
-      hostname: localhost
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+
+  instance:
+    prefer-ip-address: true
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:msvc-control-obras}
+    instance-id: ${spring.application.name}:${server.port:${SERVER_PORT:6091}}
+    non-secure-port: ${SERVER_PORT:6091}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,configprops
+      base-path: /actuator
+
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    "[com.system.modules.controlobras]": DEBUG
+    "[com.zaxxer.hikari]": INFO

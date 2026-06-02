@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: msvc-control-obras
+  cloud:
+    config:
+      enabled: true
+      uri: http://localhost:8089
+      fail-fast: true
+      retry:
+        max-attempts: 2  # Reducimos más los reintentos
+        multiplier: 1.2  # Incrementos suaves entre reintentos
+        initial-interval: 300  # Respuesta más rápida en fallos
+
+  datasource:
+    db-ebusiness:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3306/dbmysqljobs
+      password: root
+      username: root
+      hikari:
+        minimum-idle: 1  # Reducido para entornos ligeros
+        maximum-pool-size: 8  # Optimizado para menor uso de recursos
+        idle-timeout: 3000  # Conexiones inactivas se cierran más rápido
+        connection-timeout: 5000  # Falla rápidamente si no hay conexiones disponibles
+        max-lifetime: 600000  # Reciclaje más frecuente para conexiones largas (10 minutos)
+
