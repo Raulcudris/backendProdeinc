@@ -15,10 +15,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EntityScan(basePackages = "com.system.crosscutting.persistence.entity")
 @EnableWebMvc
 @EnableDiscoveryClient
-public class SystemUsersApplication {
+public class SystemControlObraApplication {
 
 	public static void main(final String[] args) {
-		SpringApplication.run(SystemUsersApplication.class, args);
+		SpringApplication.run(SystemControlObraApplication.class, args);
 	}
 
 }
