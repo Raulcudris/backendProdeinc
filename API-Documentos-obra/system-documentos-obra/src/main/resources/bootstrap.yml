@@ -1,10 +1,10 @@
 spring:
   application:
-    name: msvc-users
+    name: msvc-documentos-obra
   cloud:
     config:
       enabled: true
-      uri: http://192.168.2.101:8089
+      uri: http://localhost:8089
       fail-fast: true
       retry:
         max-attempts: 2  # Reducimos más los reintentos
@@ -14,8 +14,8 @@ spring:
   datasource:
     db-ebusiness:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://192.168.2.100:32768/dbmysqljobs
-      password: R00t2024**
+      jdbc-url: jdbc:mysql://localhost:3306/db_prodeinc_obras
+      password: root
       username: root
       hikari:
         minimum-idle: 1  # Reducido para entornos ligeros
@@ -24,16 +24,3 @@ spring:
         connection-timeout: 5000  # Falla rápidamente si no hay conexiones disponibles
         max-lifetime: 600000  # Reciclaje más frecuente para conexiones largas (10 minutos)
 
-  main:
-    lazy-initialization: true  # Optimización para cargar beans solo cuando se usan
-
-server:
-  tomcat:
-    threads:
-      max: 150  # Reducimos para no saturar recursos si hay tráfico alto
-      min-spare: 10  # Mantiene menos conexiones activas al inicio
-    connection-timeout: 3000  # Conexión HTTP cerrada más rápidamente si está inactiva
-  compression:
-    enabled: true
-    mime-types: application/json,application/xml,text/html,text/plain
-    min-response-size: 256  # Respuestas comprimidas desde tamaños menores
