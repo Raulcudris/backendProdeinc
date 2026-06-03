@@ -1,8 +1,11 @@
 package com.system.modules.equiposmaquinaria.api;
 import com.system.crosscutting.domain.model.EntyEqumedmaunidadmedidaDto;
 import com.system.modules.equiposmaquinaria.usecase.EntyUnidadMedidaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import lombok.RequiredArgsConstructor;
@@ -28,4 +31,10 @@ public class EntyUnidadMedidaWebApi {
     public ResponseEntity<List<EntyEqumedmaunidadmedidaDto>> findAll() throws EBusinessException {
         return ResponseEntity.ok(service.findAll());
     }
+
+    @PostMapping("/api/equipos-maquinaria/unidades/create")
+    public ResponseEntity<EntyEqumedmaunidadmedidaDto> create(@RequestBody final EntyEqumedmaunidadmedidaDto dto) throws EBusinessException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(dto));
+    }
+
 }

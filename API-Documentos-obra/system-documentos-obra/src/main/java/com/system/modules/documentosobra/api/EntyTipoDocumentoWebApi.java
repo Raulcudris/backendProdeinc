@@ -3,10 +3,10 @@ import com.system.crosscutting.domain.model.EntyDoctipmatipodocumentoDto;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.documentosobra.usecase.EntyTipoDocumentoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 /**
@@ -40,15 +40,9 @@ public class EntyTipoDocumentoWebApi {
         return ResponseEntity.ok(service.findByCategoria(categoriaKey));
     }
 
-    /**
-     * Consulta tipos de documentos según si requieren vencimiento.
-     *
-     * @param requiereVencimiento indicador de vencimiento: 1=Sí, 2=No.
-     * @return listado de tipos de documentos encontrados.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @GetMapping("/api/documentos-obra/tipos/by-vencimiento")
-    public ResponseEntity<List<EntyDoctipmatipodocumentoDto>> findByRequiereVencimiento(@RequestParam final String requiereVencimiento) throws EBusinessException {
-        return ResponseEntity.ok(service.findByRequiereVencimiento(requiereVencimiento));
+
+    @PostMapping("/api/documentos-obra/tipos/create")
+    public ResponseEntity<EntyDoctipmatipodocumentoDto> create(@RequestBody final EntyDoctipmatipodocumentoDto dto) throws EBusinessException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(dto));
     }
 }

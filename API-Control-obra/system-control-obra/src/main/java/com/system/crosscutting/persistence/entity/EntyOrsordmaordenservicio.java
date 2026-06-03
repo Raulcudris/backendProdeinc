@@ -1,25 +1,35 @@
 package com.system.crosscutting.persistence.entity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
-
-@Data
+/**
+ * Entidad JPA que representa la tabla ORSORDMAORDENSERVICIO.
+ *
+ * Esta tabla almacena la información maestra de las órdenes de servicio
+ * entregadas por la UNGRD o registradas para la ejecución de obras civiles.
+ */
+@Getter
+@Setter
 @Entity
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "ORSORDMAORDENSERVICIO")
-public class EntyOrsordmaordenservicio {
+public class EntyOrsordmaordenservicio implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Código secuencial autoincremental generado por la base de datos.
      */
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ORS_PRIMARYKEY_ORDE")
     private Integer orsPrimarykeyOrde;
 

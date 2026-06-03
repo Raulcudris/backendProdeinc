@@ -1,15 +1,11 @@
 package com.system.modules.equiposmaquinaria.api;
 import com.system.crosscutting.domain.model.EntyEquinvmaequiposDto;
 import com.system.modules.equiposmaquinaria.usecase.EntyEquipoService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-
-
 import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 
 /**
@@ -54,5 +50,10 @@ public class EntyEquipoWebApi {
     @GetMapping("/api/equipos-maquinaria/equipos/by-estado")
     public ResponseEntity<List<EntyEquinvmaequiposDto>> findByEstadoOperativo(@RequestParam final String estadoOperativo) throws EBusinessException {
         return ResponseEntity.ok(service.findByEstadoOperativo(estadoOperativo));
+    }
+
+    @PostMapping("/api/equipos-maquinaria/equipos/create")
+    public ResponseEntity<EntyEquinvmaequiposDto> create(@RequestBody final EntyEquinvmaequiposDto dto) throws EBusinessException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(dto));
     }
 }

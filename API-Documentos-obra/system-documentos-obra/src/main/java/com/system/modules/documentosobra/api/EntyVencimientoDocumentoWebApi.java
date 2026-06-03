@@ -5,10 +5,9 @@ import com.system.crosscutting.domain.model.EntyDocvenmdvencimientoDto;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.documentosobra.usecase.EntyVencimientoDocumentoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -65,5 +64,10 @@ public class EntyVencimientoDocumentoWebApi {
     @GetMapping("/api/documentos-obra/vencimientos/proximos")
     public ResponseEntity<List<EntyDocvenmdvencimientoDto>> findProximos(@RequestParam(defaultValue = "30") final int dias) throws EBusinessException {
         return ResponseEntity.ok(service.findProximos(dias));
+    }
+
+    @PostMapping("/api/documentos-obra/vencimientos/create")
+    public ResponseEntity<EntyDocvenmdvencimientoDto> create(@RequestBody final EntyDocvenmdvencimientoDto dto) throws EBusinessException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(dto));
     }
 }
