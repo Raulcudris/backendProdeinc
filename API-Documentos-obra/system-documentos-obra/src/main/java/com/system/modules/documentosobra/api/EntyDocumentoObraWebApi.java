@@ -1,72 +1,101 @@
 package com.system.modules.documentosobra.api;
-import com.system.crosscutting.domain.model.EntyDocdocmadocumentoDto;
-import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.modules.documentosobra.usecase.EntyDocumentoObraService;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.system.crosscutting.domain.constants.ApiConstants;
+import com.system.crosscutting.domain.model.EntyDocdocmadocumentoDto;
+import com.system.crosscutting.domain.model.EntyDocdocmadocumentoResponse;
+import com.system.crosscutting.exceptions.MicroEventException;
+import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.modules.documentosobra.usecase.EntyDocumentoObraService;
 
-/**
- * Controlador REST para consultar documentos de obra.
- */
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequiredArgsConstructor
+@RequestMapping(
+        value = "/api/documentos-obra/documentos",
+        produces = {MediaType.APPLICATION_JSON_VALUE}
+)
 public class EntyDocumentoObraWebApi {
 
     private final EntyDocumentoObraService service;
 
-    /**
-     * Consulta todos los documentos registrados.
-     *
-     * @return listado de documentos.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @GetMapping("/api/documentos-obra/documentos/pages")
-    public ResponseEntity<List<EntyDocdocmadocumentoDto>> findAll() throws EBusinessException {
-        return ResponseEntity.ok(service.findAll());
+    @GetMapping("pages")
+    @ApiOperation(httpMethod = ApiConstants.GET_HTTP, value = ApiConstants.GET_ALL_DESC, notes = "")
+    public ResponseEntity<EntyDocdocmadocumentoResponse> getAll(
+            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
+            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
+            @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
+            @RequestParam(value = "filter", required = false, defaultValue = "") String filter
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.getAll(currentPage, pageSize, parameter, filter),
+                HttpStatus.OK
+        );
     }
 
-    /**
-     * Consulta documentos por tipo documental.
-     *
-     * @param tipoDocumentoKey identificador funcional del tipo documental.
-     * @return listado de documentos encontrados.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @GetMapping("/api/documentos-obra/documentos/by-tipo")
-    public ResponseEntity<List<EntyDocdocmadocumentoDto>> findByTipoDocumento(@RequestParam final String tipoDocumentoKey) throws EBusinessException {
-        return ResponseEntity.ok(service.findByTipoDocumento(tipoDocumentoKey));
+    @GetMapping("by-referencia")
+    @ApiOperation(httpMethod = ApiConstants.GET_HTTP, value = ApiConstants.GET_ALL_DESC, notes = "")
+    public ResponseEntity<EntyDocdocmadocumentoResponse> getByReferencia(
+            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
+            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
+            @RequestParam(value = "tipoReferencia") String tipoReferencia,
+            @RequestParam(value = "referenciaId") String referenciaId
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.getByReferencia(currentPage, pageSize, tipoReferencia, referenciaId),
+                HttpStatus.OK
+        );
     }
 
-    /**
-     * Consulta documentos por referencia.
-     *
-     * @param tipoReferencia tipo de referencia asociada al documento.
-     * @param referenciaId identificador del registro referenciado.
-     * @return listado de documentos encontrados.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @GetMapping("/api/documentos-obra/documentos/by-referencia")
-    public ResponseEntity<List<EntyDocdocmadocumentoDto>> findByReferencia(@RequestParam final String tipoReferencia, @RequestParam final String referenciaId) throws EBusinessException {
-        return ResponseEntity.ok(service.findByReferencia(tipoReferencia, referenciaId));
+    @PostMapping("create")
+    @ApiOperation(httpMethod = ApiConstants.POST_HTTP, value = ApiConstants.POST_DESC, notes = "")
+    public ResponseEntity<EntyDocdocmadocumentoDto> create(
+            @RequestBody EntyDocdocmadocumentoDto dto
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.saveBefore(dto),
+                HttpStatus.CREATED
+        );
     }
 
-    /**
-     * Consulta documentos vencidos.
-     *
-     * @return listado de documentos vencidos.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @GetMapping("/api/documentos-obra/documentos/vencidos")
-    public ResponseEntity<List<EntyDocdocmadocumentoDto>> findVencidos() throws EBusinessException {
-        return ResponseEntity.ok(service.findVencidos());
+    @PutMapping("update/{id}")
+    @ApiOperation(httpMethod = ApiConstants.PUT_HTTP, value = ApiConstants.PUT_DESC, notes = "")
+    public ResponseEntity<EntyDocdocmadocumentoDto> update(
+            @PathVariable Integer id,
+            @RequestBody EntyDocdocmadocumentoDto dto
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.updateBefore(id, dto),
+                HttpStatus.OK
+        );
     }
 
-    @PostMapping("/api/documentos-obra/documentos/create")
-    public ResponseEntity<EntyDocdocmadocumentoDto> create(@RequestBody final EntyDocdocmadocumentoDto dto) throws EBusinessException {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(dto));
+    @PatchMapping("changestatus/{id}")
+    @ApiOperation(httpMethod = ApiConstants.PATCH_HTTP, value = ApiConstants.PATCH_DESC, notes = "")
+    public ResponseEntity<String> changestatus(
+            @PathVariable Integer id,
+            @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.changestatus(id, estado),
+                HttpStatus.OK
+        );
+    }
+
+    @DeleteMapping("delete/{id}")
+    @ApiOperation(httpMethod = ApiConstants.DELETE_HTTP, value = ApiConstants.DELETE_DESC, notes = "")
+    public ResponseEntity<String> delete(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.deleteBefore(id),
+                HttpStatus.OK
+        );
     }
 }

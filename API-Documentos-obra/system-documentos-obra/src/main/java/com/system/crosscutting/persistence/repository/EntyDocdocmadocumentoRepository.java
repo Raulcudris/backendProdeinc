@@ -1,55 +1,81 @@
 package com.system.crosscutting.persistence.repository;
-import com.system.crosscutting.persistence.entity.EntyDocdocmadocumento;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import com.system.crosscutting.persistence.entity.EntyDocdocmadocumento;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-/**
- * Repositorio JPA para consultar y administrar documentos de obra.
- */
-@Repository
 public interface EntyDocdocmadocumentoRepository extends JpaRepository<EntyDocdocmadocumento, Integer> {
 
-    /**
-     * Busca un documento por su identificador funcional.
-     *
-     * @param docIdentifkeyDocu código único funcional del documento.
-     * @return documento encontrado, si existe.
-     */
     Optional<EntyDocdocmadocumento> findByDocIdentifkeyDocu(String docIdentifkeyDocu);
 
-    /**
-     * Consulta documentos por tipo documental.
-     *
-     * @param docIdentifkeyTido código único funcional del tipo documental.
-     * @return lista de documentos asociados al tipo.
-     */
     List<EntyDocdocmadocumento> findByDocIdentifkeyTido(String docIdentifkeyTido);
 
-    /**
-     * Consulta documentos por tipo de referencia.
-     *
-     * @param docTiporeferenDocu tipo de referencia.
-     * @return lista de documentos asociados al tipo de referencia.
-     */
-    List<EntyDocdocmadocumento> findByDocTiporeferenDocu(String docTiporeferenDocu);
+    List<EntyDocdocmadocumento> findByDocTiporeferenDocuAndDocReferenciaidDocu(
+            String docTiporeferenDocu,
+            String docReferenciaidDocu
+    );
 
-    /**
-     * Consulta documentos por tipo de referencia e identificador de referencia.
-     *
-     * @param docTiporeferenDocu tipo de referencia.
-     * @param docReferenciaidDocu identificador del registro referenciado.
-     * @return lista de documentos asociados a la referencia.
-     */
-    List<EntyDocdocmadocumento> findByDocTiporeferenDocuAndDocReferenciaidDocu(String docTiporeferenDocu, String docReferenciaidDocu);
-
-    /**
-     * Consulta documentos con fecha de vencimiento menor o igual a la fecha indicada.
-     *
-     * @param fecha fecha límite de vencimiento.
-     * @return lista de documentos encontrados.
-     */
     List<EntyDocdocmadocumento> findByDocFechavenceDocuLessThanEqual(LocalDate fecha);
+
+    @Query("SELECT d FROM EntyDocdocmadocumento d " +
+            "WHERE d.docPrimarykeyDocu = :id")
+    Page<EntyDocdocmadocumento> searchByPrimaryKey(
+            @Param("id") Integer id,
+            Pageable pageable
+    );
+
+    @Query("SELECT d FROM EntyDocdocmadocumento d " +
+            "WHERE LOWER(d.docIdentifkeyDocu) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDocdocmadocumento> searchByIdentifKey(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT d FROM EntyDocdocmadocumento d " +
+            "WHERE LOWER(d.docIdentifkeyTido) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDocdocmadocumento> searchByTipoDocumento(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT d FROM EntyDocdocmadocumento d " +
+            "WHERE LOWER(d.docTiporeferenDocu) LIKE LOWER(CONCAT('%', :tipoReferencia, '%')) " +
+            "AND LOWER(d.docReferenciaidDocu) LIKE LOWER(CONCAT('%', :referenciaId, '%'))")
+    Page<EntyDocdocmadocumento> searchByReferencia(
+            @Param("tipoReferencia") String tipoReferencia,
+            @Param("referenciaId") String referenciaId,
+            Pageable pageable
+    );
+
+    @Query("SELECT d FROM EntyDocdocmadocumento d " +
+            "WHERE d.docFechavenceDocu <= :fecha")
+    Page<EntyDocdocmadocumento> searchByVencidos(
+            @Param("fecha") LocalDate fecha,
+            Pageable pageable
+    );
+
+    @Query("SELECT d FROM EntyDocdocmadocumento d " +
+            "WHERE d.docEstadoregDocu = :status")
+    Page<EntyDocdocmadocumento> searchByStatus(
+            @Param("status") String status,
+            Pageable pageable
+    );
+
+    @Query("SELECT d FROM EntyDocdocmadocumento d " +
+            "WHERE LOWER(d.docIdentifkeyDocu) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(d.docIdentifkeyTido) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(d.docNombreDocu) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(d.docDescripcionDocu) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(d.docEntidadDocu) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(d.docTiporeferenDocu) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(d.docReferenciaidDocu) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDocdocmadocumento> searchByText(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
 }

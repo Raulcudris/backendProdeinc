@@ -1,126 +1,271 @@
 package com.system.modules.documentosobra.usecase;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.system.crosscutting.domain.model.EntyDocvenmdvencimientoDto;
+import com.system.crosscutting.domain.model.EntyDocvenmdvencimientoResponse;
+import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyDocvenmdvencimiento;
+import com.system.crosscutting.persistence.repository.EntyDocdocmadocumentoRepository;
 import com.system.crosscutting.persistence.repository.EntyDocvenmdvencimientoRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.system.modules.documentosobra.dataproviders.jpa.JpaVencimientoDocumentoDataProviders;
+import com.system.modules.documentosobra.services.UseCase;
+import com.system.modules.documentosobra.services.UsecaseServices;
 
-import javax.transaction.Transactional;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+@UseCase
+public class EntyVencimientoDocumentoService
+        extends UsecaseServices<EntyDocvenmdvencimientoDto, JpaVencimientoDocumentoDataProviders> {
 
-/**
- * Caso de uso para gestionar vencimientos documentales.
- */
-@Service
-@RequiredArgsConstructor
-public class EntyVencimientoDocumentoService {
+    @Autowired
+    private JpaVencimientoDocumentoDataProviders jpaDataProviders;
 
-    private final EntyDocvenmdvencimientoRepository repository;
-    private final Translator<EntyDocvenmdvencimiento, EntyDocvenmdvencimientoDto> entityToDtoTranslate;
-    private final Translator<EntyDocvenmdvencimientoDto, EntyDocvenmdvencimiento> dtoToEntityTranslate;
+    @Autowired
+    private EntyDocvenmdvencimientoRepository repository;
 
-    /**
-     * Consulta todos los vencimientos documentales registrados.
-     *
-     * @return lista de vencimientos documentales.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDocvenmdvencimientoDto> findAll() throws EBusinessException {
-        List<EntyDocvenmdvencimientoDto> result = new ArrayList<>();
+    @Autowired
+    private EntyDocdocmadocumentoRepository documentoRepository;
 
-        for (EntyDocvenmdvencimiento entity : repository.findAll()) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    @PostConstruct
+    public void init() {
+        this.ijpaDataProvider = jpaDataProviders;
     }
 
-    /**
-     * Consulta vencimientos asociados a un documento.
-     *
-     * @param documentoKey identificador funcional del documento.
-     * @return lista de vencimientos asociados al documento.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDocvenmdvencimientoDto> findByDocumento(final String documentoKey) throws EBusinessException {
-        List<EntyDocvenmdvencimientoDto> result = new ArrayList<>();
-
-        for (EntyDocvenmdvencimiento entity : repository.findByDocIdentifkeyDocu(documentoKey)) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    public EntyDocvenmdvencimientoResponse getAll(
+            int currentPage,
+            int pageSize,
+            String parameter,
+            String filter
+    ) throws EBusinessException {
+        return this.jpaDataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
-    /**
-     * Consulta vencimientos vencidos con fecha menor o igual a la fecha actual.
-     *
-     * @return lista de vencimientos vencidos.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDocvenmdvencimientoDto> findVencidos() throws EBusinessException {
-        List<EntyDocvenmdvencimientoDto> result = new ArrayList<>();
+    public EntyDocvenmdvencimientoResponse getByDocumento(
+            int currentPage,
+            int pageSize,
+            String documentoKey
+    ) throws EBusinessException {
 
-        for (EntyDocvenmdvencimiento entity : repository.findByDocFechavenceVedoLessThanEqual(LocalDate.now())) {
-            result.add(entityToDtoTranslate.translate(entity));
+        if (documentoKey == null || documentoKey.isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código del documento es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        return result;
+        return this.jpaDataProviders.getByDocumento(currentPage, pageSize, documentoKey);
     }
 
-    /**
-     * Consulta vencimientos próximos dentro de un número de días.
-     *
-     * @param dias número de días para consultar vencimientos próximos.
-     * @return lista de vencimientos próximos.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDocvenmdvencimientoDto> findProximos(final int dias) throws EBusinessException {
-        List<EntyDocvenmdvencimientoDto> result = new ArrayList<>();
-
-        LocalDate fechaInicio = LocalDate.now();
-        LocalDate fechaFin = fechaInicio.plusDays(dias);
-
-        for (EntyDocvenmdvencimiento entity : repository.findByDocFechavenceVedoBetween(fechaInicio, fechaFin)) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    public EntyDocvenmdvencimientoResponse getProximos(
+            int currentPage,
+            int pageSize,
+            int dias
+    ) throws EBusinessException {
+        return this.jpaDataProviders.getProximos(currentPage, pageSize, dias);
     }
 
-    /**
-     * Guarda un vencimiento documental.
-     *
-     * @param dto información del vencimiento documental.
-     * @return vencimiento documental guardado.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public EntyDocvenmdvencimientoDto save(final EntyDocvenmdvencimientoDto dto) throws EBusinessException {
-        EntyDocvenmdvencimiento entity = dtoToEntityTranslate.translate(dto);
+    public EntyDocvenmdvencimientoResponse getVencidos(
+            int currentPage,
+            int pageSize
+    ) throws EBusinessException {
+        return this.jpaDataProviders.getVencidos(currentPage, pageSize);
+    }
 
-        if (entity.getDocDiasalertaVedo() == null) {
-            entity.setDocDiasalertaVedo(30);
+    public EntyDocvenmdvencimientoDto saveBefore(
+            EntyDocvenmdvencimientoDto dto
+    ) throws EBusinessException {
+
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El vencimiento documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        if (entity.getDocEstadovencVedo() == null || entity.getDocEstadovencVedo().isBlank()) {
-            entity.setDocEstadovencVedo("1");
+        if (dto.getDocIdentifkeyVedo() == null || dto.getDocIdentifkeyVedo().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código funcional del vencimiento documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        if (entity.getDocEstadoregVedo() == null || entity.getDocEstadoregVedo().isBlank()) {
-            entity.setDocEstadoregVedo("1");
+        if (dto.getDocIdentifkeyDocu() == null || dto.getDocIdentifkeyDocu().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código del documento asociado es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        EntyDocvenmdvencimiento saved = repository.save(entity);
-        return entityToDtoTranslate.translate(saved);
+        if (dto.getDocFechavenceVedo() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La fecha de vencimiento documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (repository.findByDocIdentifkeyVedo(dto.getDocIdentifkeyVedo()).isPresent()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("Ya existe un vencimiento documental con el código "
+                            + dto.getDocIdentifkeyVedo())
+                    .withCode("409")
+                    .buildBusinessException();
+        }
+
+        if (documentoRepository.findByDocIdentifkeyDocu(dto.getDocIdentifkeyDocu()).isEmpty()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("No existe el documento asociado con el código "
+                            + dto.getDocIdentifkeyDocu())
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocDiasalertaVedo() == null || dto.getDocDiasalertaVedo() <= 0) {
+            dto.setDocDiasalertaVedo(30);
+        }
+
+        if (dto.getDocEstadovencVedo() == null || dto.getDocEstadovencVedo().isBlank()) {
+            dto.setDocEstadovencVedo("1");
+        }
+
+        validarEstadoVencimiento(dto.getDocEstadovencVedo());
+
+        if (dto.getDocEstadoregVedo() == null || dto.getDocEstadoregVedo().isBlank()) {
+            dto.setDocEstadoregVedo("1");
+        }
+
+        return this.jpaDataProviders.save(dto);
+    }
+
+    public EntyDocvenmdvencimientoDto updateBefore(
+            Integer id,
+            EntyDocvenmdvencimientoDto dto
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del vencimiento documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La información del vencimiento documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocIdentifkeyDocu() == null || dto.getDocIdentifkeyDocu().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código del documento asociado es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (documentoRepository.findByDocIdentifkeyDocu(dto.getDocIdentifkeyDocu()).isEmpty()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("No existe el documento asociado con el código "
+                            + dto.getDocIdentifkeyDocu())
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocFechavenceVedo() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La fecha de vencimiento documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocDiasalertaVedo() == null || dto.getDocDiasalertaVedo() <= 0) {
+            dto.setDocDiasalertaVedo(30);
+        }
+
+        if (dto.getDocEstadovencVedo() == null || dto.getDocEstadovencVedo().isBlank()) {
+            dto.setDocEstadovencVedo("1");
+        }
+
+        validarEstadoVencimiento(dto.getDocEstadovencVedo());
+
+        if ("4".equals(dto.getDocEstadovencVedo()) && dto.getDocFecharenovaVedo() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La fecha de renovación es obligatoria cuando el estado es renovado")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocEstadoregVedo() == null || dto.getDocEstadoregVedo().isBlank()) {
+            dto.setDocEstadoregVedo("1");
+        }
+
+        return this.jpaDataProviders.update(id, dto);
+    }
+
+    public String changestatus(
+            Integer id,
+            String estado
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del vencimiento documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        validarEstadoVencimiento(estado);
+
+        EntyDocvenmdvencimientoDto vencimiento = this.jpaDataProviders.get(id);
+
+        if (vencimiento.getDocPrimarykeyVedo() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El vencimiento documental no fue encontrado")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        vencimiento.setDocEstadovencVedo(estado);
+
+        this.jpaDataProviders.update(id, vencimiento);
+
+        return "OK";
+    }
+
+    public String deleteBefore(Integer id) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del vencimiento documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyDocvenmdvencimientoDto vencimiento = this.jpaDataProviders.get(id);
+
+        if (vencimiento.getDocPrimarykeyVedo() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El vencimiento documental no fue encontrado")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        vencimiento.setDocEstadoregVedo("2");
+
+        this.jpaDataProviders.update(id, vencimiento);
+
+        return "OK";
+    }
+
+    private void validarEstadoVencimiento(String estado) throws EBusinessException {
+        if (!"1".equals(estado)
+                && !"2".equals(estado)
+                && !"3".equals(estado)
+                && !"4".equals(estado)) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El estado de vencimiento debe ser 1=Vigente, 2=Próximo, 3=Vencido o 4=Renovado")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
     }
 }

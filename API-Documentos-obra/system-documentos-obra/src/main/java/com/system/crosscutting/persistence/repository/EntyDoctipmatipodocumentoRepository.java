@@ -1,37 +1,63 @@
 package com.system.crosscutting.persistence.repository;
-import com.system.crosscutting.persistence.entity.EntyDoctipmatipodocumento;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
+import com.system.crosscutting.persistence.entity.EntyDoctipmatipodocumento;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-/**
- * Repositorio JPA para consultar y administrar tipos de documentos.
- */
-@Repository
-public interface EntyDoctipmatipodocumentoRepository extends JpaRepository<EntyDoctipmatipodocumento, Integer> {
+public interface EntyDoctipmatipodocumentoRepository
+        extends JpaRepository<EntyDoctipmatipodocumento, Integer> {
 
-    /**
-     * Busca un tipo de documento por su identificador funcional.
-     *
-     * @param docIdentifkeyTido código único funcional del tipo de documento.
-     * @return tipo de documento encontrado, si existe.
-     */
     Optional<EntyDoctipmatipodocumento> findByDocIdentifkeyTido(String docIdentifkeyTido);
 
-    /**
-     * Consulta tipos de documento por categoría documental.
-     *
-     * @param docIdentifkeyCado código único funcional de categoría documental.
-     * @return lista de tipos de documento asociados a la categoría.
-     */
     List<EntyDoctipmatipodocumento> findByDocIdentifkeyCado(String docIdentifkeyCado);
 
-    /**
-     * Consulta tipos de documento según si requieren vencimiento.
-     *
-     * @param docRequievenceTido indicador de vencimiento: 1=Sí, 2=No.
-     * @return lista de tipos de documento.
-     */
     List<EntyDoctipmatipodocumento> findByDocRequievenceTido(String docRequievenceTido);
+
+    @Query("SELECT t FROM EntyDoctipmatipodocumento t " +
+            "WHERE t.docPrimarykeyTido = :id")
+    Page<EntyDoctipmatipodocumento> searchByPrimaryKey(
+            @Param("id") Integer id,
+            Pageable pageable
+    );
+
+    @Query("SELECT t FROM EntyDoctipmatipodocumento t " +
+            "WHERE LOWER(t.docIdentifkeyTido) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDoctipmatipodocumento> searchByIdentifKey(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT t FROM EntyDoctipmatipodocumento t " +
+            "WHERE LOWER(t.docIdentifkeyCado) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDoctipmatipodocumento> searchByCategoria(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT t FROM EntyDoctipmatipodocumento t " +
+            "WHERE t.docRequievenceTido = :requiere")
+    Page<EntyDoctipmatipodocumento> searchByRequiereVencimiento(
+            @Param("requiere") String requiere,
+            Pageable pageable
+    );
+
+    @Query("SELECT t FROM EntyDoctipmatipodocumento t " +
+            "WHERE t.docEstadoregTido = :status")
+    Page<EntyDoctipmatipodocumento> searchByStatus(
+            @Param("status") String status,
+            Pageable pageable
+    );
+
+    @Query("SELECT t FROM EntyDoctipmatipodocumento t " +
+            "WHERE LOWER(t.docIdentifkeyTido) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(t.docIdentifkeyCado) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(t.docDescripcionTido) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDoctipmatipodocumento> searchByText(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
 }

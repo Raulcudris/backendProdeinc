@@ -1,115 +1,265 @@
 package com.system.modules.documentosobra.usecase;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.system.crosscutting.domain.model.EntyDocdocmadocumentoDto;
+import com.system.crosscutting.domain.model.EntyDocdocmadocumentoResponse;
+import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyDocdocmadocumento;
 import com.system.crosscutting.persistence.repository.EntyDocdocmadocumentoRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.system.crosscutting.persistence.repository.EntyDoctipmatipodocumentoRepository;
+import com.system.modules.documentosobra.dataproviders.jpa.JpaDocumentoObraDataProviders;
+import com.system.modules.documentosobra.services.UseCase;
+import com.system.modules.documentosobra.services.UsecaseServices;
 
-import javax.transaction.Transactional;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+@UseCase
+public class EntyDocumentoObraService
+        extends UsecaseServices<EntyDocdocmadocumentoDto, JpaDocumentoObraDataProviders> {
 
-/**
- * Caso de uso para gestionar documentos legales, técnicos, contractuales,
- * administrativos y de maquinaria.
- */
-@Service
-@RequiredArgsConstructor
-public class EntyDocumentoObraService {
-    private final EntyDocdocmadocumentoRepository repository;
-    private final Translator<EntyDocdocmadocumento, EntyDocdocmadocumentoDto> entityToDtoTranslate;
-    private final Translator<EntyDocdocmadocumentoDto, EntyDocdocmadocumento> dtoToEntityTranslate;
+    @Autowired
+    private JpaDocumentoObraDataProviders jpaDataProviders;
 
-    /**
-     * Consulta todos los documentos registrados.
-     *
-     * @return lista de documentos.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDocdocmadocumentoDto> findAll() throws EBusinessException {
-        List<EntyDocdocmadocumentoDto> result = new ArrayList<>();
+    @Autowired
+    private EntyDocdocmadocumentoRepository repository;
 
-        for (EntyDocdocmadocumento entity : repository.findAll()) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
+    @Autowired
+    private EntyDoctipmatipodocumentoRepository tipoDocumentoRepository;
 
-        return result;
+    @PostConstruct
+    public void init() {
+        this.ijpaDataProvider = jpaDataProviders;
     }
 
-    /**
-     * Consulta documentos por tipo documental.
-     *
-     * @param tipoDocumentoKey identificador funcional del tipo documental.
-     * @return lista de documentos encontrados.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDocdocmadocumentoDto> findByTipoDocumento(final String tipoDocumentoKey) throws EBusinessException {
-        List<EntyDocdocmadocumentoDto> result = new ArrayList<>();
-
-        for (EntyDocdocmadocumento entity : repository.findByDocIdentifkeyTido(tipoDocumentoKey)) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    public EntyDocdocmadocumentoResponse getAll(
+            int currentPage,
+            int pageSize,
+            String parameter,
+            String filter
+    ) throws EBusinessException {
+        return this.jpaDataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
-    /**
-     * Consulta documentos por referencia.
-     *
-     * @param tipoReferencia tipo de referencia asociada al documento.
-     * @param referenciaId identificador del registro referenciado.
-     * @return lista de documentos encontrados.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDocdocmadocumentoDto> findByReferencia(final String tipoReferencia, final String referenciaId) throws EBusinessException {
-        List<EntyDocdocmadocumentoDto> result = new ArrayList<>();
+    public EntyDocdocmadocumentoResponse getByReferencia(
+            int currentPage,
+            int pageSize,
+            String tipoReferencia,
+            String referenciaId
+    ) throws EBusinessException {
 
-        for (EntyDocdocmadocumento entity : repository.findByDocTiporeferenDocuAndDocReferenciaidDocu(tipoReferencia, referenciaId)) {
-            result.add(entityToDtoTranslate.translate(entity));
+        if (tipoReferencia == null || tipoReferencia.isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de referencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        return result;
+        if (referenciaId == null || referenciaId.isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El identificador de referencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        return this.jpaDataProviders.getByReferencia(
+                currentPage,
+                pageSize,
+                tipoReferencia,
+                referenciaId
+        );
     }
 
-    /**
-     * Consulta documentos vencidos o con vencimiento menor o igual a la fecha actual.
-     *
-     * @return lista de documentos vencidos.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDocdocmadocumentoDto> findVencidos() throws EBusinessException {
-        List<EntyDocdocmadocumentoDto> result = new ArrayList<>();
+    public EntyDocdocmadocumentoDto saveBefore(
+            EntyDocdocmadocumentoDto dto
+    ) throws EBusinessException {
 
-        for (EntyDocdocmadocumento entity : repository.findByDocFechavenceDocuLessThanEqual(LocalDate.now())) {
-            result.add(entityToDtoTranslate.translate(entity));
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El documento de obra es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        return result;
+        if (dto.getDocIdentifkeyDocu() == null || dto.getDocIdentifkeyDocu().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código funcional del documento es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocIdentifkeyTido() == null || dto.getDocIdentifkeyTido().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de documento es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocNombreDocu() == null || dto.getDocNombreDocu().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El nombre del documento es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocUrlarchivoDocu() == null || dto.getDocUrlarchivoDocu().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La URL o ruta del archivo documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (repository.findByDocIdentifkeyDocu(dto.getDocIdentifkeyDocu()).isPresent()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("Ya existe un documento de obra con el código "
+                            + dto.getDocIdentifkeyDocu())
+                    .withCode("409")
+                    .buildBusinessException();
+        }
+
+        if (tipoDocumentoRepository.findByDocIdentifkeyTido(dto.getDocIdentifkeyTido()).isEmpty()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("No existe el tipo de documento con el código "
+                            + dto.getDocIdentifkeyTido())
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocFechavenceDocu() != null
+                && dto.getDocFechaexpDocu() != null
+                && dto.getDocFechavenceDocu().isBefore(dto.getDocFechaexpDocu())) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La fecha de vencimiento no puede ser menor que la fecha de expedición")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocEstadoregDocu() == null || dto.getDocEstadoregDocu().isBlank()) {
+            dto.setDocEstadoregDocu("1");
+        }
+
+        return this.jpaDataProviders.save(dto);
     }
 
-    /**
-     * Guarda un documento de obra.
-     *
-     * @param dto información del documento.
-     * @return documento guardado.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public EntyDocdocmadocumentoDto save(final EntyDocdocmadocumentoDto dto) throws EBusinessException {
-        EntyDocdocmadocumento entity = dtoToEntityTranslate.translate(dto);
+    public EntyDocdocmadocumentoDto updateBefore(
+            Integer id,
+            EntyDocdocmadocumentoDto dto
+    ) throws EBusinessException {
 
-        if (entity.getDocEstadoregDocu() == null || entity.getDocEstadoregDocu().isBlank()) {
-            entity.setDocEstadoregDocu("1");
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del documento de obra es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        EntyDocdocmadocumento saved = repository.save(entity);
-        return entityToDtoTranslate.translate(saved);
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La información del documento de obra es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocIdentifkeyTido() == null || dto.getDocIdentifkeyTido().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de documento es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (tipoDocumentoRepository.findByDocIdentifkeyTido(dto.getDocIdentifkeyTido()).isEmpty()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("No existe el tipo de documento con el código "
+                            + dto.getDocIdentifkeyTido())
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocNombreDocu() == null || dto.getDocNombreDocu().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El nombre del documento es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocUrlarchivoDocu() == null || dto.getDocUrlarchivoDocu().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La URL o ruta del archivo documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocFechavenceDocu() != null
+                && dto.getDocFechaexpDocu() != null
+                && dto.getDocFechavenceDocu().isBefore(dto.getDocFechaexpDocu())) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La fecha de vencimiento no puede ser menor que la fecha de expedición")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocEstadoregDocu() == null || dto.getDocEstadoregDocu().isBlank()) {
+            dto.setDocEstadoregDocu("1");
+        }
+
+        return this.jpaDataProviders.update(id, dto);
+    }
+
+    public String changestatus(
+            Integer id,
+            String estado
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del documento de obra es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyDocdocmadocumentoDto documento = this.jpaDataProviders.get(id);
+
+        if (documento.getDocPrimarykeyDocu() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El documento de obra no fue encontrado")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        String nextStatus;
+
+        if ("1".equals(estado) || "2".equals(estado)) {
+            nextStatus = estado;
+        } else {
+            nextStatus = "2";
+        }
+
+        documento.setDocEstadoregDocu(nextStatus);
+
+        this.jpaDataProviders.update(id, documento);
+
+        return "OK";
+    }
+
+    public String deleteBefore(Integer id) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del documento de obra es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyDocdocmadocumentoDto documento = this.jpaDataProviders.get(id);
+
+        if (documento.getDocPrimarykeyDocu() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El documento de obra no fue encontrado")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        documento.setDocEstadoregDocu("2");
+
+        this.jpaDataProviders.update(id, documento);
+
+        return "OK";
     }
 }

@@ -1,5 +1,8 @@
 package com.system.crosscutting.domain.model;
+
 import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +35,7 @@ public class EntyDocvenmdvencimientoDto {
     /**
      * Fecha de vencimiento registrada.
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate docFechavenceVedo;
 
     /**
@@ -47,6 +51,7 @@ public class EntyDocvenmdvencimientoDto {
     /**
      * Fecha de renovación del documento.
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate docFecharenovaVedo;
 
     /**

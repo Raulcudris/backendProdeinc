@@ -1,59 +1,170 @@
 package com.system.modules.documentosobra.usecase;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.system.crosscutting.domain.model.EntyDoccatmacategoriaDto;
+import com.system.crosscutting.domain.model.EntyDoccatmacategoriaResponse;
+import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyDoccatmacategoria;
 import com.system.crosscutting.persistence.repository.EntyDoccatmacategoriaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
+import com.system.modules.documentosobra.dataproviders.jpa.JpaCategoriaDocumentoDataProviders;
+import com.system.modules.documentosobra.services.UseCase;
+import com.system.modules.documentosobra.services.UsecaseServices;
 
-/**
- * Caso de uso para gestionar categorías documentales.
- */
-@Service
-@RequiredArgsConstructor
-public class EntyCategoriaDocumentoService {
+@UseCase
+public class EntyCategoriaDocumentoService
+        extends UsecaseServices<EntyDoccatmacategoriaDto, JpaCategoriaDocumentoDataProviders> {
 
-    private final EntyDoccatmacategoriaRepository repository;
-    private final Translator<EntyDoccatmacategoria, EntyDoccatmacategoriaDto> entityToDtoTranslate;
-    private final Translator<EntyDoccatmacategoriaDto, EntyDoccatmacategoria> dtoToEntityTranslate;
+    @Autowired
+    private JpaCategoriaDocumentoDataProviders jpaDataProviders;
 
-    /**
-     * Consulta todas las categorías documentales registradas.
-     *
-     * @return lista de categorías documentales.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyDoccatmacategoriaDto> findAll() throws EBusinessException {
-        List<EntyDoccatmacategoriaDto> result = new ArrayList<>();
+    @Autowired
+    private EntyDoccatmacategoriaRepository repository;
 
-        for (EntyDoccatmacategoria entity : repository.findAll()) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    @PostConstruct
+    public void init() {
+        this.ijpaDataProvider = jpaDataProviders;
     }
 
-    /**
-     * Guarda una categoría documental.
-     *
-     * @param dto información de la categoría documental.
-     * @return categoría documental guardada.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public EntyDoccatmacategoriaDto save(final EntyDoccatmacategoriaDto dto) throws EBusinessException {
-        EntyDoccatmacategoria entity = dtoToEntityTranslate.translate(dto);
+    public EntyDoccatmacategoriaResponse getAll(
+            int currentPage,
+            int pageSize,
+            String parameter,
+            String filter
+    ) throws EBusinessException {
+        return this.ijpaDataProvider.getAll(currentPage, pageSize, parameter, filter);
+    }
 
-        if (entity.getDocEstadoregCado() == null || entity.getDocEstadoregCado().isBlank()) {
-            entity.setDocEstadoregCado("1");
+    public EntyDoccatmacategoriaDto saveBefore(
+            EntyDoccatmacategoriaDto dto
+    ) throws EBusinessException {
+
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La categoría documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        EntyDoccatmacategoria saved = repository.save(entity);
-        return entityToDtoTranslate.translate(saved);
+        if (dto.getDocIdentifkeyCado() == null || dto.getDocIdentifkeyCado().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código funcional de la categoría documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocDescripcionCado() == null || dto.getDocDescripcionCado().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La descripción de la categoría documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (repository.findByDocIdentifkeyCado(dto.getDocIdentifkeyCado()).isPresent()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("Ya existe una categoría documental con el código "
+                            + dto.getDocIdentifkeyCado())
+                    .withCode("409")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocEstadoregCado() == null || dto.getDocEstadoregCado().isBlank()) {
+            dto.setDocEstadoregCado("1");
+        }
+
+        return this.ijpaDataProvider.save(dto);
+    }
+
+    public EntyDoccatmacategoriaDto updateBefore(
+            Integer id,
+            EntyDoccatmacategoriaDto dto
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la categoría documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La información de la categoría documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocDescripcionCado() == null || dto.getDocDescripcionCado().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La descripción de la categoría documental es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getDocEstadoregCado() == null || dto.getDocEstadoregCado().isBlank()) {
+            dto.setDocEstadoregCado("1");
+        }
+
+        return this.ijpaDataProvider.update(id, dto);
+    }
+
+    public String changestatus(
+            Integer id,
+            String estado
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la categoría documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyDoccatmacategoriaDto categoria = this.ijpaDataProvider.get(id);
+
+        if (categoria.getDocPrimarykeyCado() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La categoría documental no fue encontrada")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        String nextStatus;
+
+        if ("1".equals(estado) || "2".equals(estado)) {
+            nextStatus = estado;
+        } else {
+            nextStatus = "2";
+        }
+
+        categoria.setDocEstadoregCado(nextStatus);
+
+        this.ijpaDataProvider.update(id, categoria);
+
+        return "OK";
+    }
+
+    public String deleteBefore(Integer id) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la categoría documental es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyDoccatmacategoriaDto categoria = this.ijpaDataProvider.get(id);
+
+        if (categoria.getDocPrimarykeyCado() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La categoría documental no fue encontrada")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        categoria.setDocEstadoregCado("2");
+
+        this.ijpaDataProvider.update(id, categoria);
+
+        return "OK";
     }
 }

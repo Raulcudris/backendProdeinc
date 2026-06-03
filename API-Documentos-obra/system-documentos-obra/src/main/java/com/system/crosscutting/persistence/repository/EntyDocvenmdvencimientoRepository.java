@@ -1,55 +1,80 @@
 package com.system.crosscutting.persistence.repository;
-import com.system.crosscutting.persistence.entity.EntyDocvenmdvencimiento;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import com.system.crosscutting.persistence.entity.EntyDocvenmdvencimiento;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-/**
- * Repositorio JPA para consultar y administrar vencimientos documentales.
- */
-@Repository
 public interface EntyDocvenmdvencimientoRepository extends JpaRepository<EntyDocvenmdvencimiento, Integer> {
 
-    /**
-     * Busca un vencimiento documental por su identificador funcional.
-     *
-     * @param docIdentifkeyVedo código único funcional del vencimiento documental.
-     * @return vencimiento documental encontrado, si existe.
-     */
     Optional<EntyDocvenmdvencimiento> findByDocIdentifkeyVedo(String docIdentifkeyVedo);
 
-    /**
-     * Consulta vencimientos asociados a un documento.
-     *
-     * @param docIdentifkeyDocu código único funcional del documento.
-     * @return lista de vencimientos asociados al documento.
-     */
     List<EntyDocvenmdvencimiento> findByDocIdentifkeyDocu(String docIdentifkeyDocu);
 
-    /**
-     * Consulta vencimientos por estado.
-     *
-     * @param docEstadovencVedo estado del vencimiento.
-     * @return lista de vencimientos asociados al estado.
-     */
-    List<EntyDocvenmdvencimiento> findByDocEstadovencVedo(String docEstadovencVedo);
-
-    /**
-     * Consulta vencimientos con fecha menor o igual a la fecha indicada.
-     *
-     * @param fecha fecha límite.
-     * @return lista de vencimientos encontrados.
-     */
     List<EntyDocvenmdvencimiento> findByDocFechavenceVedoLessThanEqual(LocalDate fecha);
 
-    /**
-     * Consulta vencimientos en un rango de fechas.
-     *
-     * @param fechaInicio fecha inicial.
-     * @param fechaFin fecha final.
-     * @return lista de vencimientos encontrados.
-     */
     List<EntyDocvenmdvencimiento> findByDocFechavenceVedoBetween(LocalDate fechaInicio, LocalDate fechaFin);
+
+    @Query("SELECT v FROM EntyDocvenmdvencimiento v " +
+            "WHERE v.docPrimarykeyVedo = :id")
+    Page<EntyDocvenmdvencimiento> searchByPrimaryKey(
+            @Param("id") Integer id,
+            Pageable pageable
+    );
+
+    @Query("SELECT v FROM EntyDocvenmdvencimiento v " +
+            "WHERE LOWER(v.docIdentifkeyVedo) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDocvenmdvencimiento> searchByIdentifKey(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT v FROM EntyDocvenmdvencimiento v " +
+            "WHERE LOWER(v.docIdentifkeyDocu) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDocvenmdvencimiento> searchByDocumento(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT v FROM EntyDocvenmdvencimiento v " +
+            "WHERE v.docFechavenceVedo <= :fecha")
+    Page<EntyDocvenmdvencimiento> searchByVencidos(
+            @Param("fecha") LocalDate fecha,
+            Pageable pageable
+    );
+
+    @Query("SELECT v FROM EntyDocvenmdvencimiento v " +
+            "WHERE v.docFechavenceVedo BETWEEN :fechaInicio AND :fechaFin")
+    Page<EntyDocvenmdvencimiento> searchByProximos(
+            @Param("fechaInicio") LocalDate fechaInicio,
+            @Param("fechaFin") LocalDate fechaFin,
+            Pageable pageable
+    );
+
+    @Query("SELECT v FROM EntyDocvenmdvencimiento v " +
+            "WHERE v.docEstadovencVedo = :estado")
+    Page<EntyDocvenmdvencimiento> searchByEstadoVencimiento(
+            @Param("estado") String estado,
+            Pageable pageable
+    );
+
+    @Query("SELECT v FROM EntyDocvenmdvencimiento v " +
+            "WHERE v.docEstadoregVedo = :status")
+    Page<EntyDocvenmdvencimiento> searchByStatus(
+            @Param("status") String status,
+            Pageable pageable
+    );
+
+    @Query("SELECT v FROM EntyDocvenmdvencimiento v " +
+            "WHERE LOWER(v.docIdentifkeyVedo) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(v.docIdentifkeyDocu) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(v.docObservacionVedo) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyDocvenmdvencimiento> searchByText(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
 }
