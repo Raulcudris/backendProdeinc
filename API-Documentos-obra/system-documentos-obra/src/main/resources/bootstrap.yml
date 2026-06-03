@@ -1,15 +1,20 @@
 spring:
   application:
     name: msvc-documentos-obra
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
   cloud:
     config:
       enabled: true
       uri: http://localhost:8089
       fail-fast: true
       retry:
-        max-attempts: 2  # Reducimos más los reintentos
-        multiplier: 1.2  # Incrementos suaves entre reintentos
-        initial-interval: 300  # Respuesta más rápida en fallos
+        max-attempts: 2
+        multiplier: 1.2
+        initial-interval: 300
 
   datasource:
     db-ebusiness:
@@ -18,9 +23,8 @@ spring:
       password: root
       username: root
       hikari:
-        minimum-idle: 1  # Reducido para entornos ligeros
-        maximum-pool-size: 8  # Optimizado para menor uso de recursos
-        idle-timeout: 3000  # Conexiones inactivas se cierran más rápido
-        connection-timeout: 5000  # Falla rápidamente si no hay conexiones disponibles
-        max-lifetime: 600000  # Reciclaje más frecuente para conexiones largas (10 minutos)
-
+        minimum-idle: 1
+        maximum-pool-size: 8
+        idle-timeout: 3000
+        connection-timeout: 5000
+        max-lifetime: 600000

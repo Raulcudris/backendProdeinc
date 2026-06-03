@@ -1,5 +1,4 @@
 package com.system.modules.equiposmaquinaria.api;
-
 import com.system.crosscutting.domain.model.EntyEqutipmatipoequipoDto;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.equiposmaquinaria.usecase.EntyTipoEquipoService;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
 @RestController

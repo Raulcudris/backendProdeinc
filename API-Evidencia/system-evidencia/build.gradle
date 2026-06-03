@@ -43,6 +43,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation("org.springframework.integration:spring-integration-jms")
+	// Source: https://mvnrepository.com/artifact/tools.jackson.datatype/jackson-datatype-jsr310
+	implementation("tools.jackson.datatype:jackson-datatype-jsr310:3.0.0-rc2")
 	compileOnly("javax.jms:javax.jms-api")
 	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'mysql:mysql-connector-java'

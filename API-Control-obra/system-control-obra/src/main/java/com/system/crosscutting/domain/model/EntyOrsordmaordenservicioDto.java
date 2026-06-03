@@ -1,9 +1,12 @@
 package com.system.crosscutting.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 /**
  * DTO que representa la información de la tabla ORSORDMAORDENSERVICIO.
  *
@@ -27,6 +30,7 @@ public class EntyOrsordmaordenservicioDto {
     /**
      * Fecha de expedición de la autorización del servicio.
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate orsAutorifechaOrde;
 
     /**
@@ -52,11 +56,13 @@ public class EntyOrsordmaordenservicioDto {
     /**
      * Fecha de inicio del plan de trabajo.
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate orsPlanfechiniOrde;
 
     /**
      * Fecha de finalización del plan de trabajo.
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate orsPlanfechfinOrde;
 
     /**
