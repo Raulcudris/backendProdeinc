@@ -1,41 +1,35 @@
 package com.system.modules.equiposmaquinaria.services;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.jms.JmsException;
+import org.springframework.stereotype.Component;
+
 import com.system.crosscutting.domain.model.traceability.Traceability;
 import com.system.crosscutting.domain.model.traceability.TraceabilityEvent;
 import com.system.crosscutting.domain.model.traceability.TransactionFile;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.utils.GsonUtil;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jms.JmsException;
-import org.springframework.stereotype.Component;
-
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class TraceabilityService {
-    /*
-    private static final String SENDER_NIT = "SENDER_NIT";
 
-    private static final String RECEIVER_NIT = "RECEIVER_NIT";
+    private static final String COMPONENT = "EquiposMaquinariaService";
 
-    private static final String DOCUMENT_TYPE = "DOCUMENT_TYPE";
-
-    private static final String TRANSACTION_ID = "transactionId";
-    */
-
-
-    private static final String COMPONENT = "UsersServices";
-
-    private static final String SERVICE = "USERS";
+    private static final String SERVICE = "MSVC_EQUIPOS_MAQUINARIA";
 
     private static final Locale LOCALE = new Locale("es", "CO");
-
-
-
 
     public void createTraceabilityEventDocument(
             final String transactionId,
@@ -44,66 +38,61 @@ public class TraceabilityService {
             final String dataType,
             final String name,
             final String message,
-            Map<String, String> properties)
-            throws MicroEventException {
+            Map<String, String> properties
+    ) throws MicroEventException {
 
-            log.info("createTraceabilityEventDocument-> " + status + ", " + name);
+        log.info("createTraceabilityEventDocument -> {}, {}", status, name);
 
-            List<Map<String, String>> propertiesList = new ArrayList<>();
-            properties.put("component", COMPONENT);
-            properties.put("service", SERVICE);
+        List<Map<String, String>> propertiesList = new ArrayList<>();
 
-            propertiesList.add(properties);
+        properties.put("component", COMPONENT);
+        properties.put("service", SERVICE);
 
-            List<TransactionFile> files = new ArrayList<>();
-            files.add(transactionFile);
+        propertiesList.add(properties);
 
-            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", LOCALE);
-            String strDate = formatter.format(new Date());
+        List<TransactionFile> files = new ArrayList<>();
+        files.add(transactionFile);
 
-            sendToTraceability(
-                    null,
-                    TraceabilityEvent.builder()
-                            .transactionId(transactionId)
-                            .eventId(UUID.randomUUID().toString())
-                            .name(name)
-                            .status(status)
-                            .message(message)
-                            .dataType(dataType)
-                            .creationDate(strDate.replace(" ", "T"))
-                            .files(files)
-                            .properties(propertiesList)
-                            .build());
-        }
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", LOCALE);
+        String strDate = formatter.format(new Date());
 
+        sendToTraceability(
+                null,
+                TraceabilityEvent.builder()
+                        .transactionId(transactionId)
+                        .eventId(UUID.randomUUID().toString())
+                        .name(name)
+                        .status(status)
+                        .message(message)
+                        .dataType(dataType)
+                        .creationDate(strDate.replace(" ", "T"))
+                        .files(files)
+                        .properties(propertiesList)
+                        .build()
+        );
+    }
 
-    /**
-     * @param traceability
-     * @param event
-     * @throws MicroEventException
-     */
-    public void sendToTraceability(final Traceability traceability, final TraceabilityEvent event)
-            throws MicroEventException {
+    public void sendToTraceability(
+            final Traceability traceability,
+            final TraceabilityEvent event
+    ) throws MicroEventException {
 
         try {
+            String generatedSend;
 
-                String generatedSend;
+            if (traceability != null) {
+                generatedSend = GsonUtil.getGson().toJson(traceability);
+                log.info("Se envía objeto al servicio de trazabilidad {}", generatedSend);
+            } else {
+                generatedSend = GsonUtil.getGson().toJson(event);
+                log.info("Se envía objeto al servicio de trazabilidad para el evento {}", generatedSend);
+            }
 
-                if (traceability != null) {
-                    generatedSend = GsonUtil.getGson().toJson(traceability);
-                    log.info("Se envia  objeto al servicio de trazabilidad " + generatedSend);
-                } else {
-                    generatedSend = GsonUtil.getGson().toJson(event);
-                    log.info("Se envia  objeto al servicio de trazabilidad para el evento " + generatedSend);
-                }
-
-
-                log.info("Se envia exitosamente. " + generatedSend);
+            log.info("Se envía exitosamente {}", generatedSend);
 
         } catch (JmsException ex) {
-            log.info("Error consumiendo Jms. " + ex.getMessage());
+            log.info("Error consumiendo JMS {}", ex.getMessage());
             throw new MicroEventException(ex.getMessage());
         }
     }
-
 }

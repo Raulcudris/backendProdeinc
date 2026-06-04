@@ -1,53 +1,96 @@
 package com.system.crosscutting.persistence.repository;
-import com.system.crosscutting.persistence.entity.EntyEquasimdasignequipo;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import com.system.crosscutting.persistence.entity.EntyEquasimdasignequipo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * Repositorio JPA para consultar y administrar asignaciones de equipos.
  */
-@Repository
-public interface EntyEquasimdasignequipoRepository extends JpaRepository<EntyEquasimdasignequipo, Integer> {
+public interface EntyEquasimdasignequipoRepository
+        extends JpaRepository<EntyEquasimdasignequipo, Integer> {
 
-    /**
-     * Busca una asignación de equipo por su identificador funcional.
-     *
-     * @param equIdentifkeyAseq código único funcional de la asignación.
-     * @return asignación encontrada, si existe.
-     */
     Optional<EntyEquasimdasignequipo> findByEquIdentifkeyAseq(String equIdentifkeyAseq);
 
-    /**
-     * Consulta asignaciones por equipo.
-     *
-     * @param equIdentifkeyEqui código único funcional del equipo.
-     * @return lista de asignaciones del equipo.
-     */
     List<EntyEquasimdasignequipo> findByEquIdentifkeyEqui(String equIdentifkeyEqui);
 
-    /**
-     * Consulta asignaciones por orden de servicio.
-     *
-     * @param orsIdentifkeyOrde código único funcional de la orden.
-     * @return lista de asignaciones asociadas a la orden.
-     */
     List<EntyEquasimdasignequipo> findByOrsIdentifkeyOrde(String orsIdentifkeyOrde);
 
-    /**
-     * Consulta asignaciones por plan de trabajo.
-     *
-     * @param orsIdentifkeyPltr código único funcional del plan.
-     * @return lista de asignaciones asociadas al plan.
-     */
     List<EntyEquasimdasignequipo> findByOrsIdentifkeyPltr(String orsIdentifkeyPltr);
 
-    /**
-     * Consulta asignaciones por estado de registro.
-     *
-     * @param equEstadoregAseq estado del registro.
-     * @return lista de asignaciones asociadas al estado.
-     */
     List<EntyEquasimdasignequipo> findByEquEstadoregAseq(String equEstadoregAseq);
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE a.equPrimarykeyAseq = :id")
+    Page<EntyEquasimdasignequipo> searchByPrimaryKey(
+            @Param("id") Integer id,
+            Pageable pageable
+    );
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE LOWER(a.equIdentifkeyAseq) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyEquasimdasignequipo> searchByIdentifKey(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE LOWER(a.equIdentifkeyEqui) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyEquasimdasignequipo> searchByEquipo(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE LOWER(a.orsIdentifkeyOrde) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyEquasimdasignequipo> searchByOrdenServicio(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE LOWER(a.orsIdentifkeyPltr) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyEquasimdasignequipo> searchByPlanTrabajo(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE LOWER(a.equResponsableAseq) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyEquasimdasignequipo> searchByResponsable(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE a.equEstadoregAseq = :status")
+    Page<EntyEquasimdasignequipo> searchByStatus(
+            @Param("status") String status,
+            Pageable pageable
+    );
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE a.equFechaasigAseq BETWEEN :fechaInicio AND :fechaFin")
+    Page<EntyEquasimdasignequipo> searchByFechaAsignacionBetween(
+            @Param("fechaInicio") LocalDate fechaInicio,
+            @Param("fechaFin") LocalDate fechaFin,
+            Pageable pageable
+    );
+
+    @Query("SELECT a FROM EntyEquasimdasignequipo a " +
+            "WHERE LOWER(a.equIdentifkeyAseq) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(a.equIdentifkeyEqui) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(a.orsIdentifkeyOrde) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(a.orsIdentifkeyPltr) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(a.equResponsableAseq) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(a.equObservacionAseq) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyEquasimdasignequipo> searchByText(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
 }
