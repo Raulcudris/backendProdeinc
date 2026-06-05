@@ -1,6 +1,6 @@
 spring:
   application:
-    name: msvc-documentos-obra
+    name: msvc-proveedores
 
   jackson:
     serialization:
