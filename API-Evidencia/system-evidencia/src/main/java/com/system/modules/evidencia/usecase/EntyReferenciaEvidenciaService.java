@@ -1,98 +1,285 @@
 package com.system.modules.evidencia.usecase;
+import javax.annotation.PostConstruct;
+
+import com.system.modules.evidencia.dataproviders.jpa.JpaReferenciaEvidenciaDataProviders;
+import com.system.modules.evidencia.services.UseCase;
+import com.system.modules.evidencia.services.UsecaseServices;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.system.crosscutting.domain.model.EntyEvirefmdreferenciaDto;
+import com.system.crosscutting.domain.model.EntyEvirefmdreferenciaResponse;
+import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyEvirefmdreferencia;
+import com.system.crosscutting.persistence.repository.EntyEvievimaevidenciaRepository;
 import com.system.crosscutting.persistence.repository.EntyEvirefmdreferenciaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
+@UseCase
+public class EntyReferenciaEvidenciaService extends UsecaseServices<EntyEvirefmdreferenciaDto, JpaReferenciaEvidenciaDataProviders> {
 
-/**
- * Caso de uso para gestionar referencias de evidencias hacia otras entidades del sistema.
- */
-@Service
-@RequiredArgsConstructor
-public class EntyReferenciaEvidenciaService {
+    @Autowired
+    private JpaReferenciaEvidenciaDataProviders jpaDataProviders;
 
-    private final EntyEvirefmdreferenciaRepository repository;
-    private final Translator<EntyEvirefmdreferencia, EntyEvirefmdreferenciaDto> entityToDtoTranslate;
-    private final Translator<EntyEvirefmdreferenciaDto, EntyEvirefmdreferencia> dtoToEntityTranslate;
+    @Autowired
+    private EntyEvirefmdreferenciaRepository repository;
 
-    /**
-     * Consulta todas las referencias de evidencias registradas.
-     *
-     * @return lista de referencias.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyEvirefmdreferenciaDto> findAll() throws EBusinessException {
-        List<EntyEvirefmdreferenciaDto> result = new ArrayList<>();
+    @Autowired
+    private EntyEvievimaevidenciaRepository evidenciaRepository;
 
-        for (EntyEvirefmdreferencia entity : repository.findAll()) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    @PostConstruct
+    public void init() {
+        this.ijpaDataProvider = jpaDataProviders;
     }
 
-    /**
-     * Consulta referencias asociadas a una evidencia.
-     *
-     * @param evidenciaKey identificador funcional de la evidencia.
-     * @return lista de referencias asociadas a la evidencia.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyEvirefmdreferenciaDto> findByEvidencia(final String evidenciaKey) throws EBusinessException {
-        List<EntyEvirefmdreferenciaDto> result = new ArrayList<>();
-
-        for (EntyEvirefmdreferencia entity : repository.findByEviIdentifkeyEvid(evidenciaKey)) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    public EntyEvirefmdreferenciaResponse getAll(
+            int currentPage,
+            int pageSize,
+            String parameter,
+            String filter
+    ) throws EBusinessException {
+        return this.jpaDataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
-    /**
-     * Consulta referencias por tipo y código del registro referenciado.
-     *
-     * @param tipoReferencia tipo de referencia.
-     * @param referenciaId código del registro referenciado.
-     * @return lista de referencias encontradas.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyEvirefmdreferenciaDto> findByReferencia(final String tipoReferencia, final String referenciaId) throws EBusinessException {
-        List<EntyEvirefmdreferenciaDto> result = new ArrayList<>();
+    public EntyEvirefmdreferenciaResponse getByEvidencia(
+            int currentPage,
+            int pageSize,
+            String evidenciaKey
+    ) throws EBusinessException {
 
-        for (EntyEvirefmdreferencia entity : repository.findByEviTiporeferenEvreAndEviReferenciaidEvre(tipoReferencia, referenciaId)) {
-            result.add(entityToDtoTranslate.translate(entity));
+        if (evidenciaKey == null || evidenciaKey.isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        return result;
+        return this.jpaDataProviders.getByEvidencia(currentPage, pageSize, evidenciaKey);
     }
 
-    /**
-     * Guarda una referencia de evidencia.
-     *
-     * @param dto información de la referencia de evidencia.
-     * @return referencia de evidencia guardada.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public EntyEvirefmdreferenciaDto save(final EntyEvirefmdreferenciaDto dto) throws EBusinessException {
-        EntyEvirefmdreferencia entity = dtoToEntityTranslate.translate(dto);
+    public EntyEvirefmdreferenciaResponse getByReferencia(
+            int currentPage,
+            int pageSize,
+            String tipoReferencia,
+            String referenciaId
+    ) throws EBusinessException {
 
-        if (entity.getEviEstadoregEvre() == null || entity.getEviEstadoregEvre().isBlank()) {
-            entity.setEviEstadoregEvre("1");
+        if (tipoReferencia == null || tipoReferencia.isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de referencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        EntyEvirefmdreferencia saved = repository.save(entity);
-        return entityToDtoTranslate.translate(saved);
+        if (referenciaId == null || referenciaId.isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El identificador de referencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        return this.jpaDataProviders.getByReferencia(
+                currentPage,
+                pageSize,
+                tipoReferencia,
+                referenciaId
+        );
+    }
+
+    public EntyEvirefmdreferenciaDto saveBefore(
+            EntyEvirefmdreferenciaDto dto
+    ) throws EBusinessException {
+
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La referencia de evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviIdentifkeyEvre() == null || dto.getEviIdentifkeyEvre().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código funcional de la referencia de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviIdentifkeyEvid() == null || dto.getEviIdentifkeyEvid().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviTiporeferenEvre() == null || dto.getEviTiporeferenEvre().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de referencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviReferenciaidEvre() == null || dto.getEviReferenciaidEvre().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El identificador del registro referenciado es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (repository.findByEviIdentifkeyEvre(dto.getEviIdentifkeyEvre()).isPresent()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("Ya existe una referencia de evidencia con el código "
+                            + dto.getEviIdentifkeyEvre())
+                    .withCode("409")
+                    .buildBusinessException();
+        }
+
+        if (evidenciaRepository.findByEviIdentifkeyEvid(dto.getEviIdentifkeyEvid()).isEmpty()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("No existe la evidencia con el código "
+                            + dto.getEviIdentifkeyEvid())
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        validarTipoReferencia(dto.getEviTiporeferenEvre());
+
+        if (dto.getEviEstadoregEvre() == null || dto.getEviEstadoregEvre().isBlank()) {
+            dto.setEviEstadoregEvre("1");
+        }
+
+        return this.jpaDataProviders.save(dto);
+    }
+
+    public EntyEvirefmdreferenciaDto updateBefore(
+            Integer id,
+            EntyEvirefmdreferenciaDto dto
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la referencia de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La información de la referencia de evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviIdentifkeyEvid() == null || dto.getEviIdentifkeyEvid().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (evidenciaRepository.findByEviIdentifkeyEvid(dto.getEviIdentifkeyEvid()).isEmpty()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("No existe la evidencia con el código "
+                            + dto.getEviIdentifkeyEvid())
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviTiporeferenEvre() == null || dto.getEviTiporeferenEvre().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de referencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviReferenciaidEvre() == null || dto.getEviReferenciaidEvre().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El identificador del registro referenciado es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        validarTipoReferencia(dto.getEviTiporeferenEvre());
+
+        if (dto.getEviEstadoregEvre() == null || dto.getEviEstadoregEvre().isBlank()) {
+            dto.setEviEstadoregEvre("1");
+        }
+
+        return this.jpaDataProviders.update(id, dto);
+    }
+
+    public String changestatus(
+            Integer id,
+            String estado
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la referencia de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyEvirefmdreferenciaDto referencia = this.jpaDataProviders.get(id);
+
+        if (referencia.getEviPrimarykeyEvre() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La referencia de evidencia no fue encontrada")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        String nextStatus;
+
+        if ("1".equals(estado) || "2".equals(estado)) {
+            nextStatus = estado;
+        } else {
+            nextStatus = "2";
+        }
+
+        referencia.setEviEstadoregEvre(nextStatus);
+
+        this.jpaDataProviders.update(id, referencia);
+
+        return "OK";
+    }
+
+    public String deleteBefore(Integer id) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la referencia de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyEvirefmdreferenciaDto referencia = this.jpaDataProviders.get(id);
+
+        if (referencia.getEviPrimarykeyEvre() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La referencia de evidencia no fue encontrada")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        referencia.setEviEstadoregEvre("2");
+
+        this.jpaDataProviders.update(id, referencia);
+
+        return "OK";
+    }
+
+    private void validarTipoReferencia(String tipoReferencia) throws EBusinessException {
+        if ("ORDEN_SERVICIO".equals(tipoReferencia)
+                || "PLAN_TRABAJO".equals(tipoReferencia)
+                || "REPORTE_DIARIO".equals(tipoReferencia)
+                || "NOVEDAD".equals(tipoReferencia)
+                || "DOCUMENTO".equals(tipoReferencia)
+                || "EQUIPO".equals(tipoReferencia)
+                || "SITIO_TRABAJO".equals(tipoReferencia)) {
+            return;
+        }
+
+        throw ExceptionBuilder.builder()
+                .withMessage("El tipo de referencia debe ser ORDEN_SERVICIO, PLAN_TRABAJO, REPORTE_DIARIO, NOVEDAD, DOCUMENTO, EQUIPO o SITIO_TRABAJO")
+                .withCode("400")
+                .buildBusinessException();
     }
 }

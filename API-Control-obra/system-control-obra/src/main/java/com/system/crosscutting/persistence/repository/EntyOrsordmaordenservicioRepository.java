@@ -1,14 +1,16 @@
 package com.system.crosscutting.persistence.repository;
+
+import java.time.LocalDate;
 import java.util.Optional;
+
 import com.system.crosscutting.persistence.entity.EntyOrsordmaordenservicio;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface EntyOrsordmaordenservicioRepository
         extends JpaRepository<EntyOrsordmaordenservicio, Integer> {
 
@@ -25,6 +27,29 @@ public interface EntyOrsordmaordenservicioRepository
             "WHERE LOWER(o.orsIdentifkeyOrde) LIKE LOWER(CONCAT('%', :filter, '%'))")
     Page<EntyOrsordmaordenservicio> searchByIdentifKey(
             @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT o FROM EntyOrsordmaordenservicio o " +
+            "WHERE LOWER(o.prvIdentifkeyMprv) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyOrsordmaordenservicio> searchByProveedor(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT o FROM EntyOrsordmaordenservicio o " +
+            "WHERE o.orsAutorifechaOrde BETWEEN :fechaInicio AND :fechaFin")
+    Page<EntyOrsordmaordenservicio> searchByFechaAutorizacionBetween(
+            @Param("fechaInicio") LocalDate fechaInicio,
+            @Param("fechaFin") LocalDate fechaFin,
+            Pageable pageable
+    );
+
+    @Query("SELECT o FROM EntyOrsordmaordenservicio o " +
+            "WHERE o.orsPlanfechiniOrde BETWEEN :fechaInicio AND :fechaFin")
+    Page<EntyOrsordmaordenservicio> searchByFechaInicioPlanBetween(
+            @Param("fechaInicio") LocalDate fechaInicio,
+            @Param("fechaFin") LocalDate fechaFin,
             Pageable pageable
     );
 

@@ -1,62 +1,87 @@
 package com.system.modules.evidencia.api;
-
-
-import com.system.crosscutting.domain.model.EntyEvievimaevidenciaDto;
-import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaDto;
-import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.evidencia.usecase.EntyEvidenciaService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.system.crosscutting.domain.constants.ApiConstants;
+import com.system.crosscutting.domain.model.EntyEvievimaevidenciaDto;
+import com.system.crosscutting.domain.model.EntyEvievimaevidenciaResponse;
+import com.system.crosscutting.exceptions.MicroEventException;
+import com.system.crosscutting.exceptions.Main.EBusinessException;
 
-/**
- * Controlador REST para consultar evidencias.
- */
+
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequiredArgsConstructor
+@RequestMapping(
+        value = "/api/evidencias/evidencias",
+        produces = {MediaType.APPLICATION_JSON_VALUE}
+)
 public class EntyEvidenciaWebApi {
+
     private final EntyEvidenciaService service;
 
-    /**
-     * Consulta todas las evidencias registradas.
-     *
-     * @return listado de evidencias.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @GetMapping("/api/evidencias/pages")
-    public ResponseEntity<List<EntyEvievimaevidenciaDto>> findAll() throws EBusinessException {
-        return ResponseEntity.ok(service.findAll());
+    @GetMapping("pages")
+    @ApiOperation(httpMethod = ApiConstants.GET_HTTP, value = ApiConstants.GET_ALL_DESC, notes = "")
+    public ResponseEntity<EntyEvievimaevidenciaResponse> getAll(
+            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
+            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
+            @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
+            @RequestParam(value = "filter", required = false, defaultValue = "") String filter
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.getAll(currentPage, pageSize, parameter, filter),
+                HttpStatus.OK
+        );
     }
 
-    /**
-     * Consulta evidencias por tipo.
-     *
-     * @param tipoEvidenciaKey identificador funcional del tipo de evidencia.
-     * @return listado de evidencias encontradas.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @GetMapping("/api/evidencias/by-tipo")
-    public ResponseEntity<List<EntyEvievimaevidenciaDto>> findByTipoEvidencia(@RequestParam final String tipoEvidenciaKey) throws EBusinessException {
-        return ResponseEntity.ok(service.findByTipoEvidencia(tipoEvidenciaKey));
+    @PostMapping("create")
+    @ApiOperation(httpMethod = ApiConstants.POST_HTTP, value = ApiConstants.POST_DESC, notes = "")
+    public ResponseEntity<EntyEvievimaevidenciaDto> create(
+            @RequestBody EntyEvievimaevidenciaDto dto
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.saveBefore(dto),
+                HttpStatus.CREATED
+        );
     }
 
-    /**
-     * Consulta evidencias por usuario creador.
-     *
-     * @param usuarioCrea usuario que registró la evidencia.
-     * @return listado de evidencias encontradas.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @GetMapping("/api/evidencias/by-usuario")
-    public ResponseEntity<List<EntyEvievimaevidenciaDto>> findByUsuarioCrea(@RequestParam final String usuarioCrea) throws EBusinessException {
-        return ResponseEntity.ok(service.findByUsuarioCrea(usuarioCrea));
+    @PutMapping("update/{id}")
+    @ApiOperation(httpMethod = ApiConstants.PUT_HTTP, value = ApiConstants.PUT_DESC, notes = "")
+    public ResponseEntity<EntyEvievimaevidenciaDto> update(
+            @PathVariable Integer id,
+            @RequestBody EntyEvievimaevidenciaDto dto
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.updateBefore(id, dto),
+                HttpStatus.OK
+        );
     }
 
-    @PostMapping("/api/evidencias/create")
-    public ResponseEntity<EntyEvievimaevidenciaDto> create(@RequestBody final EntyEvievimaevidenciaDto dto) throws EBusinessException {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(dto));
+    @PatchMapping("changestatus/{id}")
+    @ApiOperation(httpMethod = ApiConstants.PATCH_HTTP, value = ApiConstants.PATCH_DESC, notes = "")
+    public ResponseEntity<String> changestatus(
+            @PathVariable Integer id,
+            @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.changestatus(id, estado),
+                HttpStatus.OK
+        );
+    }
+
+    @DeleteMapping("delete/{id}")
+    @ApiOperation(httpMethod = ApiConstants.DELETE_HTTP, value = ApiConstants.DELETE_DESC, notes = "")
+    public ResponseEntity<String> delete(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.deleteBefore(id),
+                HttpStatus.OK
+        );
     }
 }

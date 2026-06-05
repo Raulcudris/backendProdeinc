@@ -1,45 +1,92 @@
 package com.system.crosscutting.utils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
+import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.system.crosscutting.domain.adapter.HibernateProxyTypeAdapter;
-import lombok.experimental.UtilityClass;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
 
-@UtilityClass
-public class GsonUtil {
+public final class GsonUtil {
+
+    private static final DateTimeFormatter LOCAL_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    private static final DateTimeFormatter LOCAL_DATE_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private GsonUtil() {
+    }
+
     public static Gson getGson() {
-        return getGson("MMM dd, yyyy HH:mm:ss", true);
+        return createGson(false);
     }
 
-    public static Gson getGson(boolean exclude) {
-        return getGson("MMM dd, yyyy HH:mm:ss", exclude);
+    public static Gson getGson(boolean prettyPrinting) {
+        return createGson(prettyPrinting);
     }
 
-    public static Gson getGson(String format, boolean exclude) {
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder
-                .registerTypeAdapterFactory(HibernateProxyTypeAdapter.FACTORY)
-                .setDateFormat(format)
-                .serializeNulls();
+    private static Gson createGson(boolean prettyPrinting) {
+        GsonBuilder builder = new GsonBuilder()
+                .registerTypeAdapter(LocalDate.class, localDateSerializer())
+                .registerTypeAdapter(LocalDate.class, localDateDeserializer())
+                .registerTypeAdapter(LocalDateTime.class, localDateTimeSerializer())
+                .registerTypeAdapter(LocalDateTime.class, localDateTimeDeserializer());
 
-        if (exclude) {
-            gsonBuilder.setExclusionStrategies(new ExclusionStrategy() {
-                @Override
-                public boolean shouldSkipClass(Class<?> clazz) {
-                    return (null != clazz.getAnnotation(JsonIgnore.class));
-                }
-
-                @Override
-                public boolean shouldSkipField(FieldAttributes f) {
-                    return (null != f.getAnnotation(JsonIgnore.class));
-                }
-            });
+        if (prettyPrinting) {
+            builder.setPrettyPrinting();
         }
 
-        return gsonBuilder.create();
+        return builder.create();
     }
 
+    private static JsonSerializer<LocalDate> localDateSerializer() {
+        return (LocalDate src, Type typeOfSrc, com.google.gson.JsonSerializationContext context) -> {
+            if (src == null) {
+                return null;
+            }
+
+            return new JsonPrimitive(src.format(LOCAL_DATE_FORMATTER));
+        };
+    }
+
+    private static JsonDeserializer<LocalDate> localDateDeserializer() {
+        return (json, typeOfT, context) -> {
+            if (json == null || json.isJsonNull()) {
+                return null;
+            }
+
+            return LocalDate.parse(json.getAsString(), LOCAL_DATE_FORMATTER);
+        };
+    }
+
+    private static JsonSerializer<LocalDateTime> localDateTimeSerializer() {
+        return (LocalDateTime src, Type typeOfSrc, com.google.gson.JsonSerializationContext context) -> {
+            if (src == null) {
+                return null;
+            }
+
+            return new JsonPrimitive(src.format(LOCAL_DATE_TIME_FORMATTER));
+        };
+    }
+
+    private static JsonDeserializer<LocalDateTime> localDateTimeDeserializer() {
+        return (json, typeOfT, context) -> {
+            if (json == null || json.isJsonNull()) {
+                return null;
+            }
+
+            String value = json.getAsString();
+
+            if (value.length() == 10) {
+                return LocalDate.parse(value, LOCAL_DATE_FORMATTER).atStartOfDay();
+            }
+
+            return LocalDateTime.parse(value, LOCAL_DATE_TIME_FORMATTER);
+        };
+    }
 }

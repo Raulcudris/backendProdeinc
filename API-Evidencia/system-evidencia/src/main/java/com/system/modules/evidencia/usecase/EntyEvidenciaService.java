@@ -1,100 +1,230 @@
 package com.system.modules.evidencia.usecase;
-import com.system.crosscutting.domain.model.EntyEvievimaevidenciaDto;
-import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyEvievimaevidencia;
-import com.system.crosscutting.persistence.repository.EntyEvievimaevidenciaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Caso de uso para gestionar evidencias del sistema.
- */
-@Service
-@RequiredArgsConstructor
-public class EntyEvidenciaService {
+import javax.annotation.PostConstruct;
 
-    private final EntyEvievimaevidenciaRepository repository;
-    private final Translator<EntyEvievimaevidencia, EntyEvievimaevidenciaDto> entityToDtoTranslate;
-    private final Translator<EntyEvievimaevidenciaDto, EntyEvievimaevidencia> dtoToEntityTranslate;
+import com.system.modules.evidencia.dataproviders.jpa.JpaEvidenciaDataProviders;
+import com.system.modules.evidencia.services.UseCase;
+import com.system.modules.evidencia.services.UsecaseServices;
+import org.springframework.beans.factory.annotation.Autowired;
 
-    /**
-     * Consulta todas las evidencias registradas.
-     *
-     * @return lista de evidencias.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyEvievimaevidenciaDto> findAll() throws EBusinessException {
-        List<EntyEvievimaevidenciaDto> result = new ArrayList<>();
+import com.system.crosscutting.domain.model.EntyEvievimaevidenciaDto;
+import com.system.crosscutting.domain.model.EntyEvievimaevidenciaResponse;
+import com.system.crosscutting.exceptions.ExceptionBuilder;
+import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.crosscutting.persistence.repository.EntyEvievimaevidenciaRepository;
+import com.system.crosscutting.persistence.repository.EntyEvitipmatipoevidenciaRepository;
 
-        for (EntyEvievimaevidencia entity : repository.findAll()) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
+@UseCase
+public class EntyEvidenciaService
+        extends UsecaseServices<EntyEvievimaevidenciaDto, JpaEvidenciaDataProviders> {
 
-        return result;
+    @Autowired
+    private JpaEvidenciaDataProviders jpaDataProviders;
+
+    @Autowired
+    private EntyEvievimaevidenciaRepository repository;
+
+    @Autowired
+    private EntyEvitipmatipoevidenciaRepository tipoEvidenciaRepository;
+
+    @PostConstruct
+    public void init() {
+        this.ijpaDataProvider = jpaDataProviders;
     }
 
-    /**
-     * Consulta evidencias por tipo.
-     *
-     * @param tipoEvidenciaKey identificador funcional del tipo de evidencia.
-     * @return lista de evidencias encontradas.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyEvievimaevidenciaDto> findByTipoEvidencia(final String tipoEvidenciaKey) throws EBusinessException {
-        List<EntyEvievimaevidenciaDto> result = new ArrayList<>();
-
-        for (EntyEvievimaevidencia entity : repository.findByEviIdentifkeyTiev(tipoEvidenciaKey)) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    public EntyEvievimaevidenciaResponse getAll(
+            int currentPage,
+            int pageSize,
+            String parameter,
+            String filter
+    ) throws EBusinessException {
+        return this.jpaDataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
-    /**
-     * Consulta evidencias por usuario creador.
-     *
-     * @param usuarioCrea usuario que registró la evidencia.
-     * @return lista de evidencias encontradas.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyEvievimaevidenciaDto> findByUsuarioCrea(final String usuarioCrea) throws EBusinessException {
-        List<EntyEvievimaevidenciaDto> result = new ArrayList<>();
+    public EntyEvievimaevidenciaDto saveBefore(
+            EntyEvievimaevidenciaDto dto
+    ) throws EBusinessException {
 
-        for (EntyEvievimaevidencia entity : repository.findByEviUsuariocreaEvid(usuarioCrea)) {
-            result.add(entityToDtoTranslate.translate(entity));
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        return result;
+        if (dto.getEviIdentifkeyEvid() == null || dto.getEviIdentifkeyEvid().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código funcional de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviIdentifkeyTiev() == null || dto.getEviIdentifkeyTiev().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviNombreEvid() == null || dto.getEviNombreEvid().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El nombre de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviUrlarchivoEvid() == null || dto.getEviUrlarchivoEvid().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La URL o ruta del archivo de evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (repository.findByEviIdentifkeyEvid(dto.getEviIdentifkeyEvid()).isPresent()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("Ya existe una evidencia con el código "
+                            + dto.getEviIdentifkeyEvid())
+                    .withCode("409")
+                    .buildBusinessException();
+        }
+
+        if (tipoEvidenciaRepository.findByEviIdentifkeyTiev(dto.getEviIdentifkeyTiev()).isEmpty()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("No existe el tipo de evidencia con el código "
+                            + dto.getEviIdentifkeyTiev())
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviFechacapturaEvid() == null) {
+            dto.setEviFechacapturaEvid(LocalDateTime.now());
+        }
+
+        if (dto.getEviEstadoregEvid() == null || dto.getEviEstadoregEvid().isBlank()) {
+            dto.setEviEstadoregEvid("1");
+        }
+
+        return this.jpaDataProviders.save(dto);
     }
 
-    /**
-     * Guarda una evidencia.
-     *
-     * @param dto información de la evidencia.
-     * @return evidencia guardada.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public EntyEvievimaevidenciaDto save(final EntyEvievimaevidenciaDto dto) throws EBusinessException {
-        EntyEvievimaevidencia entity = dtoToEntityTranslate.translate(dto);
+    public EntyEvievimaevidenciaDto updateBefore(
+            Integer id,
+            EntyEvievimaevidenciaDto dto
+    ) throws EBusinessException {
 
-        if (entity.getEviFechacapturaEvid() == null) {
-            entity.setEviFechacapturaEvid(LocalDateTime.now());
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        if (entity.getEviEstadoregEvid() == null || entity.getEviEstadoregEvid().isBlank()) {
-            entity.setEviEstadoregEvid("1");
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La información de la evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        EntyEvievimaevidencia saved = repository.save(entity);
-        return entityToDtoTranslate.translate(saved);
+        if (dto.getEviIdentifkeyTiev() == null || dto.getEviIdentifkeyTiev().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (tipoEvidenciaRepository.findByEviIdentifkeyTiev(dto.getEviIdentifkeyTiev()).isEmpty()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("No existe el tipo de evidencia con el código "
+                            + dto.getEviIdentifkeyTiev())
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviNombreEvid() == null || dto.getEviNombreEvid().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El nombre de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviUrlarchivoEvid() == null || dto.getEviUrlarchivoEvid().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La URL o ruta del archivo de evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviFechacapturaEvid() == null) {
+            dto.setEviFechacapturaEvid(LocalDateTime.now());
+        }
+
+        if (dto.getEviEstadoregEvid() == null || dto.getEviEstadoregEvid().isBlank()) {
+            dto.setEviEstadoregEvid("1");
+        }
+
+        return this.jpaDataProviders.update(id, dto);
+    }
+
+    public String changestatus(
+            Integer id,
+            String estado
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyEvievimaevidenciaDto evidencia = this.jpaDataProviders.get(id);
+
+        if (evidencia.getEviPrimarykeyEvid() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La evidencia no fue encontrada")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        String nextStatus;
+
+        if ("1".equals(estado) || "2".equals(estado)) {
+            nextStatus = estado;
+        } else {
+            nextStatus = "2";
+        }
+
+        evidencia.setEviEstadoregEvid(nextStatus);
+
+        this.jpaDataProviders.update(id, evidencia);
+
+        return "OK";
+    }
+
+    public String deleteBefore(Integer id) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id de la evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyEvievimaevidenciaDto evidencia = this.jpaDataProviders.get(id);
+
+        if (evidencia.getEviPrimarykeyEvid() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La evidencia no fue encontrada")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        evidencia.setEviEstadoregEvid("2");
+
+        this.jpaDataProviders.update(id, evidencia);
+
+        return "OK";
     }
 }

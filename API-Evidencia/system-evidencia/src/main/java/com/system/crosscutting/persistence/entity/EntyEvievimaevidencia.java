@@ -1,4 +1,5 @@
 package com.system.crosscutting.persistence.entity;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,7 +76,7 @@ public class EntyEvievimaevidencia {
      * Fecha y hora de captura de la evidencia.
      */
     @Column(name = "EVI_FECHACAPTURA_EVID")
-    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eviFechacapturaEvid;
 
     /**

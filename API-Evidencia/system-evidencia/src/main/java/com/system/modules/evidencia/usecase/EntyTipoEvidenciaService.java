@@ -1,59 +1,173 @@
 package com.system.modules.evidencia.usecase;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaDto;
+import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaResponse;
+import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyEvitipmatipoevidencia;
 import com.system.crosscutting.persistence.repository.EntyEvitipmatipoevidenciaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
+import com.system.modules.evidencia.dataproviders.jpa.JpaTipoEvidenciaDataProviders;
+import com.system.modules.evidencia.services.UseCase;
+import com.system.modules.evidencia.services.UsecaseServices;
 
-/**
- * Caso de uso para gestionar tipos de evidencia.
- */
-@Service
-@RequiredArgsConstructor
-public class EntyTipoEvidenciaService {
+@UseCase
+public class EntyTipoEvidenciaService
+        extends UsecaseServices<EntyEvitipmatipoevidenciaDto, JpaTipoEvidenciaDataProviders> {
 
-    private final EntyEvitipmatipoevidenciaRepository repository;
-    private final Translator<EntyEvitipmatipoevidencia, EntyEvitipmatipoevidenciaDto> entityToDtoTranslate;
-    private final Translator<EntyEvitipmatipoevidenciaDto, EntyEvitipmatipoevidencia> dtoToEntityTranslate;
+    @Autowired
+    private JpaTipoEvidenciaDataProviders jpaDataProviders;
 
-    /**
-     * Consulta todos los tipos de evidencia registrados.
-     *
-     * @return lista de tipos de evidencia.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public List<EntyEvitipmatipoevidenciaDto> findAll() throws EBusinessException {
-        List<EntyEvitipmatipoevidenciaDto> result = new ArrayList<>();
+    @Autowired
+    private EntyEvitipmatipoevidenciaRepository repository;
 
-        for (EntyEvitipmatipoevidencia entity : repository.findAll()) {
-            result.add(entityToDtoTranslate.translate(entity));
-        }
-
-        return result;
+    @PostConstruct
+    public void init() {
+        this.ijpaDataProvider = jpaDataProviders;
     }
 
-    /**
-     * Guarda un tipo de evidencia.
-     *
-     * @param dto información del tipo de evidencia.
-     * @return tipo de evidencia guardado.
-     * @throws EBusinessException excepción de negocio controlada.
-     */
-    @Transactional
-    public EntyEvitipmatipoevidenciaDto save(final EntyEvitipmatipoevidenciaDto dto) throws EBusinessException {
-        EntyEvitipmatipoevidencia entity = dtoToEntityTranslate.translate(dto);
+    public EntyEvitipmatipoevidenciaResponse getAll(
+            int currentPage,
+            int pageSize,
+            String parameter,
+            String filter
+    ) throws EBusinessException {
+        return this.jpaDataProviders.getAll(currentPage, pageSize, parameter, filter);
+    }
 
-        if (entity.getEviEstadoregTiev() == null || entity.getEviEstadoregTiev().isBlank()) {
-            entity.setEviEstadoregTiev("1");
+    public EntyEvitipmatipoevidenciaDto saveBefore(
+            EntyEvitipmatipoevidenciaDto dto
+    ) throws EBusinessException {
+
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
         }
 
-        EntyEvitipmatipoevidencia saved = repository.save(entity);
-        return entityToDtoTranslate.translate(saved);
+        if (dto.getEviIdentifkeyTiev() == null || dto.getEviIdentifkeyTiev().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El código funcional del tipo de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviDescripcionTiev() == null || dto.getEviDescripcionTiev().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La descripción del tipo de evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (repository.findByEviIdentifkeyTiev(dto.getEviIdentifkeyTiev()).isPresent()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("Ya existe un tipo de evidencia con el código "
+                            + dto.getEviIdentifkeyTiev())
+                    .withCode("409")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviEstadoregTiev() == null || dto.getEviEstadoregTiev().isBlank()) {
+            dto.setEviEstadoregTiev("1");
+        }
+
+        return this.jpaDataProviders.save(dto);
+    }
+
+    public EntyEvitipmatipoevidenciaDto updateBefore(
+            Integer id,
+            EntyEvitipmatipoevidenciaDto dto
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del tipo de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La información del tipo de evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviDescripcionTiev() == null || dto.getEviDescripcionTiev().isBlank()) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("La descripción del tipo de evidencia es obligatoria")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        if (dto.getEviEstadoregTiev() == null || dto.getEviEstadoregTiev().isBlank()) {
+            dto.setEviEstadoregTiev("1");
+        }
+
+        return this.jpaDataProviders.update(id, dto);
+    }
+
+    public String changestatus(
+            Integer id,
+            String estado
+    ) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del tipo de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyEvitipmatipoevidenciaDto tipo = this.jpaDataProviders.get(id);
+
+        if (tipo.getEviPrimarykeyTiev() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de evidencia no fue encontrado")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        String nextStatus;
+
+        if ("1".equals(estado) || "2".equals(estado)) {
+            nextStatus = estado;
+        } else {
+            nextStatus = "2";
+        }
+
+        tipo.setEviEstadoregTiev(nextStatus);
+
+        this.jpaDataProviders.update(id, tipo);
+
+        return "OK";
+    }
+
+    public String deleteBefore(Integer id) throws EBusinessException {
+
+        if (id == null || id <= 0) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El id del tipo de evidencia es obligatorio")
+                    .withCode("400")
+                    .buildBusinessException();
+        }
+
+        EntyEvitipmatipoevidenciaDto tipo = this.jpaDataProviders.get(id);
+
+        if (tipo.getEviPrimarykeyTiev() == null) {
+            throw ExceptionBuilder.builder()
+                    .withMessage("El tipo de evidencia no fue encontrado")
+                    .withCode("404")
+                    .buildBusinessException();
+        }
+
+        tipo.setEviEstadoregTiev("2");
+
+        this.jpaDataProviders.update(id, tipo);
+
+        return "OK";
     }
 }
