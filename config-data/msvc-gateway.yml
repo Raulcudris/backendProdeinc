@@ -7,6 +7,7 @@ eureka:
     register-with-eureka: false
     service-url:
       defaultZone: http://localhost:8761/eureka
+
   instance:
     hostname: localhost
 
@@ -37,3 +38,28 @@ spring:
           uri: lb://msvc-evidencias
           predicates:
             - Path=/api/evidencias/**
+
+        - id: msvc-proveedores
+          uri: lb://msvc-proveedores
+          predicates:
+            - Path=/api/proveedores/**
+
+        - id: msvc-usuarios-obra
+          uri: lb://msvc-usuarios-obra
+          predicates:
+            - Path=/api/usuarios-obra/**
+
+        - id: msvc-notificaciones-obra
+          uri: lb://msvc-notificaciones-obra
+          predicates:
+            - Path=/api/notificaciones-obra/**
+
+        - id: msvc-reportes-obra
+          uri: lb://msvc-reportes-obra
+          predicates:
+            - Path=/api/reportes-obra/**
+
+        - id: msvc-catalogos-obra
+          uri: lb://msvc-catalogos-obra
+          predicates:
+            - Path=/api/catalogos-obra/**

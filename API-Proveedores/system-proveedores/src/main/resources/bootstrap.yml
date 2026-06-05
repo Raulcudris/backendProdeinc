@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: msvc-documentos-obra
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  cloud:
+    config:
+      enabled: true
+      uri: http://localhost:8089
+      fail-fast: true
+      retry:
+        max-attempts: 2
+        multiplier: 1.2
+        initial-interval: 300
+
+  datasource:
+    db-ebusiness:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3306/db_prodeinc_obras
+      password: root
+      username: root
+      hikari:
+        minimum-idle: 1
+        maximum-pool-size: 8
+        idle-timeout: 3000
+        connection-timeout: 5000
+        max-lifetime: 600000
