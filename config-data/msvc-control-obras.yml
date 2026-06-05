@@ -25,6 +25,10 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: ${JPA_FORMAT_SQL:false}
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
 eureka:
   client:
     enabled: ${EUREKA_ENABLED:true}
@@ -35,9 +39,9 @@ eureka:
 
   instance:
     prefer-ip-address: true
-    hostname: ${EUREKA_INSTANCE_HOSTNAME:msvc-control-obras}
-    instance-id: ${spring.application.name}:${server.port:${SERVER_PORT:6091}}
-    non-secure-port: ${SERVER_PORT:6091}
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    instance-id: ${spring.application.name}:${server.port}
+    non-secure-port: ${server.port}
 
 management:
   endpoints:

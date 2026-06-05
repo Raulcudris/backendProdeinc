@@ -9,7 +9,7 @@ spring:
     password: ${DB_PASSWORD:root}
 
     hikari:
-      pool-name: HikariPool-ControlObras
+      pool-name: HikariPool-NotificacionesObra
       maximum-pool-size: ${DB_POOL_MAX_SIZE:5}
       minimum-idle: ${DB_POOL_MIN_IDLE:1}
       connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT:30000}
@@ -25,6 +25,10 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: ${JPA_FORMAT_SQL:false}
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
 eureka:
   client:
     enabled: ${EUREKA_ENABLED:true}
@@ -35,9 +39,9 @@ eureka:
 
   instance:
     prefer-ip-address: true
-    hostname: ${EUREKA_INSTANCE_HOSTNAME:msvc-control-obras}
-    instance-id: ${spring.application.name}:${server.port:${SERVER_PORT:6091}}
-    non-secure-port: ${SERVER_PORT:6091}
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    instance-id: ${spring.application.name}:${server.port}
+    non-secure-port: ${server.port}
 
 management:
   endpoints:
@@ -55,5 +59,5 @@ management:
 logging:
   level:
     root: INFO
-    "[com.system.modules.controlobras]": DEBUG
+    "[com.system.modules.notificacionesobra]": DEBUG
     "[com.zaxxer.hikari]": INFO
