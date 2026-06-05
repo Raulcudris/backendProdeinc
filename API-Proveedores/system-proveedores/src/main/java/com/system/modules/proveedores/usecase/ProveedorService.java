@@ -174,7 +174,7 @@ public class ProveedorService {
         }
 
         old.setPrvIdentifkeyMprv(dto.getPrvIdentifkeyMprv());
-        old.setPrvNitMprv(dto.getPrvNitMprv());
+        old.setPrvNumeronitMprv(dto.getPrvNumeronitMprv());
         old.setPrvRazonsocialMprv(dto.getPrvRazonsocialMprv());
         old.setPrvNombrecomercialMprv(dto.getPrvNombrecomercialMprv());
         old.setPrvTipoproveedorMprv(dto.getPrvTipoproveedorMprv());

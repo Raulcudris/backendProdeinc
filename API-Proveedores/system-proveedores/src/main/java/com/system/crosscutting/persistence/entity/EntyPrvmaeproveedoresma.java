@@ -32,8 +32,8 @@ public class EntyPrvmaeproveedoresma implements Serializable {
     @Column(name = "PRV_IDENTIFKEY_MPRV", length = 20, nullable = false)
     private String prvIdentifkeyMprv;
 
-    @Column(name = "PRV_NIT_MPRV", length = 30)
-    private String prvNitMprv;
+    @Column(name = "PRV_NUMERONIT_MPRV", length = 30, nullable = false)
+    private String prvNumeronitMprv;
 
     @Column(name = "PRV_RAZONSOCIAL_MPRV", length = 200)
     private String prvRazonsocialMprv;

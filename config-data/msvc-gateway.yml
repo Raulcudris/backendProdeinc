@@ -43,23 +43,3 @@ spring:
           uri: lb://msvc-proveedores
           predicates:
             - Path=/api/proveedores/**
-
-        - id: msvc-usuarios-obra
-          uri: lb://msvc-usuarios-obra
-          predicates:
-            - Path=/api/usuarios-obra/**
-
-        - id: msvc-notificaciones-obra
-          uri: lb://msvc-notificaciones-obra
-          predicates:
-            - Path=/api/notificaciones-obra/**
-
-        - id: msvc-reportes-obra
-          uri: lb://msvc-reportes-obra
-          predicates:
-            - Path=/api/reportes-obra/**
-
-        - id: msvc-catalogos-obra
-          uri: lb://msvc-catalogos-obra
-          predicates:
-            - Path=/api/catalogos-obra/**

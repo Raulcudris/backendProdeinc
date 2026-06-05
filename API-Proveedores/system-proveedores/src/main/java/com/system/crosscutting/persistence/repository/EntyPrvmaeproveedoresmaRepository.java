@@ -26,7 +26,7 @@ public interface EntyPrvmaeproveedoresmaRepository
     );
 
     @Query("SELECT p FROM EntyPrvmaeproveedoresma p " +
-            "WHERE LOWER(p.prvNitMprv) LIKE LOWER(CONCAT('%', :filter, '%'))")
+            "WHERE LOWER(p.prvNumeronitMprv) LIKE LOWER(CONCAT('%', :filter, '%'))")
     Page<EntyPrvmaeproveedoresma> searchByNit(
             @Param("filter") String filter,
             Pageable pageable
@@ -47,7 +47,7 @@ public interface EntyPrvmaeproveedoresmaRepository
 
     @Query("SELECT p FROM EntyPrvmaeproveedoresma p " +
             "WHERE LOWER(p.prvIdentifkeyMprv) LIKE LOWER(CONCAT('%', :filter, '%')) " +
-            "OR LOWER(p.prvNitMprv) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(p.prvNumeronitMprv) LIKE LOWER(CONCAT('%', :filter, '%'))  " +
             "OR LOWER(p.prvRazonsocialMprv) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(p.prvNombrecomercialMprv) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(p.prvTipoproveedorMprv) LIKE LOWER(CONCAT('%', :filter, '%')) " +

@@ -15,7 +15,7 @@ public class EntyPrvmaeproveedoresmaDto {
 
     private String prvIdentifkeyMprv;
 
-    private String prvNitMprv;
+    private String prvNumeronitMprv;
 
     private String prvRazonsocialMprv;
 

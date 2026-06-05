@@ -14,10 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(
-        value = "/api/proveedores/proveedores",
-        produces = {MediaType.APPLICATION_JSON_VALUE}
-)
+@RequestMapping(value = "/api/proveedores/proveedores", produces = {MediaType.APPLICATION_JSON_VALUE})
 public class ProveedorWebApi {
 
     private final ProveedorService service;
