@@ -6,11 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
 
-import com.system.modules.controlobras.dataproviders.IjpaOrdenServicioDataProviders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,30 +14,20 @@ import org.springframework.data.domain.Pageable;
 
 import com.system.crosscutting.domain.model.EntyOrsordmaordenservicioDto;
 import com.system.crosscutting.domain.model.EntyOrsordmaordenservicioResponse;
-import com.system.crosscutting.domain.model.PaginationResponse;
 import com.system.crosscutting.exceptions.DataProvider;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.messages.SearchMessages;
-import com.system.crosscutting.patterns.Translator;
 import com.system.crosscutting.persistence.entity.EntyOrsordmaordenservicio;
 import com.system.crosscutting.persistence.repository.EntyOrsordmaordenservicioRepository;
+import com.system.modules.controlobras.dataproviders.IjpaOrdenServicioDataProviders;
+
+import lombok.RequiredArgsConstructor;
 
 @DataProvider
-public class JpaOrdenServicioDataProviders implements IjpaOrdenServicioDataProviders {
+@RequiredArgsConstructor
+public class JpaOrdenServicioDataProviders extends JpaDataProviderSupport
+        implements IjpaOrdenServicioDataProviders {
 
-    @Autowired
-    private EntyOrsordmaordenservicioRepository repository;
-
-    @Autowired
-    @Qualifier("entyOrsordmaordenservicioEntityToDtoTranslate")
-    private Translator<EntyOrsordmaordenservicio, EntyOrsordmaordenservicioDto> entityToDtoTranslate;
-
-    @Autowired
-    @Qualifier("entyOrsordmaordenservicioDtoToEntityTranslate")
-    private Translator<EntyOrsordmaordenservicioDto, EntyOrsordmaordenservicio> dtoToEntityTranslate;
-
-    private static final Logger logger = LogManager.getLogger(JpaOrdenServicioDataProviders.class);
+    private final EntyOrsordmaordenservicioRepository repository;
 
     @Override
     public EntyOrsordmaordenservicioResponse getAll() throws EBusinessException {
@@ -56,89 +42,50 @@ public class JpaOrdenServicioDataProviders implements IjpaOrdenServicioDataProvi
             String filter
     ) throws EBusinessException {
         try {
-            int safeCurrentPage = currentPage <= 0 ? 0 : currentPage - 1;
-            int safePageSize = pageSize <= 0 ? 10 : pageSize;
+            int pageNumber = safeCurrentPage(currentPage);
+            int size = safePageSize(pageSize);
+            String search = safeFilter(filter);
 
-            String safeParameter = parameter == null || parameter.trim().isEmpty()
-                    ? "TEXT"
-                    : parameter.trim().toUpperCase();
+            Pageable pageable = PageRequest.of(pageNumber, size);
+            Page<EntyOrsordmaordenservicio> page;
 
-            String safeFilter = filter == null ? "" : filter.trim();
-
-            Pageable pageable = PageRequest.of(safeCurrentPage, safePageSize);
-            Page<EntyOrsordmaordenservicio> responsePage;
-
-            if (safeFilter.isEmpty() && !"STATUS".equals(safeParameter)) {
-                responsePage = repository.findAll(pageable);
-            } else {
-                switch (safeParameter) {
-                    case "PKEY":
-                        try {
-                            Integer id = Integer.parseInt(safeFilter);
-                            responsePage = repository.searchByPrimaryKey(id, pageable);
-                        } catch (NumberFormatException e) {
-                            responsePage = repository.searchByPrimaryKey(-1, pageable);
-                        }
-                        break;
-
-                    case "REGKEY":
-                    case "IDENTIFKEY":
-                    case "ORDEN":
-                    case "ORDER":
-                        responsePage = repository.searchByIdentifKey(safeFilter, pageable);
-                        break;
-
-                    case "STATUS":
-                    case "ESTADO":
-                        if (safeFilter.isEmpty() || "ALL".equalsIgnoreCase(safeFilter)) {
-                            responsePage = repository.findAll(pageable);
-                        } else {
-                            responsePage = repository.searchByStatus(safeFilter, pageable);
-                        }
-                        break;
-
-                    case "TEXT":
-                    case "SEARCH":
-                    default:
-                        responsePage = repository.searchByText(safeFilter, pageable);
-                        break;
-                }
+            switch (safeParameter(parameter)) {
+                case "ID":
+                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
+                    break;
+                case "KEY":
+                    page = repository.searchByIdentifKey(search, pageable);
+                    break;
+                case "PROVEEDOR":
+                    page = repository.searchByProveedor(search, pageable);
+                    break;
+                case "CODIGO":
+                    page = repository.searchByCodigoServicio(search, pageable);
+                    break;
+                case "STATUS":
+                    page = repository.searchByStatus(search, pageable);
+                    break;
+                default:
+                    page = repository.searchByText(search, pageable);
+                    break;
             }
 
-            List<EntyOrsordmaordenservicioDto> content = responsePage.getContent()
+            List<EntyOrsordmaordenservicioDto> data = page.getContent()
                     .stream()
-                    .map(this::mapToDto)
+                    .map(entity -> toDto(entity, EntyOrsordmaordenservicioDto.class))
                     .collect(Collectors.toList());
 
             EntyOrsordmaordenservicioResponse response = new EntyOrsordmaordenservicioResponse();
-
             response.setRspMessage("OK");
             response.setRspValue("OK");
             response.setRspParentKey("NA");
-            response.setRspAppKey("NA");
-            response.setRspData(content);
-
-            response.setRspPagination(
-                    headResponse(
-                            safeCurrentPage + 1,
-                            safePageSize,
-                            responsePage.getTotalElements(),
-                            responsePage.getTotalPages(),
-                            responsePage.hasNext(),
-                            responsePage.hasPrevious(),
-                            "LocalHost",
-                            "LocalHost"
-                    )
-            );
+            response.setRspAppKey("msvc-control-obras");
+            response.setRspData(data);
+            response.setRspPagination(buildPagination(pageNumber + 1, size, page));
 
             return response;
-
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando órdenes de servicio", e);
         }
     }
 
@@ -146,19 +93,11 @@ public class JpaOrdenServicioDataProviders implements IjpaOrdenServicioDataProvi
     public EntyOrsordmaordenservicioDto get(Integer id) throws EBusinessException {
         try {
             EntyOrsordmaordenservicio entity = repository.findById(id).orElse(null);
-
-            if (entity == null) {
-                return new EntyOrsordmaordenservicioDto();
-            }
-
-            return mapToDto(entity);
-
+            return entity == null
+                    ? new EntyOrsordmaordenservicioDto()
+                    : toDto(entity, EntyOrsordmaordenservicioDto.class);
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando orden de servicio", e);
         }
     }
 
@@ -167,17 +106,20 @@ public class JpaOrdenServicioDataProviders implements IjpaOrdenServicioDataProvi
             EntyOrsordmaordenservicioDto dto
     ) throws EBusinessException {
         try {
-            EntyOrsordmaordenservicio entity = dtoToEntityTranslate.translate(dto);
-            EntyOrsordmaordenservicio saved = repository.save(entity);
+            dto.setOrsPrimarykeyOrde(null);
 
-            return mapToDto(saved);
+            if (dto.getOrsTiporegistOrde() == null || dto.getOrsTiporegistOrde().isBlank()) {
+                dto.setOrsTiporegistOrde("1");
+            }
 
+            if (dto.getOrsEstadoregOrde() == null || dto.getOrsEstadoregOrde().isBlank()) {
+                dto.setOrsEstadoregOrde("1");
+            }
+
+            EntyOrsordmaordenservicio entity = toEntity(dto, EntyOrsordmaordenservicio.class);
+            return toDto(repository.save(entity), EntyOrsordmaordenservicioDto.class);
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error creando orden de servicio", e);
         }
     }
 
@@ -185,28 +127,11 @@ public class JpaOrdenServicioDataProviders implements IjpaOrdenServicioDataProvi
     public List<EntyOrsordmaordenservicioDto> save(
             List<EntyOrsordmaordenservicioDto> dtos
     ) throws EBusinessException {
-        try {
-            List<EntyOrsordmaordenservicio> entities = new ArrayList<>();
-
-            for (EntyOrsordmaordenservicioDto dto : dtos) {
-                entities.add(dtoToEntityTranslate.translate(dto));
-            }
-
-            List<EntyOrsordmaordenservicioDto> result = new ArrayList<>();
-
-            for (EntyOrsordmaordenservicio entity : repository.saveAll(entities)) {
-                result.add(mapToDto(entity));
-            }
-
-            return result;
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+        List<EntyOrsordmaordenservicioDto> result = new ArrayList<>();
+        for (EntyOrsordmaordenservicioDto dto : dtos) {
+            result.add(save(dto));
         }
+        return result;
     }
 
     @Override
@@ -221,93 +146,21 @@ public class JpaOrdenServicioDataProviders implements IjpaOrdenServicioDataProvi
                 return new EntyOrsordmaordenservicioDto();
             }
 
-            old.setOrsIdentifkeyOrde(dto.getOrsIdentifkeyOrde());
-            old.setOrsAutorifechaOrde(dto.getOrsAutorifechaOrde());
-            old.setOrsCodservicioSebs(dto.getOrsCodservicioSebs());
-            old.setOrsServiceventOrde(dto.getOrsServiceventOrde());
-            old.setOrsServiclugarOrde(dto.getOrsServiclugarOrde());
-            old.setOrsServicobjetoOrde(dto.getOrsServicobjetoOrde());
-            old.setOrsPlanfechiniOrde(dto.getOrsPlanfechiniOrde());
-            old.setOrsPlanfechfinOrde(dto.getOrsPlanfechfinOrde());
-            old.setPrvIdentifkeyMprv(dto.getPrvIdentifkeyMprv());
-            old.setPrvIdentifkeyRelg(dto.getPrvIdentifkeyRelg());
-            old.setOrdTipovalorTiva(dto.getOrdTipovalorTiva());
-            old.setOrsValorbaseOrde(dto.getOrsValorbaseOrde());
-            old.setCarValaboCamg(dto.getCarValaboCamg());
-            old.setCarValsalCamg(dto.getCarValsalCamg());
-            old.setOrsEstadoregOrde(dto.getOrsEstadoregOrde());
+            dto.setOrsPrimarykeyOrde(id);
+            BeanUtils.copyProperties(dto, old);
 
-            return mapToDto(repository.save(old));
-
+            return toDto(repository.save(old), EntyOrsordmaordenservicioDto.class);
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.UPDATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.UPDATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error actualizando orden de servicio", e);
         }
     }
 
     @Override
     public void delete(Integer id) throws EBusinessException {
         try {
-            EntyOrsordmaordenservicio entity = repository.findById(id).orElse(null);
-
-            if (entity != null) {
-                repository.delete(entity);
-            }
-
+            repository.deleteById(id);
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.DELETE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.DELETE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error eliminando orden de servicio", e);
         }
-    }
-
-    private EntyOrsordmaordenservicioDto mapToDto(
-            EntyOrsordmaordenservicio entity
-    ) {
-        EntyOrsordmaordenservicioDto dto = new EntyOrsordmaordenservicioDto();
-
-        try {
-            if (entity == null) {
-                return dto;
-            }
-
-            return entityToDtoTranslate.translate(entity);
-
-        } catch (Exception e) {
-            logger.error(
-                    "Error mapeando orden de servicio a DTO. ID: {}",
-                    entity != null ? entity.getOrsPrimarykeyOrde() : null,
-                    e
-            );
-
-            return dto;
-        }
-    }
-
-    private PaginationResponse headResponse(
-            int currentPage,
-            int totalPageSize,
-            long totalResults,
-            int totalPages,
-            boolean hasNextPage,
-            boolean hasPreviousPage,
-            String nextPageUrl,
-            String previousPageUrl
-    ) {
-        return PaginationResponse.builder()
-                .currentPage(currentPage)
-                .totalPageSize(totalPageSize)
-                .totalResults(totalResults)
-                .totalPages(totalPages)
-                .hasNextPage(hasNextPage)
-                .hasPreviousPage(hasPreviousPage)
-                .nextPageUrl(nextPageUrl)
-                .previousPageUrl(previousPageUrl)
-                .build();
     }
 }

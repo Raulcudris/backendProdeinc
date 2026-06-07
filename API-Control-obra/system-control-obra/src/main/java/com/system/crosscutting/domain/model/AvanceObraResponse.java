@@ -1,7 +1,5 @@
 package com.system.crosscutting.domain.model;
-
 import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,8 +8,12 @@ import lombok.Setter;
 public class AvanceObraResponse {
 
     private String rspMessage;
+
     private String rspValue;
+
     private String rspParentKey;
+
     private String rspAppKey;
+
     private List<AvanceObraDto> rspData;
 }

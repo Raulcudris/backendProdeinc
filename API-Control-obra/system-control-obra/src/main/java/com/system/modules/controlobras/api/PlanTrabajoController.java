@@ -1,29 +1,27 @@
 package com.system.modules.controlobras.api;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import com.system.crosscutting.domain.model.EntyOrsplnmaplantrabajoDto;
-import com.system.crosscutting.domain.model.EntyOrsplnmaplantrabajoResponse;
+
+import com.system.crosscutting.domain.model.EntyOrsplamaplandetrabajoDto;
+import com.system.crosscutting.domain.model.EntyOrsplamaplandetrabajoResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.controlobras.usecase.PlanTrabajoService;
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(
         value = "/api/control-obras/planes",
         produces = {MediaType.APPLICATION_JSON_VALUE}
 )
 public class PlanTrabajoController {
 
-    private final PlanTrabajoService service;
+    @Autowired
+    private PlanTrabajoService service;
 
-    @GetMapping("pages")
-    @ApiOperation(httpMethod = "GET", value = "Consultar planes de trabajo", notes = "")
-    public ResponseEntity<EntyOrsplnmaplantrabajoResponse> getAll(
+    @GetMapping("/pages")
+    public ResponseEntity<EntyOrsplamaplandetrabajoResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
@@ -35,36 +33,39 @@ public class PlanTrabajoController {
         );
     }
 
-    @GetMapping("by-orden")
-    @ApiOperation(httpMethod = "GET", value = "Consultar planes por orden", notes = "")
-    public ResponseEntity<EntyOrsplnmaplantrabajoResponse> getByOrden(
-            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(value = "ordenKey") String ordenKey
+    @GetMapping("/by-orden")
+    public ResponseEntity<?> findByOrden(
+            @RequestParam String ordenKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.getByOrden(currentPage, pageSize, ordenKey),
+                service.findByOrden(ordenKey),
                 HttpStatus.OK
         );
     }
 
-    @GetMapping("by-sitio")
-    @ApiOperation(httpMethod = "GET", value = "Consultar planes por sitio", notes = "")
-    public ResponseEntity<EntyOrsplnmaplantrabajoResponse> getBySitio(
-            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(value = "sitioKey") String sitioKey
+    @GetMapping("/by-punto")
+    public ResponseEntity<?> findByPunto(
+            @RequestParam String puntoKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.getBySitio(currentPage, pageSize, sitioKey),
+                service.findByPunto(puntoKey),
                 HttpStatus.OK
         );
     }
 
-    @PostMapping("create")
-    @ApiOperation(httpMethod = "POST", value = "Crear plan de trabajo", notes = "")
-    public ResponseEntity<EntyOrsplnmaplantrabajoDto> create(
-            @RequestBody EntyOrsplnmaplantrabajoDto dto
+    @GetMapping("/get/{id}")
+    public ResponseEntity<EntyOrsplamaplandetrabajoDto> get(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.get(id),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<EntyOrsplamaplandetrabajoDto> create(
+            @RequestBody EntyOrsplamaplandetrabajoDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.saveBefore(dto),
@@ -72,11 +73,10 @@ public class PlanTrabajoController {
         );
     }
 
-    @PutMapping("update/{id}")
-    @ApiOperation(httpMethod = "PUT", value = "Actualizar plan de trabajo", notes = "")
-    public ResponseEntity<EntyOrsplnmaplantrabajoDto> update(
+    @PutMapping("/update/{id}")
+    public ResponseEntity<EntyOrsplamaplandetrabajoDto> update(
             @PathVariable Integer id,
-            @RequestBody EntyOrsplnmaplantrabajoDto dto
+            @RequestBody EntyOrsplamaplandetrabajoDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
@@ -84,8 +84,7 @@ public class PlanTrabajoController {
         );
     }
 
-    @PatchMapping("changestatus/{id}")
-    @ApiOperation(httpMethod = "PATCH", value = "Cambiar estado de plan", notes = "")
+    @PatchMapping("/changestatus/{id}")
     public ResponseEntity<String> changestatus(
             @PathVariable Integer id,
             @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
@@ -96,8 +95,7 @@ public class PlanTrabajoController {
         );
     }
 
-    @DeleteMapping("delete/{id}")
-    @ApiOperation(httpMethod = "DELETE", value = "Eliminar plan", notes = "")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {

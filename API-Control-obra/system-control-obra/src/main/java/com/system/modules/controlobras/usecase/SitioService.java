@@ -1,157 +1,56 @@
 package com.system.modules.controlobras.usecase;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import com.system.crosscutting.domain.model.EntyOrssitmdsitioDto;
-import com.system.crosscutting.domain.model.EntyOrssitmdsitioResponse;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
+import com.system.crosscutting.domain.model.EntyOrsordmdsitiospuntosDto;
+import com.system.crosscutting.domain.model.EntyOrsordmdsitiospuntosResponse;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.persistence.repository.EntyOrsordmaordenservicioRepository;
-import com.system.crosscutting.persistence.repository.EntyOrssitmdsitioRepository;
-import com.system.modules.controlobras.dataproviders.jpa.JpaSitioDataProviders;
-import com.system.modules.controlobras.services.UseCase;
-import com.system.modules.controlobras.services.UsecaseServices;
+import com.system.modules.controlobras.dataproviders.IjpaSitiosPuntosDataProviders;
 
-@UseCase
-public class SitioService
-        extends UsecaseServices<EntyOrssitmdsitioDto, JpaSitioDataProviders> {
+@Service
+public class SitioService {
 
     @Autowired
-    private JpaSitioDataProviders jpaDataProviders;
+    private IjpaSitiosPuntosDataProviders dataProvider;
 
-    @Autowired
-    private EntyOrssitmdsitioRepository repository;
-
-    @Autowired
-    private EntyOrsordmaordenservicioRepository ordenRepository;
-
-    @PostConstruct
-    public void init() {
-        this.ijpaDataProvider = jpaDataProviders;
-    }
-
-    public EntyOrssitmdsitioResponse getAll(
+    public EntyOrsordmdsitiospuntosResponse getAll(
             int currentPage,
             int pageSize,
             String parameter,
             String filter
     ) throws EBusinessException {
-        return this.jpaDataProviders.getAll(currentPage, pageSize, parameter, filter);
+        return dataProvider.getAll(currentPage, pageSize, parameter, filter);
     }
 
-    public EntyOrssitmdsitioResponse getByOrden(
-            int currentPage,
-            int pageSize,
-            String ordenKey
+    public EntyOrsordmdsitiospuntosDto get(Integer id) throws EBusinessException {
+        return dataProvider.get(id);
+    }
+
+    public EntyOrsordmdsitiospuntosDto saveBefore(
+            EntyOrsordmdsitiospuntosDto dto
     ) throws EBusinessException {
 
-        if (ordenKey == null || ordenKey.isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código de la orden de servicio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        if (dto.getOrsEstadoregPunt() == null) {
+            dto.setOrsEstadoregPunt("1");
         }
 
-        return this.jpaDataProviders.getByOrden(currentPage, pageSize, ordenKey);
+        if (dto.getOrsTiporegistPunt() == null) {
+            dto.setOrsTiporegistPunt("1");
+        }
+
+        return dataProvider.save(dto);
     }
 
-    public EntyOrssitmdsitioDto saveBefore(
-            EntyOrssitmdsitioDto dto
-    ) throws EBusinessException {
-
-        if (dto == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El sitio de trabajo es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsIdentifkeySitr() == null || dto.getOrsIdentifkeySitr().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código funcional del sitio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsIdentifkeyOrde() == null || dto.getOrsIdentifkeyOrde().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código de la orden de servicio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (repository.findByOrsIdentifkeySitr(dto.getOrsIdentifkeySitr()).isPresent()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("Ya existe un sitio con el código "
-                            + dto.getOrsIdentifkeySitr())
-                    .withCode("409")
-                    .buildBusinessException();
-        }
-
-        if (ordenRepository.findByOrsIdentifkeyOrde(dto.getOrsIdentifkeyOrde()).isEmpty()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("No existe la orden de servicio con el código "
-                            + dto.getOrsIdentifkeyOrde())
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsNombreSitr() == null || dto.getOrsNombreSitr().isBlank()) {
-            dto.setOrsNombreSitr(dto.getOrsIdentifkeySitr());
-        }
-
-        if (dto.getOrsEstadoregSitr() == null || dto.getOrsEstadoregSitr().isBlank()) {
-            dto.setOrsEstadoregSitr("1");
-        }
-
-        return this.jpaDataProviders.save(dto);
+    public Object findByOrden(String ordenKey) throws EBusinessException {
+        return dataProvider.findByOrden(ordenKey);
     }
 
-    public EntyOrssitmdsitioDto updateBefore(
+    public EntyOrsordmdsitiospuntosDto updateBefore(
             Integer id,
-            EntyOrssitmdsitioDto dto
+            EntyOrsordmdsitiospuntosDto dto
     ) throws EBusinessException {
-
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id del sitio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La información del sitio es obligatoria")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsIdentifkeyOrde() == null || dto.getOrsIdentifkeyOrde().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código de la orden de servicio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (ordenRepository.findByOrsIdentifkeyOrde(dto.getOrsIdentifkeyOrde()).isEmpty()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("No existe la orden de servicio con el código "
-                            + dto.getOrsIdentifkeyOrde())
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsNombreSitr() == null || dto.getOrsNombreSitr().isBlank()) {
-            dto.setOrsNombreSitr(dto.getOrsIdentifkeySitr());
-        }
-
-        if (dto.getOrsEstadoregSitr() == null || dto.getOrsEstadoregSitr().isBlank()) {
-            dto.setOrsEstadoregSitr("1");
-        }
-
-        return this.jpaDataProviders.update(id, dto);
+        return dataProvider.update(id, dto);
     }
 
     public String changestatus(
@@ -159,59 +58,20 @@ public class SitioService
             String estado
     ) throws EBusinessException {
 
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id del sitio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        EntyOrsordmdsitiospuntosDto dto = dataProvider.get(id);
+
+        if (dto.getOrsPrimarykeyPunt() == null) {
+            return "Registro no encontrado";
         }
 
-        EntyOrssitmdsitioDto sitio = this.jpaDataProviders.get(id);
+        dto.setOrsEstadoregPunt(estado);
+        dataProvider.update(id, dto);
 
-        if (sitio.getOrsPrimarykeySitr() == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El sitio de trabajo no fue encontrado")
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        String nextStatus;
-
-        if ("1".equals(estado) || "2".equals(estado)) {
-            nextStatus = estado;
-        } else {
-            nextStatus = "2";
-        }
-
-        sitio.setOrsEstadoregSitr(nextStatus);
-
-        this.jpaDataProviders.update(id, sitio);
-
-        return "OK";
+        return "Estado actualizado correctamente";
     }
 
     public String deleteBefore(Integer id) throws EBusinessException {
-
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id del sitio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        EntyOrssitmdsitioDto sitio = this.jpaDataProviders.get(id);
-
-        if (sitio.getOrsPrimarykeySitr() == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El sitio de trabajo no fue encontrado")
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        sitio.setOrsEstadoregSitr("2");
-
-        this.jpaDataProviders.update(id, sitio);
-
-        return "OK";
+        dataProvider.delete(id);
+        return "Registro eliminado correctamente";
     }
 }

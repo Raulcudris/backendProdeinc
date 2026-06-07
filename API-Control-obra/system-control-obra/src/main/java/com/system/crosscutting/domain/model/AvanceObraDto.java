@@ -5,40 +5,31 @@ import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * DTO de consulta para avance planeado vs ejecutado.
- *
- * No representa una tabla física. Es una respuesta calculada.
- */
 @Getter
 @Setter
 public class AvanceObraDto {
 
     private String orsIdentifkeyOrde;
-
     private String orsIdentifkeyPltr;
+    private String orsIdentifkeyPlse;
+    private String orsIdentifkeyPsem;
 
-    private String orsIdentifkeyPspl;
-
-    private String descripcionPlan;
+    private String descripcionActividad;
+    private String equipoInventario;
 
     private BigDecimal cantidadPlaneadaTotal;
-
-    private BigDecimal cantidadPlaneadaSemana;
-
     private BigDecimal cantidadEjecutadaTotal;
-
-    private BigDecimal cantidadEjecutadaSemana;
-
     private BigDecimal saldoPendienteTotal;
-
-    private BigDecimal saldoPendienteSemana;
-
     private BigDecimal porcentajeAvanceTotal;
 
+    private BigDecimal cantidadPlaneadaSemana;
+    private BigDecimal cantidadEjecutadaSemana;
+    private BigDecimal saldoPendienteSemana;
     private BigDecimal porcentajeAvanceSemana;
 
-    private String unidadMedida;
+    private BigDecimal valorPlaneadoSemana;
+    private BigDecimal valorEjecutadoSemana;
+    private BigDecimal saldoValorSemana;
 
     private String estadoAvance;
 }

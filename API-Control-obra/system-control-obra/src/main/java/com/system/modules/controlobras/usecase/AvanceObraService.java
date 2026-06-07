@@ -2,233 +2,273 @@ package com.system.modules.controlobras.usecase;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import com.system.crosscutting.domain.model.AvanceObraDto;
 import com.system.crosscutting.domain.model.AvanceObraResponse;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
-import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.persistence.entity.EntyOrsplnmaplantrabajo;
-import com.system.crosscutting.persistence.entity.EntyOrspspmdplansemanal;
-import com.system.crosscutting.persistence.repository.EntyOrsordmaordenservicioRepository;
-import com.system.crosscutting.persistence.repository.EntyOrsplnmaplantrabajoRepository;
-import com.system.crosscutting.persistence.repository.EntyOrspspmdplansemanalRepository;
-import com.system.crosscutting.persistence.repository.EntyOrsrdomdreporteDiarioRepository;
-import com.system.modules.controlobras.services.UseCase;
+import com.system.crosscutting.persistence.entity.EntyOrsplamaplandetrabajo;
+import com.system.crosscutting.persistence.entity.EntyOrsplamdplantrabsemana;
+import com.system.crosscutting.persistence.repository.EntyOrsplamaplandetrabajoRepository;
+import com.system.crosscutting.persistence.repository.EntyOrsplamdplantrabsemanaRepository;
+import com.system.crosscutting.persistence.repository.EntyOrsplamdreportediarioRepository;
 
-@UseCase
+@Service
 public class AvanceObraService {
 
     @Autowired
-    private EntyOrsordmaordenservicioRepository ordenRepository;
+    private EntyOrsplamdplantrabsemanaRepository planSemanaRepository;
 
     @Autowired
-    private EntyOrsplnmaplantrabajoRepository planTrabajoRepository;
+    private EntyOrsplamaplandetrabajoRepository planRepository;
 
     @Autowired
-    private EntyOrspspmdplansemanalRepository planSemanalRepository;
+    private EntyOrsplamdreportediarioRepository reporteRepository;
 
-    @Autowired
-    private EntyOrsrdomdreporteDiarioRepository reporteDiarioRepository;
+    /**
+     * Nuevo endpoint:
+     * GET /api/control-obras/avances/by-orden?ordenKey=ORS-001
+     */
+    public AvanceObraResponse getAvanceByOrden(final String ordenKey) {
+        List<EntyOrsplamdplantrabsemana> planesSemana =
+                planSemanaRepository.searchByOrden(ordenKey, Pageable.unpaged())
+                        .getContent();
 
-    public AvanceObraResponse getAvanceByOrden(
-            String ordenKey
-    ) throws EBusinessException {
+        List<AvanceObraDto> data = planesSemana.stream()
+                .map(this::construirAvancePlanSemana)
+                .collect(Collectors.toList());
 
-        if (ordenKey == null || ordenKey.isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código de la orden de servicio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
+        AvanceObraDto totalOrden = construirTotalOrden(ordenKey, planesSemana);
 
-        if (ordenRepository.findByOrsIdentifkeyOrde(ordenKey).isEmpty()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("No existe la orden de servicio con el código " + ordenKey)
-                    .withCode("404")
-                    .buildBusinessException();
-        }
+        data.add(0, totalOrden);
 
-        List<EntyOrsplnmaplantrabajo> planes = planTrabajoRepository.findActiveByOrden(ordenKey);
-
-        List<AvanceObraDto> avances = new ArrayList<>();
-
-        for (EntyOrsplnmaplantrabajo plan : planes) {
-            avances.add(calcularAvancePlan(plan));
-        }
-
-        AvanceObraResponse response = new AvanceObraResponse();
-        response.setRspMessage("OK");
-        response.setRspValue("OK");
-        response.setRspParentKey(ordenKey);
-        response.setRspAppKey("msvc-control-obras");
-        response.setRspData(avances);
-
-        return response;
+        return buildResponse(ordenKey, data);
     }
 
-    public AvanceObraResponse getAvanceByPlan(
-            String planKey
-    ) throws EBusinessException {
+    /**
+     * Nuevo endpoint:
+     * GET /api/control-obras/avances/by-plan?planKey=PLTR-001
+     */
+    public AvanceObraResponse getAvanceByPlan(final String planKey) {
+        List<EntyOrsplamdplantrabsemana> planesSemana =
+                planSemanaRepository.findByOrsIdentifkeyPltr(planKey);
 
-        if (planKey == null || planKey.isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código del plan de trabajo es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
+        List<AvanceObraDto> data = planesSemana.stream()
+                .map(this::construirAvancePlanSemana)
+                .collect(Collectors.toList());
 
-        EntyOrsplnmaplantrabajo plan = planTrabajoRepository
-                .findByOrsIdentifkeyPltr(planKey)
-                .orElse(null);
+        AvanceObraDto totalPlan = construirTotalPlan(planKey, planesSemana);
 
-        if (plan == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("No existe el plan de trabajo con el código " + planKey)
-                    .withCode("404")
-                    .buildBusinessException();
-        }
+        data.add(0, totalPlan);
 
-        List<AvanceObraDto> avances = new ArrayList<>();
-        avances.add(calcularAvancePlan(plan));
-
-        AvanceObraResponse response = new AvanceObraResponse();
-        response.setRspMessage("OK");
-        response.setRspValue("OK");
-        response.setRspParentKey(planKey);
-        response.setRspAppKey("msvc-control-obras");
-        response.setRspData(avances);
-
-        return response;
+        return buildResponse(planKey, data);
     }
 
-    public AvanceObraResponse getAvanceByPlanSemanal(
-            String planSemanalKey
-    ) throws EBusinessException {
+    /**
+     * Nuevo endpoint:
+     * GET /api/control-obras/avances/by-plan-semanal?planSemanalKey=PLSE-001
+     */
+    public AvanceObraResponse getAvanceByPlanSemanal(final String planSemanalKey) {
+        EntyOrsplamdplantrabsemana planSemana =
+                planSemanaRepository.findByOrsIdentifkeyPlse(planSemanalKey)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "No existe el plan semanal " + planSemanalKey
+                        ));
 
-        if (planSemanalKey == null || planSemanalKey.isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código del plan semanal es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
+        AvanceObraDto dto = construirAvancePlanSemana(planSemana);
 
-        EntyOrspspmdplansemanal planSemanal = planSemanalRepository
-                .findByOrsIdentifkeyPspl(planSemanalKey)
-                .orElse(null);
-
-        if (planSemanal == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("No existe el plan semanal con el código " + planSemanalKey)
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        EntyOrsplnmaplantrabajo plan = planTrabajoRepository
-                .findByOrsIdentifkeyPltr(planSemanal.getOrsIdentifkeyPltr())
-                .orElse(null);
-
-        if (plan == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("No existe el plan de trabajo asociado al plan semanal "
-                            + planSemanalKey)
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        AvanceObraDto avance = calcularAvancePlanSemanal(plan, planSemanal);
-
-        List<AvanceObraDto> avances = new ArrayList<>();
-        avances.add(avance);
-
-        AvanceObraResponse response = new AvanceObraResponse();
-        response.setRspMessage("OK");
-        response.setRspValue("OK");
-        response.setRspParentKey(planSemanalKey);
-        response.setRspAppKey("msvc-control-obras");
-        response.setRspData(avances);
-
-        return response;
+        return buildResponse(planSemanalKey, List.of(dto));
     }
 
-    private AvanceObraDto calcularAvancePlan(
-            EntyOrsplnmaplantrabajo plan
+    /**
+     * Método antiguo conservado para compatibilidad con:
+     * GET /api/control-obras/avances/orden/{codigoOrden}
+     */
+    public AvanceObraResponse calcularAvancePorOrden(final String codigoOrden) {
+        return getAvanceByOrden(codigoOrden);
+    }
+
+    private AvanceObraDto construirAvancePlanSemana(
+            final EntyOrsplamdplantrabsemana planSemana
     ) {
-        BigDecimal planeadoTotal = nvl(plan.getOrsCantidadprogPltr());
-        BigDecimal ejecutadoTotal = nvl(
-                reporteDiarioRepository.sumEjecutadoByPlan(plan.getOrsIdentifkeyPltr())
+        Integer planeado = nvlInteger(planSemana.getOrsCantidunidadPlse());
+
+        Integer ejecutado = reporteRepository.sumEjecutadoByPlanSemana(
+                planSemana.getOrsIdentifkeyPlse()
         );
 
-        BigDecimal saldoTotal = planeadoTotal.subtract(ejecutadoTotal);
-        BigDecimal porcentajeTotal = calcularPorcentaje(ejecutadoTotal, planeadoTotal);
+        if (ejecutado == null) {
+            ejecutado = nvlInteger(planSemana.getOrsEjecutunidadPlse());
+        }
+
+        Integer saldo = planeado - ejecutado;
+
+        BigDecimal porcentaje = calcularPorcentaje(
+                BigDecimal.valueOf(planeado),
+                BigDecimal.valueOf(ejecutado)
+        );
+
+        BigDecimal valorUnidad = nvlBigDecimal(planSemana.getOrsValorunidadPlse());
+        BigDecimal valorPlaneado = nvlBigDecimal(planSemana.getOrsValortotalPlse());
+        BigDecimal valorEjecutado = valorUnidad.multiply(BigDecimal.valueOf(ejecutado));
+        BigDecimal saldoValor = valorPlaneado.subtract(valorEjecutado);
 
         AvanceObraDto dto = new AvanceObraDto();
-        dto.setOrsIdentifkeyOrde(plan.getOrsIdentifkeyOrde());
-        dto.setOrsIdentifkeyPltr(plan.getOrsIdentifkeyPltr());
-        dto.setOrsIdentifkeyPspl(null);
-        dto.setDescripcionPlan(plan.getOrsActividadPltr());
-        dto.setCantidadPlaneadaTotal(planeadoTotal);
-        dto.setCantidadPlaneadaSemana(BigDecimal.ZERO);
-        dto.setCantidadEjecutadaTotal(ejecutadoTotal);
-        dto.setCantidadEjecutadaSemana(BigDecimal.ZERO);
-        dto.setSaldoPendienteTotal(saldoTotal);
-        dto.setSaldoPendienteSemana(BigDecimal.ZERO);
+
+        dto.setOrsIdentifkeyOrde(planSemana.getOrsIdentifkeyOrde());
+        dto.setOrsIdentifkeyPltr(planSemana.getOrsIdentifkeyPltr());
+        dto.setOrsIdentifkeyPlse(planSemana.getOrsIdentifkeyPlse());
+        dto.setOrsIdentifkeyPsem(planSemana.getOrsIdentifkeyPsem());
+
+        EntyOrsplamaplandetrabajo plan =
+                planRepository.findByOrsIdentifkeyPltr(planSemana.getOrsIdentifkeyPltr())
+                        .orElse(null);
+
+        if (plan != null) {
+            dto.setDescripcionActividad(plan.getOrsDesactividadPltr());
+            dto.setEquipoInventario(plan.getPrvIdentifkeyInve());
+        }
+
+        dto.setCantidadPlaneadaSemana(BigDecimal.valueOf(planeado));
+        dto.setCantidadEjecutadaSemana(BigDecimal.valueOf(ejecutado));
+        dto.setSaldoPendienteSemana(BigDecimal.valueOf(saldo));
+        dto.setPorcentajeAvanceSemana(porcentaje);
+
+        dto.setValorPlaneadoSemana(valorPlaneado);
+        dto.setValorEjecutadoSemana(valorEjecutado);
+        dto.setSaldoValorSemana(saldoValor);
+
+        dto.setEstadoAvance(calcularEstadoAvance(porcentaje));
+
+        return dto;
+    }
+
+    private AvanceObraDto construirTotalOrden(
+            final String ordenKey,
+            final List<EntyOrsplamdplantrabsemana> planesSemana
+    ) {
+        BigDecimal cantidadPlaneadaTotal = planesSemana.stream()
+                .map(EntyOrsplamdplantrabsemana::getOrsCantidunidadPlse)
+                .filter(valor -> valor != null)
+                .map(BigDecimal::valueOf)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal cantidadEjecutadaTotal = planesSemana.stream()
+                .map(plan -> {
+                    Integer ejecutado = reporteRepository.sumEjecutadoByPlanSemana(
+                            plan.getOrsIdentifkeyPlse()
+                    );
+
+                    if (ejecutado == null) {
+                        ejecutado = nvlInteger(plan.getOrsEjecutunidadPlse());
+                    }
+
+                    return BigDecimal.valueOf(ejecutado);
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal saldoPendienteTotal = cantidadPlaneadaTotal.subtract(cantidadEjecutadaTotal);
+        BigDecimal porcentajeTotal = calcularPorcentaje(cantidadPlaneadaTotal, cantidadEjecutadaTotal);
+
+        AvanceObraDto dto = new AvanceObraDto();
+
+        dto.setOrsIdentifkeyOrde(ordenKey);
+        dto.setDescripcionActividad("TOTAL ORDEN");
+
+        dto.setCantidadPlaneadaTotal(cantidadPlaneadaTotal);
+        dto.setCantidadEjecutadaTotal(cantidadEjecutadaTotal);
+        dto.setSaldoPendienteTotal(saldoPendienteTotal);
         dto.setPorcentajeAvanceTotal(porcentajeTotal);
-        dto.setPorcentajeAvanceSemana(BigDecimal.ZERO);
-        dto.setUnidadMedida(plan.getOrsUnidadmedidaPltr());
+
+        dto.setCantidadPlaneadaSemana(cantidadPlaneadaTotal);
+        dto.setCantidadEjecutadaSemana(cantidadEjecutadaTotal);
+        dto.setSaldoPendienteSemana(saldoPendienteTotal);
+        dto.setPorcentajeAvanceSemana(porcentajeTotal);
+
         dto.setEstadoAvance(calcularEstadoAvance(porcentajeTotal));
 
         return dto;
     }
 
-    private AvanceObraDto calcularAvancePlanSemanal(
-            EntyOrsplnmaplantrabajo plan,
-            EntyOrspspmdplansemanal planSemanal
+    private AvanceObraDto construirTotalPlan(
+            final String planKey,
+            final List<EntyOrsplamdplantrabsemana> planesSemana
     ) {
-        BigDecimal planeadoTotal = nvl(plan.getOrsCantidadprogPltr());
-        BigDecimal planeadoSemana = nvl(planSemanal.getOrsCantidadprogPspl());
+        BigDecimal cantidadPlaneadaTotal = planesSemana.stream()
+                .map(EntyOrsplamdplantrabsemana::getOrsCantidunidadPlse)
+                .filter(valor -> valor != null)
+                .map(BigDecimal::valueOf)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal ejecutadoTotal = nvl(
-                reporteDiarioRepository.sumEjecutadoByPlan(plan.getOrsIdentifkeyPltr())
-        );
+        BigDecimal cantidadEjecutadaTotal = planesSemana.stream()
+                .map(plan -> {
+                    Integer ejecutado = reporteRepository.sumEjecutadoByPlanSemana(
+                            plan.getOrsIdentifkeyPlse()
+                    );
 
-        BigDecimal ejecutadoSemana = nvl(
-                reporteDiarioRepository.sumEjecutadoByPlanSemanal(planSemanal.getOrsIdentifkeyPspl())
-        );
+                    if (ejecutado == null) {
+                        ejecutado = nvlInteger(plan.getOrsEjecutunidadPlse());
+                    }
 
-        BigDecimal saldoTotal = planeadoTotal.subtract(ejecutadoTotal);
-        BigDecimal saldoSemana = planeadoSemana.subtract(ejecutadoSemana);
+                    return BigDecimal.valueOf(ejecutado);
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal porcentajeTotal = calcularPorcentaje(ejecutadoTotal, planeadoTotal);
-        BigDecimal porcentajeSemana = calcularPorcentaje(ejecutadoSemana, planeadoSemana);
+        BigDecimal saldoPendienteTotal = cantidadPlaneadaTotal.subtract(cantidadEjecutadaTotal);
+        BigDecimal porcentajeTotal = calcularPorcentaje(cantidadPlaneadaTotal, cantidadEjecutadaTotal);
 
         AvanceObraDto dto = new AvanceObraDto();
-        dto.setOrsIdentifkeyOrde(plan.getOrsIdentifkeyOrde());
-        dto.setOrsIdentifkeyPltr(plan.getOrsIdentifkeyPltr());
-        dto.setOrsIdentifkeyPspl(planSemanal.getOrsIdentifkeyPspl());
-        dto.setDescripcionPlan(plan.getOrsActividadPltr());
-        dto.setCantidadPlaneadaTotal(planeadoTotal);
-        dto.setCantidadPlaneadaSemana(planeadoSemana);
-        dto.setCantidadEjecutadaTotal(ejecutadoTotal);
-        dto.setCantidadEjecutadaSemana(ejecutadoSemana);
-        dto.setSaldoPendienteTotal(saldoTotal);
-        dto.setSaldoPendienteSemana(saldoSemana);
+
+        dto.setOrsIdentifkeyPltr(planKey);
+        dto.setDescripcionActividad("TOTAL PLAN");
+
+        if (!planesSemana.isEmpty()) {
+            dto.setOrsIdentifkeyOrde(planesSemana.get(0).getOrsIdentifkeyOrde());
+        }
+
+        dto.setCantidadPlaneadaTotal(cantidadPlaneadaTotal);
+        dto.setCantidadEjecutadaTotal(cantidadEjecutadaTotal);
+        dto.setSaldoPendienteTotal(saldoPendienteTotal);
         dto.setPorcentajeAvanceTotal(porcentajeTotal);
-        dto.setPorcentajeAvanceSemana(porcentajeSemana);
-        dto.setUnidadMedida(plan.getOrsUnidadmedidaPltr());
+
+        dto.setCantidadPlaneadaSemana(cantidadPlaneadaTotal);
+        dto.setCantidadEjecutadaSemana(cantidadEjecutadaTotal);
+        dto.setSaldoPendienteSemana(saldoPendienteTotal);
+        dto.setPorcentajeAvanceSemana(porcentajeTotal);
+
         dto.setEstadoAvance(calcularEstadoAvance(porcentajeTotal));
 
         return dto;
+    }
+
+    private AvanceObraResponse buildResponse(
+            final String parentKey,
+            final List<AvanceObraDto> data
+    ) {
+        AvanceObraResponse response = new AvanceObraResponse();
+
+        response.setRspMessage("OK");
+        response.setRspValue("OK");
+        response.setRspParentKey(parentKey);
+        response.setRspAppKey("CONTROL_OBRAS");
+        response.setRspData(data);
+
+        return response;
     }
 
     private BigDecimal calcularPorcentaje(
-            BigDecimal ejecutado,
-            BigDecimal planeado
+            final BigDecimal planeado,
+            final BigDecimal ejecutado
     ) {
-        if (planeado == null || BigDecimal.ZERO.compareTo(planeado) == 0) {
+        if (planeado == null || planeado.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        if (ejecutado == null) {
             return BigDecimal.ZERO;
         }
 
@@ -237,31 +277,27 @@ public class AvanceObraService {
                 .divide(planeado, 2, RoundingMode.HALF_UP);
     }
 
-    private String calcularEstadoAvance(
-            BigDecimal porcentaje
-    ) {
-        if (porcentaje == null) {
+    private String calcularEstadoAvance(final BigDecimal porcentajeAvance) {
+        if (porcentajeAvance == null || porcentajeAvance.compareTo(BigDecimal.ZERO) <= 0) {
             return "SIN_AVANCE";
         }
 
-        if (porcentaje.compareTo(BigDecimal.ZERO) <= 0) {
-            return "SIN_AVANCE";
+        if (porcentajeAvance.compareTo(BigDecimal.valueOf(100)) >= 0) {
+            return "COMPLETADO";
         }
 
-        if (porcentaje.compareTo(BigDecimal.valueOf(50)) < 0) {
-            return "EN_PROCESO";
-        }
-
-        if (porcentaje.compareTo(BigDecimal.valueOf(100)) < 0) {
+        if (porcentajeAvance.compareTo(BigDecimal.valueOf(50)) >= 0) {
             return "AVANCE_ALTO";
         }
 
-        return "COMPLETADO";
+        return "EN_EJECUCION";
     }
 
-    private BigDecimal nvl(
-            BigDecimal value
-    ) {
+    private Integer nvlInteger(final Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    private BigDecimal nvlBigDecimal(final BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
     }
 }

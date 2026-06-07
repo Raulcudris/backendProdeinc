@@ -81,9 +81,19 @@ public class EntyOrsordmaordenservicioDto {
     private String ordTipovalorTiva;
 
     /**
-     * Valor total del servicio autorizado.
+     * Valor base del servicio autorizado.
      */
     private BigDecimal orsValorbaseOrde;
+
+    /**
+     * Valor del IVA.
+     */
+    private BigDecimal orsValordeivaOrde;
+
+    /**
+     * Valor total general.
+     */
+    private BigDecimal orsValortotalOrde;
 
     /**
      * Valor total abonado.
@@ -94,6 +104,11 @@ public class EntyOrsordmaordenservicioDto {
      * Valor saldo pendiente.
      */
     private BigDecimal carValsalCamg;
+
+    /**
+     * Tipo de registro: 1=Registro original, 2=Novedad.
+     */
+    private String orsTiporegistOrde;
 
     /**
      * Estado de la orden: 1=Abierto, 2=Cerrado, 3=Cancelado.

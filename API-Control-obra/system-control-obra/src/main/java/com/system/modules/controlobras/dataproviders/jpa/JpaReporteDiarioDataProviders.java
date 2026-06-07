@@ -1,5 +1,6 @@
 package com.system.modules.controlobras.dataproviders.jpa;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,363 +8,261 @@ import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import com.system.crosscutting.domain.model.EntyOrsrdomdreporteDiarioDto;
-import com.system.crosscutting.domain.model.EntyOrsrdomdreporteDiarioResponse;
-import com.system.crosscutting.domain.model.PaginationResponse;
+import com.system.crosscutting.domain.model.EntyOrsplamdreportediarioDto;
+import com.system.crosscutting.domain.model.EntyOrsplamdreportediarioResponse;
 import com.system.crosscutting.exceptions.DataProvider;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.messages.SearchMessages;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyOrsrdomdreporteDiario;
-import com.system.crosscutting.persistence.repository.EntyOrsrdomdreporteDiarioRepository;
+import com.system.crosscutting.persistence.entity.EntyOrsplamdplantrabsemana;
+import com.system.crosscutting.persistence.entity.EntyOrsplamdreportediario;
+import com.system.crosscutting.persistence.repository.EntyOrsplamdplantrabsemanaRepository;
+import com.system.crosscutting.persistence.repository.EntyOrsplamdreportediarioRepository;
 import com.system.modules.controlobras.dataproviders.IjpaReporteDiarioDataProviders;
 
+import lombok.RequiredArgsConstructor;
+
 @DataProvider
-public class JpaReporteDiarioDataProviders implements IjpaReporteDiarioDataProviders {
+@RequiredArgsConstructor
+public class JpaReporteDiarioDataProviders extends JpaDataProviderSupport
+        implements IjpaReporteDiarioDataProviders {
 
-    @Autowired
-    private EntyOrsrdomdreporteDiarioRepository repository;
-
-    @Autowired
-    @Qualifier("entyOrsrdomdreporteDiarioEntityToDtoTranslate")
-    private Translator<EntyOrsrdomdreporteDiario, EntyOrsrdomdreporteDiarioDto> entityToDtoTranslate;
-
-    @Autowired
-    @Qualifier("entyOrsrdomdreporteDiarioDtoToEntityTranslate")
-    private Translator<EntyOrsrdomdreporteDiarioDto, EntyOrsrdomdreporteDiario> dtoToEntityTranslate;
-
-    private static final Logger logger = LogManager.getLogger(JpaReporteDiarioDataProviders.class);
+    private final EntyOrsplamdreportediarioRepository repository;
+    private final EntyOrsplamdplantrabsemanaRepository planSemanaRepository;
 
     @Override
-    public EntyOrsrdomdreporteDiarioResponse getAll() throws EBusinessException {
+    public EntyOrsplamdreportediarioResponse getAll() throws EBusinessException {
         return getAll(1, 10, "TEXT", "");
     }
 
     @Override
-    public EntyOrsrdomdreporteDiarioResponse getAll(
+    public EntyOrsplamdreportediarioResponse getAll(
             int currentPage,
             int pageSize,
             String parameter,
             String filter
     ) throws EBusinessException {
         try {
-            int safeCurrentPage = currentPage <= 0 ? 0 : currentPage - 1;
-            int safePageSize = pageSize <= 0 ? 10 : pageSize;
+            int pageNumber = safeCurrentPage(currentPage);
+            int size = safePageSize(pageSize);
+            String search = safeFilter(filter);
 
-            String safeParameter = parameter == null || parameter.trim().isEmpty()
-                    ? "TEXT"
-                    : parameter.trim().toUpperCase();
+            Pageable pageable = PageRequest.of(pageNumber, size);
+            Page<EntyOrsplamdreportediario> page;
 
-            String safeFilter = filter == null ? "" : filter.trim();
-
-            Pageable pageable = PageRequest.of(safeCurrentPage, safePageSize);
-            Page<EntyOrsrdomdreporteDiario> responsePage;
-
-            if (safeFilter.isEmpty()
-                    && !"STATUS".equals(safeParameter)
-                    && !"ESTADO".equals(safeParameter)
-                    && !"HOY".equals(safeParameter)) {
-                responsePage = repository.findAll(pageable);
-            } else {
-                switch (safeParameter) {
-                    case "PKEY":
-                        try {
-                            Integer id = Integer.parseInt(safeFilter);
-                            responsePage = repository.searchByPrimaryKey(id, pageable);
-                        } catch (NumberFormatException e) {
-                            responsePage = repository.searchByPrimaryKey(-1, pageable);
-                        }
-                        break;
-
-                    case "REGKEY":
-                    case "IDENTIFKEY":
-                    case "CODIGO":
-                    case "REPORTE":
-                    case "DIARIO":
-                        responsePage = repository.searchByIdentifKey(safeFilter, pageable);
-                        break;
-
-                    case "ORDEN":
-                    case "ORDEN_SERVICIO":
-                    case "ORS":
-                        responsePage = repository.searchByOrden(safeFilter, pageable);
-                        break;
-
-                    case "PLAN":
-                    case "PLAN_TRABAJO":
-                    case "PLTR":
-                        responsePage = repository.searchByPlan(safeFilter, pageable);
-                        break;
-
-                    case "SEMANA":
-                    case "PLAN_SEMANAL":
-                    case "PSPL":
-                        responsePage = repository.searchByPlanSemanal(safeFilter, pageable);
-                        break;
-
-                    case "FECHA":
-                        try {
-                            LocalDate fecha = LocalDate.parse(safeFilter);
-                            responsePage = repository.searchByFecha(fecha, pageable);
-                        } catch (Exception e) {
-                            responsePage = repository.searchByFecha(LocalDate.of(1900, 1, 1), pageable);
-                        }
-                        break;
-
-                    case "HOY":
-                        responsePage = repository.searchByFecha(LocalDate.now(), pageable);
-                        break;
-
-                    case "STATUS":
-                    case "ESTADO":
-                        if (safeFilter.isEmpty() || "ALL".equalsIgnoreCase(safeFilter)) {
-                            responsePage = repository.findAll(pageable);
-                        } else {
-                            responsePage = repository.searchByStatus(safeFilter, pageable);
-                        }
-                        break;
-
-                    case "TEXT":
-                    case "SEARCH":
-                    default:
-                        responsePage = repository.searchByText(safeFilter, pageable);
-                        break;
-                }
+            switch (safeParameter(parameter)) {
+                case "ID":
+                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
+                    break;
+                case "KEY":
+                    page = repository.searchByIdentifKey(search, pageable);
+                    break;
+                case "ORDEN":
+                    page = repository.searchByOrden(search, pageable);
+                    break;
+                case "PLAN_SEMANA":
+                    page = repository.searchByPlanSemana(search, pageable);
+                    break;
+                case "PROYECCION":
+                    page = repository.searchByProyeccionSemana(search, pageable);
+                    break;
+                case "STATUS":
+                    page = repository.searchByStatus(search, pageable);
+                    break;
+                default:
+                    page = repository.searchByText(search, pageable);
+                    break;
             }
 
-            List<EntyOrsrdomdreporteDiarioDto> content = responsePage.getContent()
+            List<EntyOrsplamdreportediarioDto> data = page.getContent()
                     .stream()
-                    .map(this::mapToDto)
+                    .map(entity -> toDto(entity, EntyOrsplamdreportediarioDto.class))
                     .collect(Collectors.toList());
 
-            EntyOrsrdomdreporteDiarioResponse response = new EntyOrsrdomdreporteDiarioResponse();
+            EntyOrsplamdreportediarioResponse response = new EntyOrsplamdreportediarioResponse();
             response.setRspMessage("OK");
             response.setRspValue("OK");
             response.setRspParentKey("NA");
-            response.setRspAppKey("NA");
-            response.setRspData(content);
-            response.setRspPagination(
-                    headResponse(
-                            safeCurrentPage + 1,
-                            safePageSize,
-                            responsePage.getTotalElements(),
-                            responsePage.getTotalPages(),
-                            responsePage.hasNext(),
-                            responsePage.hasPrevious(),
-                            "LocalHost",
-                            "LocalHost"
-                    )
-            );
+            response.setRspAppKey("msvc-control-obras");
+            response.setRspData(data);
+            response.setRspPagination(buildPagination(pageNumber + 1, size, page));
 
             return response;
-
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando reportes diarios", e);
         }
     }
 
-    public EntyOrsrdomdreporteDiarioResponse getByOrden(
-            int currentPage,
-            int pageSize,
-            String ordenKey
-    ) throws EBusinessException {
-        return getAll(currentPage, pageSize, "ORDEN", ordenKey);
-    }
-
-    public EntyOrsrdomdreporteDiarioResponse getByPlan(
-            int currentPage,
-            int pageSize,
-            String planKey
-    ) throws EBusinessException {
-        return getAll(currentPage, pageSize, "PLAN", planKey);
-    }
-
-    public EntyOrsrdomdreporteDiarioResponse getByPlanSemanal(
-            int currentPage,
-            int pageSize,
-            String planSemanalKey
-    ) throws EBusinessException {
-        return getAll(currentPage, pageSize, "SEMANA", planSemanalKey);
-    }
-
     @Override
-    public EntyOrsrdomdreporteDiarioDto get(Integer id) throws EBusinessException {
+    public EntyOrsplamdreportediarioDto get(Integer id) throws EBusinessException {
         try {
-            EntyOrsrdomdreporteDiario entity = repository.findById(id).orElse(null);
-
-            if (entity == null) {
-                return new EntyOrsrdomdreporteDiarioDto();
-            }
-
-            return mapToDto(entity);
-
+            EntyOrsplamdreportediario entity = repository.findById(id).orElse(null);
+            return entity == null
+                    ? new EntyOrsplamdreportediarioDto()
+                    : toDto(entity, EntyOrsplamdreportediarioDto.class);
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando reporte diario", e);
         }
     }
 
     @Override
-    public EntyOrsrdomdreporteDiarioDto save(
-            EntyOrsrdomdreporteDiarioDto dto
+    public EntyOrsplamdreportediarioDto save(
+            EntyOrsplamdreportediarioDto dto
     ) throws EBusinessException {
         try {
-            EntyOrsrdomdreporteDiario entity = dtoToEntityTranslate.translate(dto);
-            EntyOrsrdomdreporteDiario saved = repository.save(entity);
+            dto.setOrsPrimarykeyPdia(null);
 
-            return mapToDto(saved);
+            if (dto.getOrsFechasistemaPdia() == null) {
+                dto.setOrsFechasistemaPdia(LocalDate.now());
+            }
 
+            if (dto.getOrsTiporegistPdia() == null || dto.getOrsTiporegistPdia().isBlank()) {
+                dto.setOrsTiporegistPdia("1");
+            }
+
+            if (dto.getOrsEstadoregPdia() == null || dto.getOrsEstadoregPdia().isBlank()) {
+                dto.setOrsEstadoregPdia("1");
+            }
+
+            EntyOrsplamdreportediario entity = toEntity(dto, EntyOrsplamdreportediario.class);
+            EntyOrsplamdreportediario saved = repository.save(entity);
+
+            recalcularEjecutadoSemana(dto.getOrsIdentifkeyPlse());
+
+            return toDto(saved, EntyOrsplamdreportediarioDto.class);
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error creando reporte diario", e);
         }
     }
 
     @Override
-    public List<EntyOrsrdomdreporteDiarioDto> save(
-            List<EntyOrsrdomdreporteDiarioDto> dtos
+    public List<EntyOrsplamdreportediarioDto> save(
+            List<EntyOrsplamdreportediarioDto> dtos
     ) throws EBusinessException {
-        try {
-            List<EntyOrsrdomdreporteDiario> entities = new ArrayList<>();
-
-            for (EntyOrsrdomdreporteDiarioDto dto : dtos) {
-                entities.add(dtoToEntityTranslate.translate(dto));
-            }
-
-            List<EntyOrsrdomdreporteDiarioDto> result = new ArrayList<>();
-
-            for (EntyOrsrdomdreporteDiario entity : repository.saveAll(entities)) {
-                result.add(mapToDto(entity));
-            }
-
-            return result;
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+        List<EntyOrsplamdreportediarioDto> result = new ArrayList<>();
+        for (EntyOrsplamdreportediarioDto dto : dtos) {
+            result.add(save(dto));
         }
+        return result;
     }
 
     @Override
-    public EntyOrsrdomdreporteDiarioDto update(
+    public EntyOrsplamdreportediarioDto update(
             Integer id,
-            EntyOrsrdomdreporteDiarioDto dto
+            EntyOrsplamdreportediarioDto dto
     ) throws EBusinessException {
         try {
-            EntyOrsrdomdreporteDiario old = repository.findById(id).orElse(null);
+            EntyOrsplamdreportediario old = repository.findById(id).orElse(null);
 
             if (old == null) {
-                return new EntyOrsrdomdreporteDiarioDto();
+                return new EntyOrsplamdreportediarioDto();
             }
 
-            old.setOrsIdentifkeyRedi(dto.getOrsIdentifkeyRedi());
-            old.setOrsIdentifkeyOrde(dto.getOrsIdentifkeyOrde());
-            old.setOrsIdentifkeyPltr(dto.getOrsIdentifkeyPltr());
-            old.setOrsIdentifkeyPspl(dto.getOrsIdentifkeyPspl());
-            old.setOrsFechareporteRedi(dto.getOrsFechareporteRedi());
-            old.setOrsActividadRedi(dto.getOrsActividadRedi());
-            old.setOrsCantidadprogRedi(dto.getOrsCantidadprogRedi());
-            old.setOrsCantidadejecRedi(dto.getOrsCantidadejecRedi());
-            old.setOrsUnidadmedidaRedi(dto.getOrsUnidadmedidaRedi());
-            old.setOrsResponsableRedi(dto.getOrsResponsableRedi());
-            old.setOrsObservacionRedi(dto.getOrsObservacionRedi());
-            old.setOrsEstadoregRedi(dto.getOrsEstadoregRedi());
+            String oldPlanSemanaKey = old.getOrsIdentifkeyPlse();
 
-            return mapToDto(repository.save(old));
+            dto.setOrsPrimarykeyPdia(id);
+            BeanUtils.copyProperties(dto, old);
 
+            EntyOrsplamdreportediario saved = repository.save(old);
+
+            recalcularEjecutadoSemana(oldPlanSemanaKey);
+            recalcularEjecutadoSemana(dto.getOrsIdentifkeyPlse());
+
+            return toDto(saved, EntyOrsplamdreportediarioDto.class);
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.UPDATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.UPDATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error actualizando reporte diario", e);
         }
     }
 
     @Override
     public void delete(Integer id) throws EBusinessException {
         try {
-            EntyOrsrdomdreporteDiario entity = repository.findById(id).orElse(null);
+            EntyOrsplamdreportediario old = repository.findById(id).orElse(null);
 
-            if (entity != null) {
-                repository.delete(entity);
+            if (old != null) {
+                String planSemanaKey = old.getOrsIdentifkeyPlse();
+                repository.delete(old);
+                recalcularEjecutadoSemana(planSemanaKey);
             }
-
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.DELETE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.DELETE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error eliminando reporte diario", e);
         }
     }
 
-    private EntyOrsrdomdreporteDiarioDto mapToDto(
-            EntyOrsrdomdreporteDiario entity
-    ) {
-        EntyOrsrdomdreporteDiarioDto dto = new EntyOrsrdomdreporteDiarioDto();
-
+    @Override
+    public List<EntyOrsplamdreportediarioDto> findByOrden(
+            String ordenKey
+    ) throws EBusinessException {
         try {
-            if (entity == null) {
-                return dto;
-            }
-
-            return entityToDtoTranslate.translate(entity);
-
-        } catch (Exception e) {
-            logger.error(
-                    "Error mapeando reporte diario a DTO. ID: {}",
-                    entity != null ? entity.getOrsPrimarykeyRedi() : null,
-                    e
-            );
-
-            return dto;
+            return repository.findByOrsIdentifkeyOrde(ordenKey)
+                    .stream()
+                    .map(entity -> toDto(entity, EntyOrsplamdreportediarioDto.class))
+                    .collect(Collectors.toList());
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando reportes diarios por orden", e);
         }
     }
 
-    private PaginationResponse headResponse(
-            int currentPage,
-            int totalPageSize,
-            long totalResults,
-            int totalPages,
-            boolean hasNextPage,
-            boolean hasPreviousPage,
-            String nextPageUrl,
-            String previousPageUrl
-    ) {
-        return PaginationResponse.builder()
-                .currentPage(currentPage)
-                .totalPageSize(totalPageSize)
-                .totalResults(totalResults)
-                .totalPages(totalPages)
-                .hasNextPage(hasNextPage)
-                .hasPreviousPage(hasPreviousPage)
-                .nextPageUrl(nextPageUrl)
-                .previousPageUrl(previousPageUrl)
-                .build();
+    @Override
+    public List<EntyOrsplamdreportediarioDto> findByPlanSemana(
+            String planSemanaKey
+    ) throws EBusinessException {
+        try {
+            return repository.findByOrsIdentifkeyPlse(planSemanaKey)
+                    .stream()
+                    .map(entity -> toDto(entity, EntyOrsplamdreportediarioDto.class))
+                    .collect(Collectors.toList());
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando reportes diarios por plan semanal", e);
+        }
+    }
+
+    @Override
+    public List<EntyOrsplamdreportediarioDto> findByProyeccionSemana(
+            String proyeccionKey
+    ) throws EBusinessException {
+        try {
+            return repository.findByOrsIdentifkeyPsem(proyeccionKey)
+                    .stream()
+                    .map(entity -> toDto(entity, EntyOrsplamdreportediarioDto.class))
+                    .collect(Collectors.toList());
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando reportes diarios por proyección", e);
+        }
+    }
+
+    private void recalcularEjecutadoSemana(String planSemanaKey) {
+        if (planSemanaKey == null || planSemanaKey.isBlank()) {
+            return;
+        }
+
+        EntyOrsplamdplantrabsemana planSemana = planSemanaRepository
+                .findByOrsIdentifkeyPlse(planSemanaKey)
+                .orElse(null);
+
+        if (planSemana == null) {
+            return;
+        }
+
+        Integer ejecutado = repository.sumEjecutadoByPlanSemana(planSemanaKey);
+
+        if (ejecutado == null) {
+            ejecutado = 0;
+        }
+
+        planSemana.setOrsEjecutunidadPlse(ejecutado);
+
+        if (planSemana.getOrsValorunidadPlse() != null) {
+            planSemana.setOrsValorejecutPlse(
+                    planSemana.getOrsValorunidadPlse()
+                            .multiply(BigDecimal.valueOf(ejecutado))
+            );
+        }
+
+        planSemanaRepository.save(planSemana);
     }
 }

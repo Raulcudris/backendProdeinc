@@ -1,13 +1,17 @@
 package com.system.crosscutting.persistence.entity;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +19,7 @@ import lombok.Setter;
  * Entidad JPA que representa la tabla ORSORDMAORDENSERVICIO.
  *
  * Esta tabla almacena la información maestra de las órdenes de servicio
- * entregadas por la UNGRD o registradas para la ejecución de obras civiles.
+ * registradas para la ejecución de obras civiles.
  */
 @Getter
 @Setter
@@ -95,27 +99,60 @@ public class EntyOrsordmaordenservicio implements Serializable {
 
     /**
      * Código del tipo de valor autorizado.
+     *
+     * Campo no persistido en ORSORDMAORDENSERVICIO porque la columna
+     * ORD_TIPOVALOR_TIVA no existe actualmente en la tabla real.
      */
-    @Column(name = "ORD_TIPOVALOR_TIVA", length = 4)
+    @Transient
     private String ordTipovalorTiva;
 
     /**
-     * Valor total del servicio autorizado.
+     * Valor base del servicio autorizado.
      */
     @Column(name = "ORS_VALORBASE_ORDE", precision = 17, scale = 2)
     private BigDecimal orsValorbaseOrde;
 
     /**
-     * Valor total abonado.
+     * Valor del IVA.
+     *
+     * Mantener como @Column solo si la columna ORS_VALORDEIVA_ORDE existe
+     * físicamente en la tabla ORSORDMAORDENSERVICIO.
      */
-    @Column(name = "CAR_VALABO_CAMG", precision = 17, scale = 2)
+    @Column(name = "ORS_VALORDEIVA_ORDE", precision = 17, scale = 2)
+    private BigDecimal orsValordeivaOrde;
+
+    /**
+     * Valor total general.
+     */
+    @Column(name = "ORS_VALORTOTAL_ORDE", precision = 17, scale = 2)
+    private BigDecimal orsValortotalOrde;
+
+    /**
+     * Valor total abonado.
+     *
+     * Campo no persistido en ORSORDMAORDENSERVICIO porque la columna
+     * CAR_VALABO_CAMG no existe actualmente en la tabla real.
+     */
+    @Transient
     private BigDecimal carValaboCamg;
 
     /**
      * Valor saldo pendiente.
+     *
+     * Campo no persistido en ORSORDMAORDENSERVICIO porque la columna
+     * CAR_VALSAL_CAMG no existe actualmente en la tabla real.
      */
-    @Column(name = "CAR_VALSAL_CAMG", precision = 17, scale = 2)
+    @Transient
     private BigDecimal carValsalCamg;
+
+    /**
+     * Tipo de registro: 1=Registro original, 2=Novedad.
+     *
+     * Mantener como @Column solo si la columna ORS_TIPOREGIST_ORDE existe
+     * físicamente en la tabla ORSORDMAORDENSERVICIO.
+     */
+    @Column(name = "ORS_TIPOREGIST_ORDE", length = 2)
+    private String orsTiporegistOrde;
 
     /**
      * Estado de la orden: 1=Abierto, 2=Cerrado, 3=Cancelado.

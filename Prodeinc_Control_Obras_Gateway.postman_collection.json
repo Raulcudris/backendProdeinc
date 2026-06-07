@@ -1,0 +1,495 @@
+{
+  "info": {
+    "_postman_id": "5f0a7f1c-6091-4f7d-control-obras",
+    "name": "Prodeinc - msvc-control-obras Gateway",
+    "description": "Colección Postman para probar msvc-control-obras por Gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:8088"
+    },
+    {
+      "key": "orden_key",
+      "value": "ORS-001"
+    },
+    {
+      "key": "proveedor_key",
+      "value": "PROV-001"
+    },
+    {
+      "key": "tipo_equipo_key",
+      "value": "EXC"
+    },
+    {
+      "key": "equipo_key",
+      "value": "EQ001"
+    },
+    {
+      "key": "resumen_equipo_key",
+      "value": "RSEQ-001"
+    },
+    {
+      "key": "punto_key",
+      "value": "PUNT-001"
+    },
+    {
+      "key": "proyeccion_key",
+      "value": "PSEM-001"
+    },
+    {
+      "key": "plan_key",
+      "value": "PLTR-001"
+    },
+    {
+      "key": "plan_semana_key",
+      "value": "PLSE-001"
+    },
+    {
+      "key": "reporte_key",
+      "value": "PDIA-001"
+    },
+    {
+      "key": "novedad_key",
+      "value": "NOVE-001"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Ordenes de Servicio",
+      "item": [
+        {
+          "name": "Crear Orden ORS-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsAutorifechaOrde\": \"2026-06-05\",\n  \"orsCodservicioSebs\": \"MAQ\",\n  \"orsServiceventOrde\": \"Atención de emergencia vial\",\n  \"orsServiclugarOrde\": \"Sector rural afectado\",\n  \"orsServicobjetoOrde\": \"Prestación de servicio de maquinaria amarilla\",\n  \"orsPlanfechiniOrde\": \"2026-06-06\",\n  \"orsPlanfechfinOrde\": \"2026-06-12\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvIdentifkeyRelg\": null,\n  \"orsValorbaseOrde\": 15000000,\n  \"orsValordeivaOrde\": 2850000,\n  \"orsValortotalOrde\": 17850000,\n  \"orsTiporegistOrde\": \"1\",\n  \"orsEstadoregOrde\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/ordenes/create"
+          }
+        },
+        {
+          "name": "Consultar Ordenes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/ordenes/pages"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Resumen Equipos",
+      "item": [
+        {
+          "name": "Crear Resumen Equipo RSEQ-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyRseq\": \"{{resumen_equipo_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"orsCantidunidadRseq\": 40,\n  \"orsValorunidadRseq\": 250000,\n  \"orsValortotalRseq\": 10000000,\n  \"orsTiporegistRseq\": \"1\",\n  \"orsEstadoregRseq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/resumen-equipos/create"
+          }
+        },
+        {
+          "name": "Consultar Resumen Equipos por Orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/resumen-equipos/by-orden?ordenKey={{orden_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Sitios / Puntos",
+      "item": [
+        {
+          "name": "Crear Punto PUNT-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPunt\": \"{{punto_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsNombresitioPunt\": \"Sector rural K12+300\",\n  \"sisCodproSipr\": \"CO-11-001\",\n  \"orsGeolatitudePunt\": 4.711,\n  \"orsGeolongitudePunt\": -74.0721,\n  \"orsPathimagenPunt\": \"https://storage/puntos/punt-001.jpg\",\n  \"orsTiporegistPunt\": \"1\",\n  \"orsEstadoregPunt\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/sitios/create"
+          }
+        },
+        {
+          "name": "Consultar Puntos por Orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/sitios/by-orden?ordenKey={{orden_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Proyección Semanal",
+      "item": [
+        {
+          "name": "Crear Proyección PSEM-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsNumerosemPsem\": 1,\n  \"orsTitulosemPsem\": \"SEMANA 1 del 06 al 12 junio\",\n  \"orsSemfechiniPsem\": \"2026-06-06\",\n  \"orsSemfechfinPsem\": \"2026-06-12\",\n  \"orsDiashabilesPsem\": \"LUN,MAR,MIE,JUE,VIE,SAB\",\n  \"orsDiasnhabilesPsem\": \"DOM\",\n  \"orsTiporegistPsem\": \"1\",\n  \"orsEstadoregPsem\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/create"
+          }
+        },
+        {
+          "name": "Consultar Proyección por Orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/by-orden?ordenKey={{orden_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Plan Trabajo",
+      "item": [
+        {
+          "name": "Crear Plan PLTR-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPltr\": \"{{plan_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPunt\": \"{{punto_key}}\",\n  \"orsDesactividadPltr\": \"Retiro de material y conformación de vía\",\n  \"orsIdentifkeyRseq\": \"{{resumen_equipo_key}}\",\n  \"prvIdentifkeyInve\": \"{{equipo_key}}\",\n  \"orsCantidunidadRseq\": 40,\n  \"orsValorunidadRseq\": 250000,\n  \"orsValortotalRseq\": 10000000,\n  \"orsTiporegistPltr\": \"1\",\n  \"orsEstadoregPltr\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/planes/create"
+          }
+        },
+        {
+          "name": "Consultar Planes por Orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/planes/by-orden?ordenKey={{orden_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Plan Trabajo Semanal",
+      "item": [
+        {
+          "name": "Crear Plan Semana PLSE-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPlse\": \"{{plan_semana_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPltr\": \"{{plan_key}}\",\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsCantidunidadPlse\": 25,\n  \"orsValorunidadPlse\": 250000,\n  \"orsValortotalPlse\": 6250000,\n  \"orsEjecutunidadPlse\": 0,\n  \"orsValorejecutPlse\": 0,\n  \"orsTiporegistPlse\": \"1\",\n  \"orsEstadoregPlse\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/create"
+          }
+        },
+        {
+          "name": "Consultar Plan Semanal por Plan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/by-plan?planKey={{plan_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Reportes Diarios",
+      "item": [
+        {
+          "name": "Crear Reporte Diario PDIA-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPdia\": \"{{reporte_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPlse\": \"{{plan_semana_key}}\",\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsObservacionPdia\": \"Se ejecuta retiro parcial de material\",\n  \"orsFechareportPdia\": \"2026-06-06\",\n  \"orsEjecutunidadPdia\": 8,\n  \"orsFechasistemaPdia\": \"2026-06-06\",\n  \"orsTiporegistPdia\": \"1\",\n  \"orsEstadoregPdia\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/create"
+          }
+        },
+        {
+          "name": "Crear Reporte Diario PDIA-002",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPdia\": \"PDIA-002\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPlse\": \"{{plan_semana_key}}\",\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsObservacionPdia\": \"Se ejecuta conformación de vía\",\n  \"orsFechareportPdia\": \"2026-06-07\",\n  \"orsEjecutunidadPdia\": 7,\n  \"orsFechasistemaPdia\": \"2026-06-07\",\n  \"orsTiporegistPdia\": \"1\",\n  \"orsEstadoregPdia\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/create"
+          }
+        },
+        {
+          "name": "Consultar Reportes por Plan Semanal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/by-plan-semanal?planSemanalKey={{plan_semana_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Novedades",
+      "item": [
+        {
+          "name": "Crear Novedad NOVE-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyNove\": \"{{novedad_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsFechreportNove\": \"2026-06-06\",\n  \"orsTiponovedadNovt\": \"CLIMA\",\n  \"orsRegistrbaseNove\": \"{{reporte_key}}\",\n  \"orsRegistrnoveNove\": \"PDIA-001-NOV\",\n  \"orsEstadoregNove\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/novedades/create"
+          }
+        },
+        {
+          "name": "Consultar Novedades por Orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/novedades/by-orden?ordenKey={{orden_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Avances",
+      "item": [
+        {
+          "name": "Avance por Orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/avances/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Avance por Plan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/avances/by-plan?planKey={{plan_key}}"
+          }
+        },
+        {
+          "name": "Avance por Plan Semanal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/avances/by-plan-semanal?planSemanalKey={{plan_semana_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Flujo Completo Oficial",
+      "item": [
+        {
+          "name": "01 Crear Orden",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsAutorifechaOrde\": \"2026-06-05\",\n  \"orsCodservicioSebs\": \"MAQ\",\n  \"orsServiceventOrde\": \"Atención de emergencia vial\",\n  \"orsServiclugarOrde\": \"Sector rural afectado\",\n  \"orsServicobjetoOrde\": \"Prestación de servicio de maquinaria amarilla\",\n  \"orsPlanfechiniOrde\": \"2026-06-06\",\n  \"orsPlanfechfinOrde\": \"2026-06-12\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvIdentifkeyRelg\": null,\n  \"orsValorbaseOrde\": 15000000,\n  \"orsValordeivaOrde\": 2850000,\n  \"orsValortotalOrde\": 17850000,\n  \"orsTiporegistOrde\": \"1\",\n  \"orsEstadoregOrde\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/ordenes/create"
+          }
+        },
+        {
+          "name": "02 Crear Resumen Equipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyRseq\": \"{{resumen_equipo_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"orsCantidunidadRseq\": 40,\n  \"orsValorunidadRseq\": 250000,\n  \"orsValortotalRseq\": 10000000,\n  \"orsTiporegistRseq\": \"1\",\n  \"orsEstadoregRseq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/resumen-equipos/create"
+          }
+        },
+        {
+          "name": "03 Crear Punto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPunt\": \"{{punto_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsNombresitioPunt\": \"Sector rural K12+300\",\n  \"sisCodproSipr\": \"CO-11-001\",\n  \"orsGeolatitudePunt\": 4.711,\n  \"orsGeolongitudePunt\": -74.0721,\n  \"orsPathimagenPunt\": \"https://storage/puntos/punt-001.jpg\",\n  \"orsTiporegistPunt\": \"1\",\n  \"orsEstadoregPunt\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/sitios/create"
+          }
+        },
+        {
+          "name": "04 Crear Proyección",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsNumerosemPsem\": 1,\n  \"orsTitulosemPsem\": \"SEMANA 1 del 06 al 12 junio\",\n  \"orsSemfechiniPsem\": \"2026-06-06\",\n  \"orsSemfechfinPsem\": \"2026-06-12\",\n  \"orsDiashabilesPsem\": \"LUN,MAR,MIE,JUE,VIE,SAB\",\n  \"orsDiasnhabilesPsem\": \"DOM\",\n  \"orsTiporegistPsem\": \"1\",\n  \"orsEstadoregPsem\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/create"
+          }
+        },
+        {
+          "name": "05 Crear Plan Trabajo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPltr\": \"{{plan_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPunt\": \"{{punto_key}}\",\n  \"orsDesactividadPltr\": \"Retiro de material y conformación de vía\",\n  \"orsIdentifkeyRseq\": \"{{resumen_equipo_key}}\",\n  \"prvIdentifkeyInve\": \"{{equipo_key}}\",\n  \"orsCantidunidadRseq\": 40,\n  \"orsValorunidadRseq\": 250000,\n  \"orsValortotalRseq\": 10000000,\n  \"orsTiporegistPltr\": \"1\",\n  \"orsEstadoregPltr\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/planes/create"
+          }
+        },
+        {
+          "name": "06 Crear Plan Semana",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPlse\": \"{{plan_semana_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPltr\": \"{{plan_key}}\",\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsCantidunidadPlse\": 25,\n  \"orsValorunidadPlse\": 250000,\n  \"orsValortotalPlse\": 6250000,\n  \"orsEjecutunidadPlse\": 0,\n  \"orsValorejecutPlse\": 0,\n  \"orsTiporegistPlse\": \"1\",\n  \"orsEstadoregPlse\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/create"
+          }
+        },
+        {
+          "name": "07 Crear Reporte Diario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPdia\": \"{{reporte_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPlse\": \"{{plan_semana_key}}\",\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsObservacionPdia\": \"Se ejecuta retiro parcial de material\",\n  \"orsFechareportPdia\": \"2026-06-06\",\n  \"orsEjecutunidadPdia\": 8,\n  \"orsFechasistemaPdia\": \"2026-06-06\",\n  \"orsTiporegistPdia\": \"1\",\n  \"orsEstadoregPdia\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/create"
+          }
+        },
+        {
+          "name": "08 Crear Novedad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyNove\": \"{{novedad_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsFechreportNove\": \"2026-06-06\",\n  \"orsTiponovedadNovt\": \"CLIMA\",\n  \"orsRegistrbaseNove\": \"{{reporte_key}}\",\n  \"orsRegistrnoveNove\": \"PDIA-001-NOV\",\n  \"orsEstadoregNove\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/novedades/create"
+          }
+        },
+        {
+          "name": "09 Consultar Avance Final",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/avances/by-plan-semanal?planSemanalKey={{plan_semana_key}}"
+          }
+        }
+      ]
+    }
+  ]
+}

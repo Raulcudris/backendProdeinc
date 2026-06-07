@@ -1,32 +1,27 @@
 package com.system.modules.controlobras.api;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import com.system.crosscutting.domain.model.EntyOrsnovmdnovedadDto;
-import com.system.crosscutting.domain.model.EntyOrsnovmdnovedadResponse;
+import com.system.crosscutting.domain.model.EntyOrsconfnovedadhistoriDto;
+import com.system.crosscutting.domain.model.EntyOrsconfnovedadhistoriResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.controlobras.usecase.NovedadService;
 
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
-
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(
         value = "/api/control-obras/novedades",
         produces = {MediaType.APPLICATION_JSON_VALUE}
 )
 public class NovedadController {
 
-    private final NovedadService service;
+    @Autowired
+    private NovedadService service;
 
-    @GetMapping("pages")
-    @ApiOperation(httpMethod = "GET", value = "Consultar novedades", notes = "")
-    public ResponseEntity<EntyOrsnovmdnovedadResponse> getAll(
+    @GetMapping("/pages")
+    public ResponseEntity<EntyOrsconfnovedadhistoriResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
@@ -38,23 +33,39 @@ public class NovedadController {
         );
     }
 
-    @GetMapping("by-reporte")
-    @ApiOperation(httpMethod = "GET", value = "Consultar novedades por reporte diario", notes = "")
-    public ResponseEntity<EntyOrsnovmdnovedadResponse> getByReporte(
-            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(value = "reporteKey") String reporteKey
+    @GetMapping("/by-orden")
+    public ResponseEntity<?> findByOrden(
+            @RequestParam String ordenKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.getByReporte(currentPage, pageSize, reporteKey),
+                service.findByOrden(ordenKey),
                 HttpStatus.OK
         );
     }
 
-    @PostMapping("create")
-    @ApiOperation(httpMethod = "POST", value = "Crear novedad", notes = "")
-    public ResponseEntity<EntyOrsnovmdnovedadDto> create(
-            @RequestBody EntyOrsnovmdnovedadDto dto
+    @GetMapping("/by-registro-base")
+    public ResponseEntity<?> findByRegistroBase(
+            @RequestParam String registroBase
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.findByRegistroBase(registroBase),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<EntyOrsconfnovedadhistoriDto> get(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.get(id),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<EntyOrsconfnovedadhistoriDto> create(
+            @RequestBody EntyOrsconfnovedadhistoriDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.saveBefore(dto),
@@ -62,11 +73,10 @@ public class NovedadController {
         );
     }
 
-    @PutMapping("update/{id}")
-    @ApiOperation(httpMethod = "PUT", value = "Actualizar novedad", notes = "")
-    public ResponseEntity<EntyOrsnovmdnovedadDto> update(
+    @PutMapping("/update/{id}")
+    public ResponseEntity<EntyOrsconfnovedadhistoriDto> update(
             @PathVariable Integer id,
-            @RequestBody EntyOrsnovmdnovedadDto dto
+            @RequestBody EntyOrsconfnovedadhistoriDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
@@ -74,8 +84,7 @@ public class NovedadController {
         );
     }
 
-    @PatchMapping("changestatus/{id}")
-    @ApiOperation(httpMethod = "PATCH", value = "Cambiar estado de novedad", notes = "")
+    @PatchMapping("/changestatus/{id}")
     public ResponseEntity<String> changestatus(
             @PathVariable Integer id,
             @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
@@ -86,8 +95,7 @@ public class NovedadController {
         );
     }
 
-    @DeleteMapping("delete/{id}")
-    @ApiOperation(httpMethod = "DELETE", value = "Eliminar novedad", notes = "")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {

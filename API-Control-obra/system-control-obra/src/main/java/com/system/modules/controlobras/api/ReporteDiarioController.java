@@ -1,32 +1,27 @@
 package com.system.modules.controlobras.api;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import com.system.crosscutting.domain.model.EntyOrsrdomdreporteDiarioDto;
-import com.system.crosscutting.domain.model.EntyOrsrdomdreporteDiarioResponse;
+import com.system.crosscutting.domain.model.EntyOrsplamdreportediarioDto;
+import com.system.crosscutting.domain.model.EntyOrsplamdreportediarioResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.controlobras.usecase.ReporteDiarioService;
 
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
-
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(
         value = "/api/control-obras/reportes-diarios",
         produces = {MediaType.APPLICATION_JSON_VALUE}
 )
 public class ReporteDiarioController {
 
-    private final ReporteDiarioService service;
+    @Autowired
+    private ReporteDiarioService service;
 
-    @GetMapping("pages")
-    @ApiOperation(httpMethod = "GET", value = "Consultar reportes diarios", notes = "")
-    public ResponseEntity<EntyOrsrdomdreporteDiarioResponse> getAll(
+    @GetMapping("/pages")
+    public ResponseEntity<EntyOrsplamdreportediarioResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
@@ -38,49 +33,49 @@ public class ReporteDiarioController {
         );
     }
 
-    @GetMapping("by-orden")
-    @ApiOperation(httpMethod = "GET", value = "Consultar reportes por orden", notes = "")
-    public ResponseEntity<EntyOrsrdomdreporteDiarioResponse> getByOrden(
-            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(value = "ordenKey") String ordenKey
+    @GetMapping("/by-orden")
+    public ResponseEntity<?> findByOrden(
+            @RequestParam String ordenKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.getByOrden(currentPage, pageSize, ordenKey),
+                service.findByOrden(ordenKey),
                 HttpStatus.OK
         );
     }
 
-    @GetMapping("by-plan")
-    @ApiOperation(httpMethod = "GET", value = "Consultar reportes por plan", notes = "")
-    public ResponseEntity<EntyOrsrdomdreporteDiarioResponse> getByPlan(
-            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(value = "planKey") String planKey
+    @GetMapping("/by-plan-semanal")
+    public ResponseEntity<?> findByPlanSemana(
+            @RequestParam String planSemanalKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.getByPlan(currentPage, pageSize, planKey),
+                service.findByPlanSemana(planSemanalKey),
                 HttpStatus.OK
         );
     }
 
-    @GetMapping("by-plan-semanal")
-    @ApiOperation(httpMethod = "GET", value = "Consultar reportes por plan semanal", notes = "")
-    public ResponseEntity<EntyOrsrdomdreporteDiarioResponse> getByPlanSemanal(
-            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(value = "planSemanalKey") String planSemanalKey
+    @GetMapping("/by-proyeccion")
+    public ResponseEntity<?> findByProyeccionSemana(
+            @RequestParam String proyeccionKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.getByPlanSemanal(currentPage, pageSize, planSemanalKey),
+                service.findByProyeccionSemana(proyeccionKey),
                 HttpStatus.OK
         );
     }
 
-    @PostMapping("create")
-    @ApiOperation(httpMethod = "POST", value = "Crear reporte diario", notes = "")
-    public ResponseEntity<EntyOrsrdomdreporteDiarioDto> create(
-            @RequestBody EntyOrsrdomdreporteDiarioDto dto
+    @GetMapping("/get/{id}")
+    public ResponseEntity<EntyOrsplamdreportediarioDto> get(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.get(id),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<EntyOrsplamdreportediarioDto> create(
+            @RequestBody EntyOrsplamdreportediarioDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.saveBefore(dto),
@@ -88,11 +83,10 @@ public class ReporteDiarioController {
         );
     }
 
-    @PutMapping("update/{id}")
-    @ApiOperation(httpMethod = "PUT", value = "Actualizar reporte diario", notes = "")
-    public ResponseEntity<EntyOrsrdomdreporteDiarioDto> update(
+    @PutMapping("/update/{id}")
+    public ResponseEntity<EntyOrsplamdreportediarioDto> update(
             @PathVariable Integer id,
-            @RequestBody EntyOrsrdomdreporteDiarioDto dto
+            @RequestBody EntyOrsplamdreportediarioDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
@@ -100,8 +94,7 @@ public class ReporteDiarioController {
         );
     }
 
-    @PatchMapping("changestatus/{id}")
-    @ApiOperation(httpMethod = "PATCH", value = "Cambiar estado de reporte diario", notes = "")
+    @PatchMapping("/changestatus/{id}")
     public ResponseEntity<String> changestatus(
             @PathVariable Integer id,
             @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
@@ -112,8 +105,7 @@ public class ReporteDiarioController {
         );
     }
 
-    @DeleteMapping("delete/{id}")
-    @ApiOperation(httpMethod = "DELETE", value = "Eliminar reporte diario", notes = "")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {

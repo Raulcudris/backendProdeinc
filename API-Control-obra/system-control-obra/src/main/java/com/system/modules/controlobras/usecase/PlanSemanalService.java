@@ -2,111 +2,73 @@ package com.system.modules.controlobras.usecase;
 
 import java.math.BigDecimal;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import com.system.crosscutting.domain.model.EntyOrspspmdplansemanalDto;
-import com.system.crosscutting.domain.model.EntyOrspspmdplansemanalResponse;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
+import com.system.crosscutting.domain.model.EntyOrsplamdplantrabsemanaDto;
+import com.system.crosscutting.domain.model.EntyOrsplamdplantrabsemanaResponse;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.persistence.repository.EntyOrsplnmaplantrabajoRepository;
-import com.system.crosscutting.persistence.repository.EntyOrspspmdplansemanalRepository;
-import com.system.modules.controlobras.dataproviders.jpa.JpaPlanSemanalDataProviders;
-import com.system.modules.controlobras.services.UseCase;
-import com.system.modules.controlobras.services.UsecaseServices;
+import com.system.modules.controlobras.dataproviders.IjpaPlanTrabajoSemanaDataProviders;
 
-@UseCase
-public class PlanSemanalService
-        extends UsecaseServices<EntyOrspspmdplansemanalDto, JpaPlanSemanalDataProviders> {
+@Service
+public class PlanSemanalService {
 
     @Autowired
-    private JpaPlanSemanalDataProviders jpaDataProviders;
+    private IjpaPlanTrabajoSemanaDataProviders dataProvider;
 
-    @Autowired
-    private EntyOrspspmdplansemanalRepository repository;
-
-    @Autowired
-    private EntyOrsplnmaplantrabajoRepository planTrabajoRepository;
-
-    @PostConstruct
-    public void init() {
-        this.ijpaDataProvider = jpaDataProviders;
-    }
-
-    public EntyOrspspmdplansemanalResponse getAll(
+    public EntyOrsplamdplantrabsemanaResponse getAll(
             int currentPage,
             int pageSize,
             String parameter,
             String filter
     ) throws EBusinessException {
-        return this.jpaDataProviders.getAll(currentPage, pageSize, parameter, filter);
+        return dataProvider.getAll(currentPage, pageSize, parameter, filter);
     }
 
-    public EntyOrspspmdplansemanalResponse getByPlan(
-            int currentPage,
-            int pageSize,
-            String planKey
+    public EntyOrsplamdplantrabsemanaDto get(Integer id) throws EBusinessException {
+        return dataProvider.get(id);
+    }
+
+    public EntyOrsplamdplantrabsemanaDto saveBefore(
+            EntyOrsplamdplantrabsemanaDto dto
     ) throws EBusinessException {
 
-        if (planKey == null || planKey.isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código del plan de trabajo es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        if (dto.getOrsEstadoregPlse() == null) {
+            dto.setOrsEstadoregPlse("1");
         }
 
-        return this.jpaDataProviders.getByPlan(currentPage, pageSize, planKey);
+        if (dto.getOrsTiporegistPlse() == null) {
+            dto.setOrsTiporegistPlse("1");
+        }
+
+        if (dto.getOrsEjecutunidadPlse() == null) {
+            dto.setOrsEjecutunidadPlse(0);
+        }
+
+        if (dto.getOrsValorejecutPlse() == null) {
+            dto.setOrsValorejecutPlse(BigDecimal.ZERO);
+        }
+
+        return dataProvider.save(dto);
     }
 
-    public EntyOrspspmdplansemanalDto saveBefore(
-            EntyOrspspmdplansemanalDto dto
-    ) throws EBusinessException {
-
-        validarDtoBase(dto);
-
-        if (repository.findByOrsIdentifkeyPspl(dto.getOrsIdentifkeyPspl()).isPresent()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("Ya existe una proyección semanal con el código "
-                            + dto.getOrsIdentifkeyPspl())
-                    .withCode("409")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsCantidadprogPspl() == null) {
-            dto.setOrsCantidadprogPspl(BigDecimal.ZERO);
-        }
-
-        if (dto.getOrsEstadoregPspl() == null || dto.getOrsEstadoregPspl().isBlank()) {
-            dto.setOrsEstadoregPspl("1");
-        }
-
-        return this.jpaDataProviders.save(dto);
+    public Object findByOrden(String ordenKey) throws EBusinessException {
+        return dataProvider.findByOrden(ordenKey);
     }
 
-    public EntyOrspspmdplansemanalDto updateBefore(
+    public Object findByPlan(String planKey) throws EBusinessException {
+        return dataProvider.findByPlan(planKey);
+    }
+
+    public Object findByProyeccionSemana(String proyeccionKey) throws EBusinessException {
+        return dataProvider.findByProyeccionSemana(proyeccionKey);
+    }
+
+    public EntyOrsplamdplantrabsemanaDto updateBefore(
             Integer id,
-            EntyOrspspmdplansemanalDto dto
+            EntyOrsplamdplantrabsemanaDto dto
     ) throws EBusinessException {
-
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la proyección semanal es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        validarDtoBase(dto);
-
-        if (dto.getOrsCantidadprogPspl() == null) {
-            dto.setOrsCantidadprogPspl(BigDecimal.ZERO);
-        }
-
-        if (dto.getOrsEstadoregPspl() == null || dto.getOrsEstadoregPspl().isBlank()) {
-            dto.setOrsEstadoregPspl("1");
-        }
-
-        return this.jpaDataProviders.update(id, dto);
+        return dataProvider.update(id, dto);
     }
 
     public String changestatus(
@@ -114,109 +76,20 @@ public class PlanSemanalService
             String estado
     ) throws EBusinessException {
 
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la proyección semanal es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        EntyOrsplamdplantrabsemanaDto dto = dataProvider.get(id);
+
+        if (dto.getOrsPrimarykeyPlse() == null) {
+            return "Registro no encontrado";
         }
 
-        EntyOrspspmdplansemanalDto planSemanal = this.jpaDataProviders.get(id);
+        dto.setOrsEstadoregPlse(estado);
+        dataProvider.update(id, dto);
 
-        if (planSemanal.getOrsPrimarykeyPspl() == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La proyección semanal no fue encontrada")
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        String nextStatus;
-
-        if ("1".equals(estado) || "2".equals(estado) || "3".equals(estado)) {
-            nextStatus = estado;
-        } else {
-            nextStatus = "2";
-        }
-
-        planSemanal.setOrsEstadoregPspl(nextStatus);
-
-        this.jpaDataProviders.update(id, planSemanal);
-
-        return "OK";
+        return "Estado actualizado correctamente";
     }
 
     public String deleteBefore(Integer id) throws EBusinessException {
-
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la proyección semanal es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        EntyOrspspmdplansemanalDto planSemanal = this.jpaDataProviders.get(id);
-
-        if (planSemanal.getOrsPrimarykeyPspl() == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La proyección semanal no fue encontrada")
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        planSemanal.setOrsEstadoregPspl("2");
-
-        this.jpaDataProviders.update(id, planSemanal);
-
-        return "OK";
-    }
-
-    private void validarDtoBase(
-            EntyOrspspmdplansemanalDto dto
-    ) throws EBusinessException {
-
-        if (dto == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La proyección semanal es obligatoria")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsIdentifkeyPspl() == null || dto.getOrsIdentifkeyPspl().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código funcional de la proyección semanal es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsIdentifkeyPltr() == null || dto.getOrsIdentifkeyPltr().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código del plan de trabajo es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (planTrabajoRepository.findByOrsIdentifkeyPltr(dto.getOrsIdentifkeyPltr()).isEmpty()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("No existe el plan de trabajo con el código "
-                            + dto.getOrsIdentifkeyPltr())
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsSemanaPspl() == null || dto.getOrsSemanaPspl() <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El número de semana debe ser mayor a cero")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsFechainicioPspl() != null
-                && dto.getOrsFechafinPspl() != null
-                && dto.getOrsFechafinPspl().isBefore(dto.getOrsFechainicioPspl())) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La fecha final de la semana no puede ser menor que la fecha inicial")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
+        dataProvider.delete(id);
+        return "Registro eliminado correctamente";
     }
 }

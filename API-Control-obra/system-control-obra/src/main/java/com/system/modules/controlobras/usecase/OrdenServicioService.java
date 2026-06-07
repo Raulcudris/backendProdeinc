@@ -1,32 +1,18 @@
 package com.system.modules.controlobras.usecase;
 
-import javax.annotation.PostConstruct;
-
-import com.system.modules.controlobras.services.UseCase;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.system.crosscutting.domain.model.EntyOrsordmaordenservicioDto;
 import com.system.crosscutting.domain.model.EntyOrsordmaordenservicioResponse;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.persistence.repository.EntyOrsordmaordenservicioRepository;
-import com.system.modules.controlobras.dataproviders.jpa.JpaOrdenServicioDataProviders;
-import com.system.modules.controlobras.services.UsecaseServices;
+import com.system.modules.controlobras.dataproviders.IjpaOrdenServicioDataProviders;
 
-@UseCase
-public class OrdenServicioService
-        extends UsecaseServices<EntyOrsordmaordenservicioDto, JpaOrdenServicioDataProviders> {
+@Service
+public class OrdenServicioService {
 
     @Autowired
-    private JpaOrdenServicioDataProviders jpaDataProviders;
-
-    @Autowired
-    private EntyOrsordmaordenservicioRepository repository;
-
-    @PostConstruct
-    public void init() {
-        this.ijpaDataProvider = jpaDataProviders;
-    }
+    private IjpaOrdenServicioDataProviders dataProvider;
 
     public EntyOrsordmaordenservicioResponse getAll(
             int currentPage,
@@ -34,66 +20,29 @@ public class OrdenServicioService
             String parameter,
             String filter
     ) throws EBusinessException {
-        return this.ijpaDataProvider.getAll(currentPage, pageSize, parameter, filter);
+        return dataProvider.getAll(currentPage, pageSize, parameter, filter);
+    }
+
+    public EntyOrsordmaordenservicioDto get(Integer id) throws EBusinessException {
+        return dataProvider.get(id);
     }
 
     public EntyOrsordmaordenservicioDto saveBefore(
             EntyOrsordmaordenservicioDto dto
     ) throws EBusinessException {
 
-        if (dto == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La orden de servicio es obligatoria")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsIdentifkeyOrde() == null || dto.getOrsIdentifkeyOrde().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código funcional de la orden de servicio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (repository.findByOrsIdentifkeyOrde(dto.getOrsIdentifkeyOrde()).isPresent()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("Ya existe una orden de servicio con el código "
-                            + dto.getOrsIdentifkeyOrde())
-                    .withCode("409")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsEstadoregOrde() == null || dto.getOrsEstadoregOrde().isBlank()) {
+        if (dto.getOrsEstadoregOrde() == null) {
             dto.setOrsEstadoregOrde("1");
         }
 
-        return this.ijpaDataProvider.save(dto);
+        return dataProvider.save(dto);
     }
 
     public EntyOrsordmaordenservicioDto updateBefore(
             Integer id,
             EntyOrsordmaordenservicioDto dto
     ) throws EBusinessException {
-
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la orden de servicio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La información de la orden de servicio es obligatoria")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getOrsEstadoregOrde() == null || dto.getOrsEstadoregOrde().isBlank()) {
-            dto.setOrsEstadoregOrde("1");
-        }
-
-        return this.ijpaDataProvider.update(id, dto);
+        return dataProvider.update(id, dto);
     }
 
     public String changestatus(
@@ -101,59 +50,20 @@ public class OrdenServicioService
             String estado
     ) throws EBusinessException {
 
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la orden de servicio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        EntyOrsordmaordenservicioDto dto = dataProvider.get(id);
+
+        if (dto.getOrsPrimarykeyOrde() == null) {
+            return "Registro no encontrado";
         }
 
-        EntyOrsordmaordenservicioDto orden = this.ijpaDataProvider.get(id);
+        dto.setOrsEstadoregOrde(estado);
+        dataProvider.update(id, dto);
 
-        if (orden.getOrsPrimarykeyOrde() == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La orden de servicio no fue encontrada")
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        String nextStatus;
-
-        if ("1".equals(estado) || "2".equals(estado) || "3".equals(estado)) {
-            nextStatus = estado;
-        } else {
-            nextStatus = "2";
-        }
-
-        orden.setOrsEstadoregOrde(nextStatus);
-
-        this.ijpaDataProvider.update(id, orden);
-
-        return "OK";
+        return "Estado actualizado correctamente";
     }
 
     public String deleteBefore(Integer id) throws EBusinessException {
-
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la orden de servicio es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        EntyOrsordmaordenservicioDto orden = this.ijpaDataProvider.get(id);
-
-        if (orden.getOrsPrimarykeyOrde() == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La orden de servicio no fue encontrada")
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        orden.setOrsEstadoregOrde("3");
-
-        this.ijpaDataProvider.update(id, orden);
-
-        return "OK";
+        dataProvider.delete(id);
+        return "Registro eliminado correctamente";
     }
 }

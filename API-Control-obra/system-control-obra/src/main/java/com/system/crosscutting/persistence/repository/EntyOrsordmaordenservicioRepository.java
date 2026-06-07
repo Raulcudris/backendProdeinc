@@ -38,6 +38,13 @@ public interface EntyOrsordmaordenservicioRepository
     );
 
     @Query("SELECT o FROM EntyOrsordmaordenservicio o " +
+            "WHERE LOWER(o.orsCodservicioSebs) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyOrsordmaordenservicio> searchByCodigoServicio(
+            @Param("filter") String filter,
+            Pageable pageable
+    );
+
+    @Query("SELECT o FROM EntyOrsordmaordenservicio o " +
             "WHERE o.orsAutorifechaOrde BETWEEN :fechaInicio AND :fechaFin")
     Page<EntyOrsordmaordenservicio> searchByFechaAutorizacionBetween(
             @Param("fechaInicio") LocalDate fechaInicio,
@@ -46,8 +53,9 @@ public interface EntyOrsordmaordenservicioRepository
     );
 
     @Query("SELECT o FROM EntyOrsordmaordenservicio o " +
-            "WHERE o.orsPlanfechiniOrde BETWEEN :fechaInicio AND :fechaFin")
-    Page<EntyOrsordmaordenservicio> searchByFechaInicioPlanBetween(
+            "WHERE o.orsPlanfechiniOrde >= :fechaInicio " +
+            "AND o.orsPlanfechfinOrde <= :fechaFin")
+    Page<EntyOrsordmaordenservicio> searchByRangoPlan(
             @Param("fechaInicio") LocalDate fechaInicio,
             @Param("fechaFin") LocalDate fechaFin,
             Pageable pageable
@@ -65,7 +73,8 @@ public interface EntyOrsordmaordenservicioRepository
             "OR LOWER(o.orsCodservicioSebs) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(o.orsServiceventOrde) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(o.orsServiclugarOrde) LIKE LOWER(CONCAT('%', :filter, '%')) " +
-            "OR LOWER(o.orsServicobjetoOrde) LIKE LOWER(CONCAT('%', :filter, '%'))")
+            "OR LOWER(o.orsServicobjetoOrde) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(o.prvIdentifkeyMprv) LIKE LOWER(CONCAT('%', :filter, '%'))")
     Page<EntyOrsordmaordenservicio> searchByText(
             @Param("filter") String filter,
             Pageable pageable

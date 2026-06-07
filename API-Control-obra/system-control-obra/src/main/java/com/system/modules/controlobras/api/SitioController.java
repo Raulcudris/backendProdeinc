@@ -1,32 +1,27 @@
 package com.system.modules.controlobras.api;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import com.system.crosscutting.domain.model.EntyOrssitmdsitioDto;
-import com.system.crosscutting.domain.model.EntyOrssitmdsitioResponse;
+import com.system.crosscutting.domain.model.EntyOrsordmdsitiospuntosDto;
+import com.system.crosscutting.domain.model.EntyOrsordmdsitiospuntosResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.controlobras.usecase.SitioService;
 
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
-
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(
         value = "/api/control-obras/sitios",
         produces = {MediaType.APPLICATION_JSON_VALUE}
 )
 public class SitioController {
 
-    private final SitioService service;
+    @Autowired
+    private SitioService service;
 
-    @GetMapping("pages")
-    @ApiOperation(httpMethod = "GET", value = "Consultar sitios de trabajo", notes = "")
-    public ResponseEntity<EntyOrssitmdsitioResponse> getAll(
+    @GetMapping("/pages")
+    public ResponseEntity<EntyOrsordmdsitiospuntosResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
@@ -38,23 +33,29 @@ public class SitioController {
         );
     }
 
-    @GetMapping("by-orden")
-    @ApiOperation(httpMethod = "GET", value = "Consultar sitios por orden de servicio", notes = "")
-    public ResponseEntity<EntyOrssitmdsitioResponse> getByOrden(
-            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(value = "ordenKey") String ordenKey
+    @GetMapping("/by-orden")
+    public ResponseEntity<?> findByOrden(
+            @RequestParam String ordenKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.getByOrden(currentPage, pageSize, ordenKey),
+                service.findByOrden(ordenKey),
                 HttpStatus.OK
         );
     }
 
-    @PostMapping("create")
-    @ApiOperation(httpMethod = "POST", value = "Crear sitio de trabajo", notes = "")
-    public ResponseEntity<EntyOrssitmdsitioDto> create(
-            @RequestBody EntyOrssitmdsitioDto dto
+    @GetMapping("/get/{id}")
+    public ResponseEntity<EntyOrsordmdsitiospuntosDto> get(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.get(id),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<EntyOrsordmdsitiospuntosDto> create(
+            @RequestBody EntyOrsordmdsitiospuntosDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.saveBefore(dto),
@@ -62,11 +63,10 @@ public class SitioController {
         );
     }
 
-    @PutMapping("update/{id}")
-    @ApiOperation(httpMethod = "PUT", value = "Actualizar sitio de trabajo", notes = "")
-    public ResponseEntity<EntyOrssitmdsitioDto> update(
+    @PutMapping("/update/{id}")
+    public ResponseEntity<EntyOrsordmdsitiospuntosDto> update(
             @PathVariable Integer id,
-            @RequestBody EntyOrssitmdsitioDto dto
+            @RequestBody EntyOrsordmdsitiospuntosDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
@@ -74,8 +74,7 @@ public class SitioController {
         );
     }
 
-    @PatchMapping("changestatus/{id}")
-    @ApiOperation(httpMethod = "PATCH", value = "Cambiar estado de sitio", notes = "")
+    @PatchMapping("/changestatus/{id}")
     public ResponseEntity<String> changestatus(
             @PathVariable Integer id,
             @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
@@ -86,8 +85,7 @@ public class SitioController {
         );
     }
 
-    @DeleteMapping("delete/{id}")
-    @ApiOperation(httpMethod = "DELETE", value = "Eliminar sitio", notes = "")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {
