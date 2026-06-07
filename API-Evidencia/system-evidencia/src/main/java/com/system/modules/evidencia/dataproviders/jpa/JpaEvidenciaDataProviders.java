@@ -1,16 +1,13 @@
 package com.system.modules.evidencia.dataproviders.jpa;
-import java.time.LocalDateTime;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
 
-import com.system.modules.evidencia.dataproviders.IjpaEvidenciaDataProviders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,30 +15,20 @@ import org.springframework.data.domain.Pageable;
 
 import com.system.crosscutting.domain.model.EntyEvievimaevidenciaDto;
 import com.system.crosscutting.domain.model.EntyEvievimaevidenciaResponse;
-import com.system.crosscutting.domain.model.PaginationResponse;
 import com.system.crosscutting.exceptions.DataProvider;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.messages.SearchMessages;
-import com.system.crosscutting.patterns.Translator;
 import com.system.crosscutting.persistence.entity.EntyEvievimaevidencia;
 import com.system.crosscutting.persistence.repository.EntyEvievimaevidenciaRepository;
+import com.system.modules.evidencia.dataproviders.IjpaEvidenciaDataProviders;
+
+import lombok.RequiredArgsConstructor;
 
 @DataProvider
-public class JpaEvidenciaDataProviders implements IjpaEvidenciaDataProviders {
+@RequiredArgsConstructor
+public class JpaEvidenciaDataProviders extends JpaDataProviderSupport
+        implements IjpaEvidenciaDataProviders {
 
-    @Autowired
-    private EntyEvievimaevidenciaRepository repository;
-
-    @Autowired
-    @Qualifier("entyEvievimaevidenciaEntityToDtoTranslate")
-    private Translator<EntyEvievimaevidencia, EntyEvievimaevidenciaDto> entityToDtoTranslate;
-
-    @Autowired
-    @Qualifier("entyEvievimaevidenciaDtoToEntityTranslate")
-    private Translator<EntyEvievimaevidenciaDto, EntyEvievimaevidencia> dtoToEntityTranslate;
-
-    private static final Logger logger = LogManager.getLogger(JpaEvidenciaDataProviders.class);
+    private final EntyEvievimaevidenciaRepository repository;
 
     @Override
     public EntyEvievimaevidenciaResponse getAll() throws EBusinessException {
@@ -56,109 +43,48 @@ public class JpaEvidenciaDataProviders implements IjpaEvidenciaDataProviders {
             String filter
     ) throws EBusinessException {
         try {
-            int safeCurrentPage = currentPage <= 0 ? 0 : currentPage - 1;
-            int safePageSize = pageSize <= 0 ? 10 : pageSize;
+            int pageNumber = safeCurrentPage(currentPage);
+            int size = safePageSize(pageSize);
+            String search = safeFilter(filter);
 
-            String safeParameter = parameter == null || parameter.trim().isEmpty()
-                    ? "TEXT"
-                    : parameter.trim().toUpperCase();
+            Pageable pageable = PageRequest.of(pageNumber, size);
+            Page<EntyEvievimaevidencia> page;
 
-            String safeFilter = filter == null ? "" : filter.trim();
-
-            Pageable pageable = PageRequest.of(safeCurrentPage, safePageSize);
-            Page<EntyEvievimaevidencia> responsePage;
-
-            if (safeFilter.isEmpty()
-                    && !"STATUS".equals(safeParameter)
-                    && !"ESTADO".equals(safeParameter)
-                    && !"HOY".equals(safeParameter)) {
-                responsePage = repository.findAll(pageable);
-            } else {
-                switch (safeParameter) {
-                    case "PKEY":
-                        try {
-                            Integer id = Integer.parseInt(safeFilter);
-                            responsePage = repository.searchByPrimaryKey(id, pageable);
-                        } catch (NumberFormatException e) {
-                            responsePage = repository.searchByPrimaryKey(-1, pageable);
-                        }
-                        break;
-
-                    case "REGKEY":
-                    case "IDENTIFKEY":
-                    case "CODIGO":
-                    case "EVIDENCIA":
-                        responsePage = repository.searchByIdentifKey(safeFilter, pageable);
-                        break;
-
-                    case "TIPO":
-                    case "TIPO_EVIDENCIA":
-                    case "TIEV":
-                        responsePage = repository.searchByTipoEvidencia(safeFilter, pageable);
-                        break;
-
-                    case "USUARIO":
-                    case "USER":
-                        responsePage = repository.searchByUsuario(safeFilter, pageable);
-                        break;
-
-                    case "STATUS":
-                    case "ESTADO":
-                        if (safeFilter.isEmpty() || "ALL".equalsIgnoreCase(safeFilter)) {
-                            responsePage = repository.findAll(pageable);
-                        } else {
-                            responsePage = repository.searchByStatus(safeFilter, pageable);
-                        }
-                        break;
-
-                    case "HOY":
-                        LocalDateTime inicioDia = LocalDateTime.now().toLocalDate().atStartOfDay();
-                        LocalDateTime finDia = inicioDia.plusDays(1).minusSeconds(1);
-                        responsePage = repository.searchByFechaCapturaBetween(inicioDia, finDia, pageable);
-                        break;
-
-                    case "TEXT":
-                    case "SEARCH":
-                    default:
-                        responsePage = repository.searchByText(safeFilter, pageable);
-                        break;
-                }
+            switch (safeParameter(parameter)) {
+                case "ID":
+                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
+                    break;
+                case "KEY":
+                    page = repository.searchByIdentifKey(search, pageable);
+                    break;
+                case "TIPO":
+                    page = repository.searchByTipo(search, pageable);
+                    break;
+                case "STATUS":
+                    page = repository.searchByStatus(search, pageable);
+                    break;
+                default:
+                    page = repository.searchByText(search, pageable);
+                    break;
             }
 
-            List<EntyEvievimaevidenciaDto> content = responsePage.getContent()
+            List<EntyEvievimaevidenciaDto> data = page.getContent()
                     .stream()
-                    .map(this::mapToDto)
+                    .map(entity -> toDto(entity, EntyEvievimaevidenciaDto.class))
                     .collect(Collectors.toList());
 
             EntyEvievimaevidenciaResponse response = new EntyEvievimaevidenciaResponse();
-
             response.setRspMessage("OK");
             response.setRspValue("OK");
             response.setRspParentKey("NA");
-            response.setRspAppKey("NA");
-            response.setRspData(content);
-
-            response.setRspPagination(
-                    headResponse(
-                            safeCurrentPage + 1,
-                            safePageSize,
-                            responsePage.getTotalElements(),
-                            responsePage.getTotalPages(),
-                            responsePage.hasNext(),
-                            responsePage.hasPrevious(),
-                            "LocalHost",
-                            "LocalHost"
-                    )
-            );
+            response.setRspAppKey("msvc-evidencias");
+            response.setRspData(data);
+            response.setRspPagination(buildPagination(pageNumber + 1, size, page));
 
             return response;
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando evidencias", e);
         }
     }
 
@@ -167,18 +93,12 @@ public class JpaEvidenciaDataProviders implements IjpaEvidenciaDataProviders {
         try {
             EntyEvievimaevidencia entity = repository.findById(id).orElse(null);
 
-            if (entity == null) {
-                return new EntyEvievimaevidenciaDto();
-            }
-
-            return mapToDto(entity);
+            return entity == null
+                    ? new EntyEvievimaevidenciaDto()
+                    : toDto(entity, EntyEvievimaevidenciaDto.class);
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando evidencia", e);
         }
     }
 
@@ -187,17 +107,32 @@ public class JpaEvidenciaDataProviders implements IjpaEvidenciaDataProviders {
             EntyEvievimaevidenciaDto dto
     ) throws EBusinessException {
         try {
-            EntyEvievimaevidencia entity = dtoToEntityTranslate.translate(dto);
-            EntyEvievimaevidencia saved = repository.save(entity);
+            dto.setEviPrimarykeyEvid(null);
 
-            return mapToDto(saved);
+            if (dto.getEviFechacapturaEvid() == null) {
+                dto.setEviFechacapturaEvid(LocalDate.now());
+            }
+
+            if (dto.getEviTiporegistEvid() == null || dto.getEviTiporegistEvid().isBlank()) {
+                dto.setEviTiporegistEvid("1");
+            }
+
+            if (dto.getEviEstadoregEvid() == null || dto.getEviEstadoregEvid().isBlank()) {
+                dto.setEviEstadoregEvid("1");
+            }
+
+            EntyEvievimaevidencia entity = toEntity(
+                    dto,
+                    EntyEvievimaevidencia.class
+            );
+
+            return toDto(
+                    repository.save(entity),
+                    EntyEvievimaevidenciaDto.class
+            );
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error creando evidencia", e);
         }
     }
 
@@ -205,28 +140,13 @@ public class JpaEvidenciaDataProviders implements IjpaEvidenciaDataProviders {
     public List<EntyEvievimaevidenciaDto> save(
             List<EntyEvievimaevidenciaDto> dtos
     ) throws EBusinessException {
-        try {
-            List<EntyEvievimaevidencia> entities = new ArrayList<>();
+        List<EntyEvievimaevidenciaDto> result = new ArrayList<>();
 
-            for (EntyEvievimaevidenciaDto dto : dtos) {
-                entities.add(dtoToEntityTranslate.translate(dto));
-            }
-
-            List<EntyEvievimaevidenciaDto> result = new ArrayList<>();
-
-            for (EntyEvievimaevidencia entity : repository.saveAll(entities)) {
-                result.add(mapToDto(entity));
-            }
-
-            return result;
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+        for (EntyEvievimaevidenciaDto dto : dtos) {
+            result.add(save(dto));
         }
+
+        return result;
     }
 
     @Override
@@ -241,88 +161,56 @@ public class JpaEvidenciaDataProviders implements IjpaEvidenciaDataProviders {
                 return new EntyEvievimaevidenciaDto();
             }
 
-            old.setEviIdentifkeyEvid(dto.getEviIdentifkeyEvid());
-            old.setEviIdentifkeyTiev(dto.getEviIdentifkeyTiev());
-            old.setEviNombreEvid(dto.getEviNombreEvid());
-            old.setEviDescripcionEvid(dto.getEviDescripcionEvid());
-            old.setEviUrlarchivoEvid(dto.getEviUrlarchivoEvid());
-            old.setEviLatitudEvid(dto.getEviLatitudEvid());
-            old.setEviLongitudEvid(dto.getEviLongitudEvid());
-            old.setEviFechacapturaEvid(dto.getEviFechacapturaEvid());
-            old.setEviUsuariocreaEvid(dto.getEviUsuariocreaEvid());
-            old.setEviEstadoregEvid(dto.getEviEstadoregEvid());
+            dto.setEviPrimarykeyEvid(id);
+            BeanUtils.copyProperties(dto, old);
 
-            return mapToDto(repository.save(old));
+            return toDto(
+                    repository.save(old),
+                    EntyEvievimaevidenciaDto.class
+            );
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.UPDATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.UPDATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error actualizando evidencia", e);
         }
     }
 
     @Override
     public void delete(Integer id) throws EBusinessException {
         try {
-            EntyEvievimaevidencia entity = repository.findById(id).orElse(null);
+            repository.deleteById(id);
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error eliminando evidencia", e);
+        }
+    }
 
-            if (entity != null) {
-                repository.delete(entity);
-            }
+    @Override
+    public List<EntyEvievimaevidenciaDto> findByTipo(
+            String tipoKey
+    ) throws EBusinessException {
+        try {
+            return repository.findByEviIdentifkeyTiev(tipoKey)
+                    .stream()
+                    .map(entity -> toDto(entity, EntyEvievimaevidenciaDto.class))
+                    .collect(Collectors.toList());
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.DELETE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.DELETE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando evidencias por tipo", e);
         }
     }
 
-    private EntyEvievimaevidenciaDto mapToDto(
-            EntyEvievimaevidencia entity
-    ) {
-        EntyEvievimaevidenciaDto dto = new EntyEvievimaevidenciaDto();
-
+    @Override
+    public List<EntyEvievimaevidenciaDto> findByEstado(
+            String estado
+    ) throws EBusinessException {
         try {
-            if (entity == null) {
-                return dto;
-            }
+            return repository.searchByStatus(estado, Pageable.unpaged())
+                    .getContent()
+                    .stream()
+                    .map(entity -> toDto(entity, EntyEvievimaevidenciaDto.class))
+                    .collect(Collectors.toList());
 
-            return entityToDtoTranslate.translate(entity);
-
-        } catch (Exception e) {
-            logger.error(
-                    "Error mapeando evidencia a DTO. ID: {}",
-                    entity != null ? entity.getEviPrimarykeyEvid() : null,
-                    e
-            );
-
-            return dto;
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando evidencias por estado", e);
         }
-    }
-
-    private PaginationResponse headResponse(
-            int currentPage,
-            int totalPageSize,
-            long totalResults,
-            int totalPages,
-            boolean hasNextPage,
-            boolean hasPreviousPage,
-            String nextPageUrl,
-            String previousPageUrl
-    ) {
-        return PaginationResponse.builder()
-                .currentPage(currentPage)
-                .totalPageSize(totalPageSize)
-                .totalResults(totalResults)
-                .totalPages(totalPages)
-                .hasNextPage(hasNextPage)
-                .hasPreviousPage(hasPreviousPage)
-                .nextPageUrl(nextPageUrl)
-                .previousPageUrl(previousPageUrl)
-                .build();
     }
 }

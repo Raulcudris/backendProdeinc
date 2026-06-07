@@ -1,64 +1,39 @@
 package com.system.crosscutting.persistence.entity;
+
+import javax.persistence.*;
+
 import lombok.Getter;
 import lombok.Setter;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
-/**
- * Entidad JPA que representa la tabla EVIREFMDREFERENCIA.
- *
- * Esta tabla almacena las referencias de evidencias hacia otras entidades del sistema,
- * permitiendo asociar fotos, videos, documentos, audios o archivos a órdenes de servicio,
- * planes de trabajo, reportes diarios, novedades, documentos o equipos.
- */
 @Getter
 @Setter
 @Entity
-@Table(name = "EVIREFMDREFERENCIA")
+@Table(name = "evirefmdreferencia")
 public class EntyEvirefmdreferencia {
 
-    /**
-     * Código secuencial autoincremental de la referencia de evidencia.
-     */
     @Id
-    @Column(name = "EVI_PRIMARYKEY_EVRE")
-    private Integer eviPrimarykeyEvre;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "evi_primarykey_refe")
+    private Integer eviPrimarykeyRefe;
 
-    /**
-     * Código único funcional de referencia de evidencia.
-     */
-    @Column(name = "EVI_IDENTIFKEY_EVRE", length = 30, nullable = false)
-    private String eviIdentifkeyEvre;
+    @Column(name = "evi_identifkey_refe", nullable = false, unique = true, length = 30)
+    private String eviIdentifkeyRefe;
 
-    /**
-     * Código único funcional de la evidencia.
-     */
-    @Column(name = "EVI_IDENTIFKEY_EVID", length = 30, nullable = false)
+    @Column(name = "evi_identifkey_evid", nullable = false, length = 30)
     private String eviIdentifkeyEvid;
 
-    /**
-     * Tipo de referencia: ORDEN_SERVICIO, PLAN_TRABAJO, REPORTE_DIARIO, NOVEDAD, DOCUMENTO, EQUIPO.
-     */
-    @Column(name = "EVI_TIPOREFEREN_EVRE", length = 40, nullable = false)
-    private String eviTiporeferenEvre;
+    @Column(name = "evi_tiporegistro_refe", nullable = false, length = 50)
+    private String eviTiporegistroRefe;
 
-    /**
-     * Código identificador del registro referenciado.
-     */
-    @Column(name = "EVI_REFERENCIAID_EVRE", length = 30, nullable = false)
-    private String eviReferenciaidEvre;
+    @Column(name = "evi_identifregistro_refe", nullable = false, length = 50)
+    private String eviIdentifregistroRefe;
 
-    /**
-     * Observación de la referencia.
-     */
-    @Column(name = "EVI_OBSERVACION_EVRE", columnDefinition = "TEXT")
-    private String eviObservacionEvre;
+    @Column(name = "evi_observacion_refe", length = 500)
+    private String eviObservacionRefe;
 
-    /**
-     * Estado del registro: 1=Activo, 2=Inactivo.
-     */
-    @Column(name = "EVI_ESTADOREG_EVRE", length = 1, nullable = false)
-    private String eviEstadoregEvre;
+    @Column(name = "evi_tiporegist_refe", length = 2)
+    private String eviTiporegistRefe;
+
+    @Column(name = "evi_estadoreg_refe", length = 2)
+    private String eviEstadoregRefe;
 }

@@ -1,20 +1,38 @@
 package com.system.modules.evidencia.contracts;
-import com.system.crosscutting.exceptions.Main.EBusinessException;
+
 import java.util.List;
 
-public interface IjpaDataProviders<T, R> {
+import com.system.crosscutting.exceptions.Main.EBusinessException;
+
+public interface IjpaDataProviders<D, R> {
 
     R getAll() throws EBusinessException;
 
-    R getAll(int currentPage, int pageSize, String parameter, String filter) throws EBusinessException;
+    R getAll(
+            int currentPage,
+            int pageSize,
+            String parameter,
+            String filter
+    ) throws EBusinessException;
 
-    T get(Integer id) throws EBusinessException;
+    D get(
+            Integer id
+    ) throws EBusinessException;
 
-    T save(T dto) throws EBusinessException;
+    D save(
+            D dto
+    ) throws EBusinessException;
 
-    List<T> save(List<T> dto) throws EBusinessException;
+    List<D> save(
+            List<D> dtos
+    ) throws EBusinessException;
 
-    T update(Integer id, T dto) throws EBusinessException;
+    D update(
+            Integer id,
+            D dto
+    ) throws EBusinessException;
 
-    void delete(Integer id) throws EBusinessException;
+    void delete(
+            Integer id
+    ) throws EBusinessException;
 }

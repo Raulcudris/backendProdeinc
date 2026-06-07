@@ -1,16 +1,12 @@
 package com.system.modules.evidencia.dataproviders.jpa;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
 
-import com.system.modules.evidencia.dataproviders.IjpaTipoEvidenciaDataProviders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,30 +14,20 @@ import org.springframework.data.domain.Pageable;
 
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaDto;
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaResponse;
-import com.system.crosscutting.domain.model.PaginationResponse;
 import com.system.crosscutting.exceptions.DataProvider;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.messages.SearchMessages;
-import com.system.crosscutting.patterns.Translator;
 import com.system.crosscutting.persistence.entity.EntyEvitipmatipoevidencia;
 import com.system.crosscutting.persistence.repository.EntyEvitipmatipoevidenciaRepository;
+import com.system.modules.evidencia.dataproviders.IjpaTipoEvidenciaDataProviders;
+
+import lombok.RequiredArgsConstructor;
 
 @DataProvider
-public class JpaTipoEvidenciaDataProviders implements IjpaTipoEvidenciaDataProviders {
+@RequiredArgsConstructor
+public class JpaTipoEvidenciaDataProviders extends JpaDataProviderSupport
+        implements IjpaTipoEvidenciaDataProviders {
 
-    @Autowired
-    private EntyEvitipmatipoevidenciaRepository repository;
-
-    @Autowired
-    @Qualifier("entyEvitipmatipoevidenciaEntityToDtoTranslate")
-    private Translator<EntyEvitipmatipoevidencia, EntyEvitipmatipoevidenciaDto> entityToDtoTranslate;
-
-    @Autowired
-    @Qualifier("entyEvitipmatipoevidenciaDtoToEntityTranslate")
-    private Translator<EntyEvitipmatipoevidenciaDto, EntyEvitipmatipoevidencia> dtoToEntityTranslate;
-
-    private static final Logger logger = LogManager.getLogger(JpaTipoEvidenciaDataProviders.class);
+    private final EntyEvitipmatipoevidenciaRepository repository;
 
     @Override
     public EntyEvitipmatipoevidenciaResponse getAll() throws EBusinessException {
@@ -56,91 +42,45 @@ public class JpaTipoEvidenciaDataProviders implements IjpaTipoEvidenciaDataProvi
             String filter
     ) throws EBusinessException {
         try {
-            int safeCurrentPage = currentPage <= 0 ? 0 : currentPage - 1;
-            int safePageSize = pageSize <= 0 ? 10 : pageSize;
+            int pageNumber = safeCurrentPage(currentPage);
+            int size = safePageSize(pageSize);
+            String search = safeFilter(filter);
 
-            String safeParameter = parameter == null || parameter.trim().isEmpty()
-                    ? "TEXT"
-                    : parameter.trim().toUpperCase();
+            Pageable pageable = PageRequest.of(pageNumber, size);
+            Page<EntyEvitipmatipoevidencia> page;
 
-            String safeFilter = filter == null ? "" : filter.trim();
-
-            Pageable pageable = PageRequest.of(safeCurrentPage, safePageSize);
-            Page<EntyEvitipmatipoevidencia> responsePage;
-
-            if (safeFilter.isEmpty()
-                    && !"STATUS".equals(safeParameter)
-                    && !"ESTADO".equals(safeParameter)) {
-                responsePage = repository.findAll(pageable);
-            } else {
-                switch (safeParameter) {
-                    case "PKEY":
-                        try {
-                            Integer id = Integer.parseInt(safeFilter);
-                            responsePage = repository.searchByPrimaryKey(id, pageable);
-                        } catch (NumberFormatException e) {
-                            responsePage = repository.searchByPrimaryKey(-1, pageable);
-                        }
-                        break;
-
-                    case "REGKEY":
-                    case "IDENTIFKEY":
-                    case "CODIGO":
-                    case "TIPO":
-                        responsePage = repository.searchByIdentifKey(safeFilter, pageable);
-                        break;
-
-                    case "STATUS":
-                    case "ESTADO":
-                        if (safeFilter.isEmpty() || "ALL".equalsIgnoreCase(safeFilter)) {
-                            responsePage = repository.findAll(pageable);
-                        } else {
-                            responsePage = repository.searchByStatus(safeFilter, pageable);
-                        }
-                        break;
-
-                    case "TEXT":
-                    case "SEARCH":
-                    default:
-                        responsePage = repository.searchByText(safeFilter, pageable);
-                        break;
-                }
+            switch (safeParameter(parameter)) {
+                case "ID":
+                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
+                    break;
+                case "KEY":
+                    page = repository.searchByIdentifKey(search, pageable);
+                    break;
+                case "STATUS":
+                    page = repository.searchByStatus(search, pageable);
+                    break;
+                default:
+                    page = repository.searchByText(search, pageable);
+                    break;
             }
 
-            List<EntyEvitipmatipoevidenciaDto> content = responsePage.getContent()
+            List<EntyEvitipmatipoevidenciaDto> data = page.getContent()
                     .stream()
-                    .map(this::mapToDto)
+                    .map(entity -> toDto(entity, EntyEvitipmatipoevidenciaDto.class))
                     .collect(Collectors.toList());
 
             EntyEvitipmatipoevidenciaResponse response = new EntyEvitipmatipoevidenciaResponse();
-
             response.setRspMessage("OK");
             response.setRspValue("OK");
             response.setRspParentKey("NA");
-            response.setRspAppKey("NA");
-            response.setRspData(content);
-
-            response.setRspPagination(
-                    headResponse(
-                            safeCurrentPage + 1,
-                            safePageSize,
-                            responsePage.getTotalElements(),
-                            responsePage.getTotalPages(),
-                            responsePage.hasNext(),
-                            responsePage.hasPrevious(),
-                            "LocalHost",
-                            "LocalHost"
-                    )
-            );
+            response.setRspAppKey("msvc-evidencias");
+            response.setRspData(data);
+            response.setRspPagination(buildPagination(pageNumber + 1, size, page));
 
             return response;
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando tipos de evidencia", e);
         }
     }
 
@@ -149,18 +89,12 @@ public class JpaTipoEvidenciaDataProviders implements IjpaTipoEvidenciaDataProvi
         try {
             EntyEvitipmatipoevidencia entity = repository.findById(id).orElse(null);
 
-            if (entity == null) {
-                return new EntyEvitipmatipoevidenciaDto();
-            }
-
-            return mapToDto(entity);
+            return entity == null
+                    ? new EntyEvitipmatipoevidenciaDto()
+                    : toDto(entity, EntyEvitipmatipoevidenciaDto.class);
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando tipo de evidencia", e);
         }
     }
 
@@ -169,17 +103,28 @@ public class JpaTipoEvidenciaDataProviders implements IjpaTipoEvidenciaDataProvi
             EntyEvitipmatipoevidenciaDto dto
     ) throws EBusinessException {
         try {
-            EntyEvitipmatipoevidencia entity = dtoToEntityTranslate.translate(dto);
-            EntyEvitipmatipoevidencia saved = repository.save(entity);
+            dto.setEviPrimarykeyTiev(null);
 
-            return mapToDto(saved);
+            if (dto.getEviTiporegistTiev() == null || dto.getEviTiporegistTiev().isBlank()) {
+                dto.setEviTiporegistTiev("1");
+            }
+
+            if (dto.getEviEstadoregTiev() == null || dto.getEviEstadoregTiev().isBlank()) {
+                dto.setEviEstadoregTiev("1");
+            }
+
+            EntyEvitipmatipoevidencia entity = toEntity(
+                    dto,
+                    EntyEvitipmatipoevidencia.class
+            );
+
+            return toDto(
+                    repository.save(entity),
+                    EntyEvitipmatipoevidenciaDto.class
+            );
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error creando tipo de evidencia", e);
         }
     }
 
@@ -187,28 +132,13 @@ public class JpaTipoEvidenciaDataProviders implements IjpaTipoEvidenciaDataProvi
     public List<EntyEvitipmatipoevidenciaDto> save(
             List<EntyEvitipmatipoevidenciaDto> dtos
     ) throws EBusinessException {
-        try {
-            List<EntyEvitipmatipoevidencia> entities = new ArrayList<>();
+        List<EntyEvitipmatipoevidenciaDto> result = new ArrayList<>();
 
-            for (EntyEvitipmatipoevidenciaDto dto : dtos) {
-                entities.add(dtoToEntityTranslate.translate(dto));
-            }
-
-            List<EntyEvitipmatipoevidenciaDto> result = new ArrayList<>();
-
-            for (EntyEvitipmatipoevidencia entity : repository.saveAll(entities)) {
-                result.add(mapToDto(entity));
-            }
-
-            return result;
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+        for (EntyEvitipmatipoevidenciaDto dto : dtos) {
+            result.add(save(dto));
         }
+
+        return result;
     }
 
     @Override
@@ -223,81 +153,41 @@ public class JpaTipoEvidenciaDataProviders implements IjpaTipoEvidenciaDataProvi
                 return new EntyEvitipmatipoevidenciaDto();
             }
 
-            old.setEviIdentifkeyTiev(dto.getEviIdentifkeyTiev());
-            old.setEviDescripcionTiev(dto.getEviDescripcionTiev());
-            old.setEviEstadoregTiev(dto.getEviEstadoregTiev());
+            dto.setEviPrimarykeyTiev(id);
+            BeanUtils.copyProperties(dto, old);
 
-            return mapToDto(repository.save(old));
+            return toDto(
+                    repository.save(old),
+                    EntyEvitipmatipoevidenciaDto.class
+            );
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.UPDATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.UPDATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error actualizando tipo de evidencia", e);
         }
     }
 
     @Override
     public void delete(Integer id) throws EBusinessException {
         try {
-            EntyEvitipmatipoevidencia entity = repository.findById(id).orElse(null);
+            repository.deleteById(id);
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error eliminando tipo de evidencia", e);
+        }
+    }
 
-            if (entity != null) {
-                repository.delete(entity);
-            }
+    @Override
+    public List<EntyEvitipmatipoevidenciaDto> findByEstado(
+            String estado
+    ) throws EBusinessException {
+        try {
+            return repository.searchByStatus(estado, Pageable.unpaged())
+                    .getContent()
+                    .stream()
+                    .map(entity -> toDto(entity, EntyEvitipmatipoevidenciaDto.class))
+                    .collect(Collectors.toList());
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.DELETE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.DELETE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando tipos de evidencia por estado", e);
         }
-    }
-
-    private EntyEvitipmatipoevidenciaDto mapToDto(
-            EntyEvitipmatipoevidencia entity
-    ) {
-        EntyEvitipmatipoevidenciaDto dto = new EntyEvitipmatipoevidenciaDto();
-
-        try {
-            if (entity == null) {
-                return dto;
-            }
-
-            return entityToDtoTranslate.translate(entity);
-
-        } catch (Exception e) {
-            logger.error(
-                    "Error mapeando tipo de evidencia a DTO. ID: {}",
-                    entity != null ? entity.getEviPrimarykeyTiev() : null,
-                    e
-            );
-
-            return dto;
-        }
-    }
-
-    private PaginationResponse headResponse(
-            int currentPage,
-            int totalPageSize,
-            long totalResults,
-            int totalPages,
-            boolean hasNextPage,
-            boolean hasPreviousPage,
-            String nextPageUrl,
-            String previousPageUrl
-    ) {
-        return PaginationResponse.builder()
-                .currentPage(currentPage)
-                .totalPageSize(totalPageSize)
-                .totalResults(totalResults)
-                .totalPages(totalPages)
-                .hasNextPage(hasNextPage)
-                .hasPreviousPage(hasPreviousPage)
-                .nextPageUrl(nextPageUrl)
-                .previousPageUrl(previousPageUrl)
-                .build();
     }
 }

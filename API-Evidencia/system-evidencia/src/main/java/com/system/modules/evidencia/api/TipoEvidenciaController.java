@@ -1,34 +1,26 @@
 package com.system.modules.evidencia.api;
 
-import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaDto;
-import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaResponse;
-import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.exceptions.MicroEventException;
-import com.system.modules.evidencia.usecase.EntyTipoEvidenciaService;
-
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controlador REST para administrar tipos de evidencia.
- */
+import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaDto;
+import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaResponse;
+import com.system.crosscutting.exceptions.MicroEventException;
+import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.modules.evidencia.usecase.EntyTipoEvidenciaService;
+
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(
         value = "/api/evidencias/tipos",
         produces = {MediaType.APPLICATION_JSON_VALUE}
 )
-public class EntyTipoEvidenciaWebApi {
+public class TipoEvidenciaController {
 
-    private final EntyTipoEvidenciaService service;
+    @Autowired
+    private EntyTipoEvidenciaService service;
 
-    @GetMapping("pages")
-    @ApiOperation(httpMethod = "GET", value = "Consultar tipos de evidencia", notes = "")
+    @GetMapping("/pages")
     public ResponseEntity<EntyEvitipmatipoevidenciaResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
@@ -41,8 +33,27 @@ public class EntyTipoEvidenciaWebApi {
         );
     }
 
-    @PostMapping("create")
-    @ApiOperation(httpMethod = "POST", value = "Crear tipo de evidencia", notes = "")
+    @GetMapping("/get/{id}")
+    public ResponseEntity<EntyEvitipmatipoevidenciaDto> get(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.get(id),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/by-estado")
+    public ResponseEntity<?> findByEstado(
+            @RequestParam String estado
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.findByEstado(estado),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/create")
     public ResponseEntity<EntyEvitipmatipoevidenciaDto> create(
             @RequestBody EntyEvitipmatipoevidenciaDto dto
     ) throws EBusinessException, MicroEventException {
@@ -52,8 +63,7 @@ public class EntyTipoEvidenciaWebApi {
         );
     }
 
-    @PutMapping("update/{id}")
-    @ApiOperation(httpMethod = "PUT", value = "Actualizar tipo de evidencia", notes = "")
+    @PutMapping("/update/{id}")
     public ResponseEntity<EntyEvitipmatipoevidenciaDto> update(
             @PathVariable Integer id,
             @RequestBody EntyEvitipmatipoevidenciaDto dto
@@ -64,8 +74,7 @@ public class EntyTipoEvidenciaWebApi {
         );
     }
 
-    @PatchMapping("changestatus/{id}")
-    @ApiOperation(httpMethod = "PATCH", value = "Cambiar estado de tipo de evidencia", notes = "")
+    @PatchMapping("/changestatus/{id}")
     public ResponseEntity<String> changestatus(
             @PathVariable Integer id,
             @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
@@ -76,8 +85,7 @@ public class EntyTipoEvidenciaWebApi {
         );
     }
 
-    @DeleteMapping("delete/{id}")
-    @ApiOperation(httpMethod = "DELETE", value = "Eliminar tipo de evidencia", notes = "")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {

@@ -1,0 +1,302 @@
+{
+  "info": {
+    "_postman_id": "7c8e7f3b-6093-4a2b-evidencias",
+    "name": "Prodeinc - msvc-evidencias Gateway",
+    "description": "Colección Postman para probar msvc-evidencia por Gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:8088"
+    },
+    {
+      "key": "tipo_evidencia_key",
+      "value": "FOTO"
+    },
+    {
+      "key": "evidencia_key",
+      "value": "EVI-001"
+    },
+    {
+      "key": "referencia_key",
+      "value": "REF-001"
+    },
+    {
+      "key": "tipo_registro",
+      "value": "REPORTE_DIARIO"
+    },
+    {
+      "key": "registro_key",
+      "value": "PDIA-001"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health",
+      "item": [
+        {
+          "name": "Health msvc-evidencia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Tipos de Evidencia",
+      "item": [
+        {
+          "name": "Crear Tipo FOTO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyTiev\": \"{{tipo_evidencia_key}}\",\n  \"eviDescripcionTiev\": \"Fotografía de obra\",\n  \"eviTiporegistTiev\": \"1\",\n  \"eviEstadoregTiev\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/tipos/create"
+          }
+        },
+        {
+          "name": "Crear Tipo DOCUMENTO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyTiev\": \"DOCUMENTO\",\n  \"eviDescripcionTiev\": \"Documento soporte de obra\",\n  \"eviTiporegistTiev\": \"1\",\n  \"eviEstadoregTiev\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/tipos/create"
+          }
+        },
+        {
+          "name": "Consultar Tipos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/tipos/pages"
+          }
+        },
+        {
+          "name": "Consultar Tipos Activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/tipos/by-estado?estado=1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Evidencias",
+      "item": [
+        {
+          "name": "Crear Evidencia EVI-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyEvid\": \"{{evidencia_key}}\",\n  \"eviIdentifkeyTiev\": \"{{tipo_evidencia_key}}\",\n  \"eviNombrearchivoEvid\": \"foto_reporte_pdia001.jpg\",\n  \"eviDescripcionEvid\": \"Foto del avance reportado en la planilla diaria\",\n  \"eviUrlarchivoEvid\": \"https://storage/prodeinc/evidencias/foto_reporte_pdia001.jpg\",\n  \"eviFechacapturaEvid\": \"2026-06-06\",\n  \"eviLatitudEvid\": 4.71100000,\n  \"eviLongitudEvid\": -74.07210000,\n  \"eviTiporegistEvid\": \"1\",\n  \"eviEstadoregEvid\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/evidencias/create"
+          }
+        },
+        {
+          "name": "Crear Evidencia EVI-002 para Novedad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyEvid\": \"EVI-002\",\n  \"eviIdentifkeyTiev\": \"FOTO\",\n  \"eviNombrearchivoEvid\": \"foto_novedad_nove001.jpg\",\n  \"eviDescripcionEvid\": \"Foto asociada a novedad de campo\",\n  \"eviUrlarchivoEvid\": \"https://storage/prodeinc/evidencias/foto_novedad_nove001.jpg\",\n  \"eviFechacapturaEvid\": \"2026-06-06\",\n  \"eviLatitudEvid\": 4.71100000,\n  \"eviLongitudEvid\": -74.07210000,\n  \"eviTiporegistEvid\": \"1\",\n  \"eviEstadoregEvid\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/evidencias/create"
+          }
+        },
+        {
+          "name": "Consultar Evidencias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/evidencias/pages"
+          }
+        },
+        {
+          "name": "Consultar Evidencias por Tipo FOTO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/evidencias/by-tipo?tipoKey={{tipo_evidencia_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Referencias de Evidencia",
+      "item": [
+        {
+          "name": "Asociar EVI-001 a Reporte Diario PDIA-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyRefe\": \"{{referencia_key}}\",\n  \"eviIdentifkeyEvid\": \"{{evidencia_key}}\",\n  \"eviTiporegistroRefe\": \"{{tipo_registro}}\",\n  \"eviIdentifregistroRefe\": \"{{registro_key}}\",\n  \"eviObservacionRefe\": \"Evidencia asociada al reporte diario PDIA-001\",\n  \"eviTiporegistRefe\": \"1\",\n  \"eviEstadoregRefe\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/referencias/create"
+          }
+        },
+        {
+          "name": "Asociar EVI-002 a Novedad NOVE-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyRefe\": \"REF-002\",\n  \"eviIdentifkeyEvid\": \"EVI-002\",\n  \"eviTiporegistroRefe\": \"NOVEDAD\",\n  \"eviIdentifregistroRefe\": \"NOVE-001\",\n  \"eviObservacionRefe\": \"Evidencia asociada a la novedad NOVE-001\",\n  \"eviTiporegistRefe\": \"1\",\n  \"eviEstadoregRefe\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/referencias/create"
+          }
+        },
+        {
+          "name": "Consultar Referencias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/referencias/pages"
+          }
+        },
+        {
+          "name": "Consultar por Evidencia EVI-001",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/referencias/by-evidencia?evidenciaKey={{evidencia_key}}"
+          }
+        },
+        {
+          "name": "Consultar por Registro PDIA-001",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/referencias/by-registro?registroKey={{registro_key}}"
+          }
+        },
+        {
+          "name": "Consultar por Tipo Registro REPORTE_DIARIO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/referencias/by-tipo-registro?tipoRegistro={{tipo_registro}}"
+          }
+        },
+        {
+          "name": "Consultar por Tipo Registro y Registro",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/referencias/by-tipo-registro-and-registro?tipoRegistro={{tipo_registro}}&registroKey={{registro_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Flujo Completo Evidencias",
+      "item": [
+        {
+          "name": "01 Crear Tipo FOTO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyTiev\": \"{{tipo_evidencia_key}}\",\n  \"eviDescripcionTiev\": \"Fotografía de obra\",\n  \"eviTiporegistTiev\": \"1\",\n  \"eviEstadoregTiev\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/tipos/create"
+          }
+        },
+        {
+          "name": "02 Crear Evidencia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyEvid\": \"{{evidencia_key}}\",\n  \"eviIdentifkeyTiev\": \"{{tipo_evidencia_key}}\",\n  \"eviNombrearchivoEvid\": \"foto_reporte_pdia001.jpg\",\n  \"eviDescripcionEvid\": \"Foto del avance reportado en la planilla diaria\",\n  \"eviUrlarchivoEvid\": \"https://storage/prodeinc/evidencias/foto_reporte_pdia001.jpg\",\n  \"eviFechacapturaEvid\": \"2026-06-06\",\n  \"eviLatitudEvid\": 4.71100000,\n  \"eviLongitudEvid\": -74.07210000,\n  \"eviTiporegistEvid\": \"1\",\n  \"eviEstadoregEvid\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/evidencias/create"
+          }
+        },
+        {
+          "name": "03 Asociar a Reporte Diario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyRefe\": \"{{referencia_key}}\",\n  \"eviIdentifkeyEvid\": \"{{evidencia_key}}\",\n  \"eviTiporegistroRefe\": \"{{tipo_registro}}\",\n  \"eviIdentifregistroRefe\": \"{{registro_key}}\",\n  \"eviObservacionRefe\": \"Evidencia asociada al reporte diario PDIA-001\",\n  \"eviTiporegistRefe\": \"1\",\n  \"eviEstadoregRefe\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/referencias/create"
+          }
+        },
+        {
+          "name": "04 Consultar Evidencias del Reporte",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/referencias/by-tipo-registro-and-registro?tipoRegistro={{tipo_registro}}&registroKey={{registro_key}}"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,46 +1,30 @@
 package com.system.crosscutting.persistence.entity;
+
+import javax.persistence.*;
+
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-/**
- * Entidad JPA que representa la tabla EVITIPMATIPOEVIDENCIA.
- *
- * Esta tabla almacena los tipos de evidencia permitidos por el sistema:
- * fotografía, video, documento, audio o archivo general.
- */
 @Getter
 @Setter
 @Entity
-@Table(name = "EVITIPMATIPOEVIDENCIA")
+@Table(name = "evitipmatipoevidencia")
 public class EntyEvitipmatipoevidencia {
 
-    /**
-     * Código secuencial autoincremental del tipo de evidencia.
-     */
     @Id
-    @Column(name = "EVI_PRIMARYKEY_TIEV")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "evi_primarykey_tiev")
     private Integer eviPrimarykeyTiev;
 
-    /**
-     * Código único funcional del tipo de evidencia.
-     */
-    @Column(name = "EVI_IDENTIFKEY_TIEV", length = 20, nullable = false)
+    @Column(name = "evi_identifkey_tiev", nullable = false, unique = true, length = 30)
     private String eviIdentifkeyTiev;
 
-    /**
-     * Descripción del tipo de evidencia.
-     */
-    @Column(name = "EVI_DESCRIPCION_TIEV", length = 120, nullable = false)
+    @Column(name = "evi_descripcion_tiev", nullable = false, length = 150)
     private String eviDescripcionTiev;
 
-    /**
-     * Estado del registro: 1=Activo, 2=Inactivo.
-     */
-    @Column(name = "EVI_ESTADOREG_TIEV", length = 1, nullable = false)
+    @Column(name = "evi_tiporegist_tiev", length = 2)
+    private String eviTiporegistTiev;
+
+    @Column(name = "evi_estadoreg_tiev", length = 2)
     private String eviEstadoregTiev;
 }
