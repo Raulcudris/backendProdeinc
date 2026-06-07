@@ -1,36 +1,22 @@
 package com.system.crosscutting.persistence.entity;
 
-import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Entidad JPA para la tabla prvinvmainventarioequipos.
- *
- * Tabla maestra de inventario de equipos del proveedor.
- */
 @Getter
 @Setter
 @Entity
 @Table(name = "prvinvmainventarioequipos")
-public class EntyPrvinvmainventarioequipos implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class EntyPrvinvmainventarioequipos {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "prv_primarykey_inve")
     private Integer prvPrimarykeyInve;
 
-    @Column(name = "prv_identifkey_inve", length = 10, nullable = false)
+    @Column(name = "prv_identifkey_inve", nullable = false, length = 10)
     private String prvIdentifkeyInve;
 
     @Column(name = "prv_identifkey_mprv", length = 20)
@@ -53,4 +39,7 @@ public class EntyPrvinvmainventarioequipos implements Serializable {
 
     @Column(name = "prv_estadoreg_inve", length = 1)
     private String prvEstadoregInve;
+
+    @Column(name = "prv_descripcion_inve", length = 500)
+    private String prvDescripcionInve;
 }

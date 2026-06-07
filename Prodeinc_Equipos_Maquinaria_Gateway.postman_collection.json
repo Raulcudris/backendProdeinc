@@ -1,0 +1,519 @@
+{
+  "info": {
+    "_postman_id": "6092-equipos-maquinaria-prodeinc-actualizado",
+    "name": "Prodeinc - msvc-equipos-maquinaria Gateway Actualizado",
+    "description": "Colección Postman actualizada para probar msvc-equipos-maquinaria por Gateway usando el esquema real de base de datos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:8088"
+    },
+    {
+      "key": "unidad_key",
+      "value": "HORA"
+    },
+    {
+      "key": "tipo_equipo_key",
+      "value": "EXC"
+    },
+    {
+      "key": "equipo_key",
+      "value": "EQ001"
+    },
+    {
+      "key": "proveedor_key",
+      "value": "PROV-001"
+    },
+    {
+      "key": "tipo_equipo_id",
+      "value": "1"
+    },
+    {
+      "key": "equipo_id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health",
+      "item": [
+        {
+          "name": "Health msvc-equipos-maquinaria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Unidades de Medida",
+      "item": [
+        {
+          "name": "Crear Unidad HORA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipunidamedUnme\": \"{{unidad_key}}\",\n  \"prvDescmedidaUnme\": \"Hora de trabajo\",\n  \"prvEstadoregUnme\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/create"
+          }
+        },
+        {
+          "name": "Crear Unidad DIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipunidamedUnme\": \"DIA\",\n  \"prvDescmedidaUnme\": \"Día de trabajo\",\n  \"prvEstadoregUnme\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/create"
+          }
+        },
+        {
+          "name": "Crear Unidad KM",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipunidamedUnme\": \"KM\",\n  \"prvDescmedidaUnme\": \"Kilómetro\",\n  \"prvEstadoregUnme\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/create"
+          }
+        },
+        {
+          "name": "Consultar Unidades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/pages"
+          }
+        },
+        {
+          "name": "Consultar Unidad por Key HORA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/by-key?unidadKey={{unidad_key}}"
+          }
+        },
+        {
+          "name": "Consultar Unidades Activas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/by-estado?estado=1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Tipos de Equipo",
+      "item": [
+        {
+          "name": "Crear Tipo Equipo EXC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"prvDescripcionTieq\": \"Excavadora hidráulica\",\n  \"prvIdentifkeyUnme\": \"{{unidad_key}}\",\n  \"prvTiporegistTieq\": \"1\",\n  \"prvEstadoregTieq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/create"
+          }
+        },
+        {
+          "name": "Crear Tipo Equipo VOLQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipoequipoTieq\": \"VOLQ\",\n  \"prvDescripcionTieq\": \"Volqueta doble troque\",\n  \"prvIdentifkeyUnme\": \"{{unidad_key}}\",\n  \"prvTiporegistTieq\": \"1\",\n  \"prvEstadoregTieq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/create"
+          }
+        },
+        {
+          "name": "Crear Tipo Equipo RETRO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipoequipoTieq\": \"RETRO\",\n  \"prvDescripcionTieq\": \"Retroexcavadora\",\n  \"prvIdentifkeyUnme\": \"{{unidad_key}}\",\n  \"prvTiporegistTieq\": \"1\",\n  \"prvEstadoregTieq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/create"
+          }
+        },
+        {
+          "name": "Consultar Tipos de Equipo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/pages"
+          }
+        },
+        {
+          "name": "Consultar Tipo Equipo por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/get/{{tipo_equipo_id}}"
+          }
+        },
+        {
+          "name": "Consultar Tipo Equipo por Key EXC",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/by-key?tipoEquipoKey={{tipo_equipo_key}}"
+          }
+        },
+        {
+          "name": "Consultar Tipos por Unidad HORA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/by-unidad?unidadKey={{unidad_key}}"
+          }
+        },
+        {
+          "name": "Consultar Tipos Activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/by-estado?estado=1"
+          }
+        },
+        {
+          "name": "Actualizar Tipo Equipo EXC",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"prvDescripcionTieq\": \"Excavadora hidráulica actualizada\",\n  \"prvIdentifkeyUnme\": \"{{unidad_key}}\",\n  \"prvTiporegistTieq\": \"1\",\n  \"prvEstadoregTieq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/update/{{tipo_equipo_id}}"
+          }
+        },
+        {
+          "name": "Cambiar Estado Tipo Inactivo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/changestatus/{{tipo_equipo_id}}?estado=2"
+          }
+        },
+        {
+          "name": "Cambiar Estado Tipo Activo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/changestatus/{{tipo_equipo_id}}?estado=1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Inventario de Equipos",
+      "item": [
+        {
+          "name": "Crear Equipo EQ001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyInve\": \"{{equipo_key}}\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"prvNombrequipoInve\": \"Excavadora hidráulica\",\n  \"prvRefermodeloInve\": \"CAT 320D\",\n  \"prvEquipoestadoInve\": \"A01\",\n  \"prvEquipoactivoInve\": \"1\",\n  \"prvEstadoregInve\": \"1\",\n  \"prvDescripcionInve\": \"Excavadora hidráulica para obra civil\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/create"
+          }
+        },
+        {
+          "name": "Crear Equipo EQ002",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyInve\": \"EQ002\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvTipoequipoTieq\": \"VOLQ\",\n  \"prvNombrequipoInve\": \"Volqueta doble troque\",\n  \"prvRefermodeloInve\": \"International 7600\",\n  \"prvEquipoestadoInve\": \"A01\",\n  \"prvEquipoactivoInve\": \"1\",\n  \"prvEstadoregInve\": \"1\",\n  \"prvDescripcionInve\": \"Volqueta para transporte de material\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/create"
+          }
+        },
+        {
+          "name": "Crear Equipo EQ003",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyInve\": \"EQ003\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvTipoequipoTieq\": \"RETRO\",\n  \"prvNombrequipoInve\": \"Retroexcavadora\",\n  \"prvRefermodeloInve\": \"JCB 3CX\",\n  \"prvEquipoestadoInve\": \"A01\",\n  \"prvEquipoactivoInve\": \"1\",\n  \"prvEstadoregInve\": \"1\",\n  \"prvDescripcionInve\": \"Retroexcavadora disponible para actividades de excavación\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/create"
+          }
+        },
+        {
+          "name": "Consultar Equipos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/pages"
+          }
+        },
+        {
+          "name": "Consultar Equipo por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/get/{{equipo_id}}"
+          }
+        },
+        {
+          "name": "Consultar Equipo por Key EQ001",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-key?equipoKey={{equipo_key}}"
+          }
+        },
+        {
+          "name": "Consultar Equipos por Proveedor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-proveedor?proveedorKey={{proveedor_key}}"
+          }
+        },
+        {
+          "name": "Consultar Equipos por Tipo EXC",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-tipo?tipoEquipoKey={{tipo_equipo_key}}"
+          }
+        },
+        {
+          "name": "Consultar Equipos Disponibles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/disponibles"
+          }
+        },
+        {
+          "name": "Consultar Equipos No Disponibles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-disponible?disponible=2"
+          }
+        },
+        {
+          "name": "Consultar Equipos Activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-estado?estado=1"
+          }
+        },
+        {
+          "name": "Actualizar Equipo EQ001",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyInve\": \"{{equipo_key}}\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"prvNombrequipoInve\": \"Excavadora hidráulica actualizada\",\n  \"prvRefermodeloInve\": \"CAT 320D\",\n  \"prvEquipoestadoInve\": \"A01\",\n  \"prvEquipoactivoInve\": \"1\",\n  \"prvEstadoregInve\": \"1\",\n  \"prvDescripcionInve\": \"Excavadora hidráulica actualizada para obra civil\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/update/{{equipo_id}}"
+          }
+        },
+        {
+          "name": "Cambiar Equipo a Asignado",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/cambiar-disponibilidad/{{equipo_id}}?disponible=2"
+          }
+        },
+        {
+          "name": "Cambiar Equipo a Disponible",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/cambiar-disponibilidad/{{equipo_id}}?disponible=1"
+          }
+        },
+        {
+          "name": "Cambiar Estado Operativo a Inactivo por Daño",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/cambiar-estado-operativo/{{equipo_id}}?estadoOperativo=I01"
+          }
+        },
+        {
+          "name": "Cambiar Estado Operativo a Activo Funcional",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/cambiar-estado-operativo/{{equipo_id}}?estadoOperativo=A01"
+          }
+        },
+        {
+          "name": "Cambiar Estado Registro Inactivo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/changestatus/{{equipo_id}}?estado=2"
+          }
+        },
+        {
+          "name": "Cambiar Estado Registro Activo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/changestatus/{{equipo_id}}?estado=1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Flujo Completo Equipos",
+      "item": [
+        {
+          "name": "01 Crear Unidad HORA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipunidamedUnme\": \"{{unidad_key}}\",\n  \"prvDescmedidaUnme\": \"Hora de trabajo\",\n  \"prvEstadoregUnme\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/create"
+          }
+        },
+        {
+          "name": "02 Crear Tipo Equipo EXC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"prvDescripcionTieq\": \"Excavadora hidráulica\",\n  \"prvIdentifkeyUnme\": \"{{unidad_key}}\",\n  \"prvTiporegistTieq\": \"1\",\n  \"prvEstadoregTieq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/create"
+          }
+        },
+        {
+          "name": "03 Crear Equipo EQ001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyInve\": \"{{equipo_key}}\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"prvNombrequipoInve\": \"Excavadora hidráulica\",\n  \"prvRefermodeloInve\": \"CAT 320D\",\n  \"prvEquipoestadoInve\": \"A01\",\n  \"prvEquipoactivoInve\": \"1\",\n  \"prvEstadoregInve\": \"1\",\n  \"prvDescripcionInve\": \"Excavadora hidráulica para obra civil\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/create"
+          }
+        },
+        {
+          "name": "04 Consultar Equipos Disponibles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/disponibles"
+          }
+        },
+        {
+          "name": "05 Consultar Equipo por Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-key?equipoKey={{equipo_key}}"
+          }
+        }
+      ]
+    }
+  ]
+}

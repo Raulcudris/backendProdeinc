@@ -3,9 +3,6 @@ package com.system.crosscutting.domain.model;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * DTO para la tabla prvinvmainventarioequipos.
- */
 @Getter
 @Setter
 public class EntyPrvinvmainventarioequiposDto {
@@ -27,4 +24,6 @@ public class EntyPrvinvmainventarioequiposDto {
     private String prvEquipoactivoInve;
 
     private String prvEstadoregInve;
+
+    private String prvDescripcionInve;
 }

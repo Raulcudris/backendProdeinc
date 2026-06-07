@@ -7,12 +7,17 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EntyEquasimdasignequipoResponse {
+public class EntyPrvinvmainventarioequiposResponse {
 
     private String rspMessage;
+
     private String rspValue;
+
     private String rspParentKey;
+
     private String rspAppKey;
+
     private PaginationResponse rspPagination;
-    private List<EntyEquasimdasignequipoDto> rspData;
+
+    private List<EntyPrvinvmainventarioequiposDto> rspData;
 }

@@ -6,305 +6,218 @@ import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
 
-import com.system.modules.equiposmaquinaria.dataproviders.IjpaUnidadMedidaDataProviders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import com.system.crosscutting.domain.model.EntyEqumedmaunidadmedidaDto;
-import com.system.crosscutting.domain.model.EntyEqumedmaunidadmedidaResponse;
-import com.system.crosscutting.domain.model.PaginationResponse;
+import com.system.crosscutting.domain.model.EntyPrvinvmdunidamedequipoDto;
+import com.system.crosscutting.domain.model.EntyPrvinvmdunidamedequipoResponse;
 import com.system.crosscutting.exceptions.DataProvider;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.messages.SearchMessages;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyEqumedmaunidadmedida;
-import com.system.crosscutting.persistence.repository.EntyEqumedmaunidadmedidaRepository;
+import com.system.crosscutting.persistence.entity.EntyPrvinvmdunidamedequipo;
+import com.system.crosscutting.persistence.repository.EntyPrvinvmdunidamedequipoRepository;
+import com.system.crosscutting.translate.EntyPrvinvmdunidamedequipoDtoToEntityTranslate;
+import com.system.crosscutting.translate.EntyPrvinvmdunidamedequipoEntityToDtoTranslate;
+import com.system.modules.equiposmaquinaria.dataproviders.IjpaUnidadMedidaDataProviders;
+
+import lombok.RequiredArgsConstructor;
 
 @DataProvider
-public class JpaUnidadMedidaDataProviders implements IjpaUnidadMedidaDataProviders {
+@RequiredArgsConstructor
+public class JpaUnidadMedidaDataProviders extends JpaDataProviderSupport
+        implements IjpaUnidadMedidaDataProviders {
 
-    @Autowired
-    private EntyEqumedmaunidadmedidaRepository repository;
-
-    @Autowired
-    @Qualifier("entyEqumedmaunidadmedidaEntityToDtoTranslate")
-    private Translator<EntyEqumedmaunidadmedida, EntyEqumedmaunidadmedidaDto> entityToDtoTranslate;
-
-    @Autowired
-    @Qualifier("entyEqumedmaunidadmedidaDtoToEntityTranslate")
-    private Translator<EntyEqumedmaunidadmedidaDto, EntyEqumedmaunidadmedida> dtoToEntityTranslate;
-
-    private static final Logger logger = LogManager.getLogger(JpaUnidadMedidaDataProviders.class);
+    private final EntyPrvinvmdunidamedequipoRepository repository;
+    private final EntyPrvinvmdunidamedequipoDtoToEntityTranslate dtoToEntityTranslate;
+    private final EntyPrvinvmdunidamedequipoEntityToDtoTranslate entityToDtoTranslate;
 
     @Override
-    public EntyEqumedmaunidadmedidaResponse getAll() throws EBusinessException {
+    public EntyPrvinvmdunidamedequipoResponse getAll() throws EBusinessException {
         return getAll(1, 10, "TEXT", "");
     }
 
     @Override
-    public EntyEqumedmaunidadmedidaResponse getAll(
+    public EntyPrvinvmdunidamedequipoResponse getAll(
             int currentPage,
             int pageSize,
             String parameter,
             String filter
     ) throws EBusinessException {
         try {
-            int safeCurrentPage = currentPage <= 0 ? 0 : currentPage - 1;
-            int safePageSize = pageSize <= 0 ? 10 : pageSize;
+            int pageNumber = safeCurrentPage(currentPage);
+            int size = safePageSize(pageSize);
+            String search = safeFilter(filter);
 
-            String safeParameter = parameter == null || parameter.trim().isEmpty()
-                    ? "TEXT"
-                    : parameter.trim().toUpperCase();
+            Pageable pageable = PageRequest.of(pageNumber, size);
+            Page<EntyPrvinvmdunidamedequipo> page;
 
-            String safeFilter = filter == null ? "" : filter.trim();
+            switch (safeParameter(parameter)) {
+                case "KEY":
+                    page = repository.searchByIdentifKey(search, pageable);
+                    break;
 
-            Pageable pageable = PageRequest.of(safeCurrentPage, safePageSize);
-            Page<EntyEqumedmaunidadmedida> responsePage;
+                case "STATUS":
+                    page = repository.searchByStatus(search, pageable);
+                    break;
 
-            if (safeFilter.isEmpty()
-                    && !"STATUS".equals(safeParameter)
-                    && !"ESTADO".equals(safeParameter)) {
-                responsePage = repository.findAll(pageable);
-            } else {
-                switch (safeParameter) {
-                    case "PKEY":
-                        try {
-                            Integer id = Integer.parseInt(safeFilter);
-                            responsePage = repository.searchByPrimaryKey(id, pageable);
-                        } catch (NumberFormatException e) {
-                            responsePage = repository.searchByPrimaryKey(-1, pageable);
-                        }
-                        break;
-
-                    case "REGKEY":
-                    case "IDENTIFKEY":
-                    case "CODIGO_FUNCIONAL":
-                    case "KEY":
-                        responsePage = repository.searchByIdentifKey(safeFilter, pageable);
-                        break;
-
-                    case "CODIGO":
-                    case "CODE":
-                    case "ABREVIATURA":
-                        responsePage = repository.searchByCodigo(safeFilter, pageable);
-                        break;
-
-                    case "STATUS":
-                    case "ESTADO":
-                        if (safeFilter.isEmpty() || "ALL".equalsIgnoreCase(safeFilter)) {
-                            responsePage = repository.findAll(pageable);
-                        } else {
-                            responsePage = repository.searchByStatus(safeFilter, pageable);
-                        }
-                        break;
-
-                    case "TEXT":
-                    case "SEARCH":
-                    default:
-                        responsePage = repository.searchByText(safeFilter, pageable);
-                        break;
-                }
+                default:
+                    page = repository.searchByText(search, pageable);
+                    break;
             }
 
-            List<EntyEqumedmaunidadmedidaDto> content = responsePage.getContent()
-                    .stream()
-                    .map(this::mapToDto)
-                    .collect(Collectors.toList());
+            List<EntyPrvinvmdunidamedequipoDto> data = new ArrayList<>();
 
-            EntyEqumedmaunidadmedidaResponse response = new EntyEqumedmaunidadmedidaResponse();
+            for (EntyPrvinvmdunidamedequipo entity : page.getContent()) {
+                data.add(entityToDtoTranslate.translate(entity));
+            }
 
+            EntyPrvinvmdunidamedequipoResponse response = new EntyPrvinvmdunidamedequipoResponse();
             response.setRspMessage("OK");
             response.setRspValue("OK");
             response.setRspParentKey("NA");
-            response.setRspAppKey("NA");
-            response.setRspData(content);
-
-            response.setRspPagination(
-                    headResponse(
-                            safeCurrentPage + 1,
-                            safePageSize,
-                            responsePage.getTotalElements(),
-                            responsePage.getTotalPages(),
-                            responsePage.hasNext(),
-                            responsePage.hasPrevious(),
-                            "LocalHost",
-                            "LocalHost"
-                    )
-            );
+            response.setRspAppKey("msvc-equipos-maquinaria");
+            response.setRspData(data);
+            response.setRspPagination(buildPagination(pageNumber + 1, size, page));
 
             return response;
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando unidades de medida", e);
         }
     }
 
     @Override
-    public EntyEqumedmaunidadmedidaDto get(Integer id) throws EBusinessException {
-        try {
-            EntyEqumedmaunidadmedida entity = repository.findById(id).orElse(null);
-
-            if (entity == null) {
-                return new EntyEqumedmaunidadmedidaDto();
-            }
-
-            return mapToDto(entity);
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
-        }
-    }
-
-    @Override
-    public EntyEqumedmaunidadmedidaDto save(
-            EntyEqumedmaunidadmedidaDto dto
+    public EntyPrvinvmdunidamedequipoDto get(
+            Integer id
     ) throws EBusinessException {
         try {
-            EntyEqumedmaunidadmedida entity = dtoToEntityTranslate.translate(dto);
-            EntyEqumedmaunidadmedida saved = repository.save(entity);
-
-            return mapToDto(saved);
-
+            return new EntyPrvinvmdunidamedequipoDto();
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando unidad de medida", e);
         }
     }
 
     @Override
-    public List<EntyEqumedmaunidadmedidaDto> save(
-            List<EntyEqumedmaunidadmedidaDto> dtos
+    public EntyPrvinvmdunidamedequipoDto save(
+            EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException {
         try {
-            List<EntyEqumedmaunidadmedida> entities = new ArrayList<>();
-
-            for (EntyEqumedmaunidadmedidaDto dto : dtos) {
-                entities.add(dtoToEntityTranslate.translate(dto));
+            if (dto.getPrvTipunidamedUnme() == null || dto.getPrvTipunidamedUnme().isBlank()) {
+                dto.setPrvTipunidamedUnme("HORA");
             }
 
-            List<EntyEqumedmaunidadmedidaDto> result = new ArrayList<>();
-
-            for (EntyEqumedmaunidadmedida entity : repository.saveAll(entities)) {
-                result.add(mapToDto(entity));
+            if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
+                dto.setPrvDescmedidaUnme("Hora de trabajo");
             }
 
-            return result;
+            if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
+                dto.setPrvEstadoregUnme("1");
+            }
+
+            EntyPrvinvmdunidamedequipo entity = dtoToEntityTranslate.translate(dto);
+            EntyPrvinvmdunidamedequipo saved = repository.save(entity);
+
+            return entityToDtoTranslate.translate(saved);
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error creando unidad de medida", e);
         }
     }
 
     @Override
-    public EntyEqumedmaunidadmedidaDto update(
+    public List<EntyPrvinvmdunidamedequipoDto> save(
+            List<EntyPrvinvmdunidamedequipoDto> dtos
+    ) throws EBusinessException {
+        List<EntyPrvinvmdunidamedequipoDto> result = new ArrayList<>();
+
+        for (EntyPrvinvmdunidamedequipoDto dto : dtos) {
+            result.add(save(dto));
+        }
+
+        return result;
+    }
+
+    @Override
+    public EntyPrvinvmdunidamedequipoDto update(
             Integer id,
-            EntyEqumedmaunidadmedidaDto dto
+            EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException {
         try {
-            EntyEqumedmaunidadmedida old = repository.findById(id).orElse(null);
-
-            if (old == null) {
-                return new EntyEqumedmaunidadmedidaDto();
+            if (dto.getPrvTipunidamedUnme() == null || dto.getPrvTipunidamedUnme().isBlank()) {
+                return new EntyPrvinvmdunidamedequipoDto();
             }
 
-            old.setEquIdentifkeyUnme(dto.getEquIdentifkeyUnme());
-            old.setEquCodigoUnme(dto.getEquCodigoUnme());
-            old.setEquDescripcionUnme(dto.getEquDescripcionUnme());
-            old.setEquEstadoregUnme(dto.getEquEstadoregUnme());
+            if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
+                dto.setPrvDescmedidaUnme("Hora de trabajo");
+            }
 
-            return mapToDto(repository.save(old));
+            if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
+                dto.setPrvEstadoregUnme("1");
+            }
+
+            EntyPrvinvmdunidamedequipo entity = dtoToEntityTranslate.translate(dto);
+            EntyPrvinvmdunidamedequipo saved = repository.save(entity);
+
+            return entityToDtoTranslate.translate(saved);
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.UPDATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.UPDATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error actualizando unidad de medida", e);
         }
     }
 
     @Override
-    public void delete(Integer id) throws EBusinessException {
+    public void delete(
+            Integer id
+    ) throws EBusinessException {
         try {
-            EntyEqumedmaunidadmedida entity = repository.findById(id).orElse(null);
-
-            if (entity != null) {
-                repository.delete(entity);
-            }
-
+            // La tabla real no tiene ID numérico. Usar eliminación por key si se requiere.
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.DELETE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.DELETE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error eliminando unidad de medida", e);
         }
     }
 
-    private EntyEqumedmaunidadmedidaDto mapToDto(
-            EntyEqumedmaunidadmedida entity
-    ) {
-        EntyEqumedmaunidadmedidaDto dto = new EntyEqumedmaunidadmedidaDto();
-
+    @Override
+    public EntyPrvinvmdunidamedequipoDto findByKey(
+            String unidadKey
+    ) throws EBusinessException {
         try {
+            EntyPrvinvmdunidamedequipo entity = repository.findByPrvTipunidamedUnme(unidadKey)
+                    .orElse(null);
+
             if (entity == null) {
-                return dto;
+                return new EntyPrvinvmdunidamedequipoDto();
             }
 
             return entityToDtoTranslate.translate(entity);
 
-        } catch (Exception e) {
-            logger.error(
-                    "Error mapeando unidad de medida a DTO. ID: {}",
-                    entity != null ? entity.getEquPrimarykeyUnme() : null,
-                    e
-            );
-
-            return dto;
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando unidad de medida por key", e);
         }
     }
 
-    private PaginationResponse headResponse(
-            int currentPage,
-            int totalPageSize,
-            long totalResults,
-            int totalPages,
-            boolean hasNextPage,
-            boolean hasPreviousPage,
-            String nextPageUrl,
-            String previousPageUrl
+    @Override
+    public List<EntyPrvinvmdunidamedequipoDto> findByEstado(
+            String estado
+    ) throws EBusinessException {
+        try {
+            return translateList(repository.findByPrvEstadoregUnme(estado));
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando unidades de medida por estado", e);
+        }
+    }
+
+    private List<EntyPrvinvmdunidamedequipoDto> translateList(
+            List<EntyPrvinvmdunidamedequipo> entities
     ) {
-        return PaginationResponse.builder()
-                .currentPage(currentPage)
-                .totalPageSize(totalPageSize)
-                .totalResults(totalResults)
-                .totalPages(totalPages)
-                .hasNextPage(hasNextPage)
-                .hasPreviousPage(hasPreviousPage)
-                .nextPageUrl(nextPageUrl)
-                .previousPageUrl(previousPageUrl)
-                .build();
+        return entities.stream()
+                .map(entity -> {
+                    try {
+                        return entityToDtoTranslate.translate(entity);
+                    } catch (EBusinessException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 }

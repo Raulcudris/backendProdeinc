@@ -1,43 +1,33 @@
 package com.system.modules.proveedores.dataproviders.jpa;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.persistence.PersistenceException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
 import com.system.crosscutting.domain.model.EntyPrvmaeproveedoresmaDto;
 import com.system.crosscutting.domain.model.EntyPrvmaeproveedoresmaResponse;
-import com.system.crosscutting.domain.model.PaginationResponse;
 import com.system.crosscutting.exceptions.DataProvider;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.messages.SearchMessages;
-import com.system.crosscutting.patterns.Translator;
 import com.system.crosscutting.persistence.entity.EntyPrvmaeproveedoresma;
 import com.system.crosscutting.persistence.repository.EntyPrvmaeproveedoresmaRepository;
 import com.system.modules.proveedores.dataproviders.IjpaProveedorDataProviders;
 
+import lombok.RequiredArgsConstructor;
+
 @DataProvider
-public class JpaProveedorDataProviders implements IjpaProveedorDataProviders {
+@RequiredArgsConstructor
+public class JpaProveedorDataProviders extends JpaDataProviderSupport
+        implements IjpaProveedorDataProviders {
 
-    @Autowired
-    private EntyPrvmaeproveedoresmaRepository repository;
-
-    @Autowired
-    @Qualifier("entyPrvmaeproveedoresmaEntityToDtoTranslate")
-    private Translator<EntyPrvmaeproveedoresma, EntyPrvmaeproveedoresmaDto> entityToDtoTranslate;
-
-    @Autowired
-    @Qualifier("entyPrvmaeproveedoresmaDtoToEntityTranslate")
-    private Translator<EntyPrvmaeproveedoresmaDto, EntyPrvmaeproveedoresma> dtoToEntityTranslate;
-
-    private static final Logger logger = LogManager.getLogger(JpaProveedorDataProviders.class);
+    private final EntyPrvmaeproveedoresmaRepository repository;
 
     @Override
     public EntyPrvmaeproveedoresmaResponse getAll() throws EBusinessException {
@@ -52,70 +42,40 @@ public class JpaProveedorDataProviders implements IjpaProveedorDataProviders {
             String filter
     ) throws EBusinessException {
         try {
-            int safeCurrentPage = currentPage <= 0 ? 0 : currentPage - 1;
-            int safePageSize = pageSize <= 0 ? 10 : pageSize;
+            int pageNumber = safeCurrentPage(currentPage);
+            int size = safePageSize(pageSize);
+            String search = safeFilter(filter);
 
-            String safeParameter = parameter == null || parameter.trim().isEmpty()
-                    ? "TEXT"
-                    : parameter.trim().toUpperCase();
+            Pageable pageable = PageRequest.of(pageNumber, size);
+            Page<EntyPrvmaeproveedoresma> page;
 
-            String safeFilter = filter == null ? "" : filter.trim();
-
-            Pageable pageable = PageRequest.of(safeCurrentPage, safePageSize);
-            Page<EntyPrvmaeproveedoresma> responsePage;
-
-            if (safeFilter.isEmpty()
-                    && !"STATUS".equals(safeParameter)
-                    && !"ESTADO".equals(safeParameter)) {
-                responsePage = repository.findAll(pageable);
-            } else {
-                switch (safeParameter) {
-                    case "PKEY":
-                        try {
-                            Integer id = Integer.parseInt(safeFilter);
-                            responsePage = repository.searchByPrimaryKey(id, pageable);
-                        } catch (NumberFormatException e) {
-                            responsePage = repository.searchByPrimaryKey(-1, pageable);
-                        }
-                        break;
-
-                    case "REGKEY":
-                    case "IDENTIFKEY":
-                    case "CODIGO":
-                    case "PROVEEDOR":
-                        responsePage = repository.searchByIdentifKey(safeFilter, pageable);
-                        break;
-
-                    case "NIT":
-                    case "DOCUMENTO":
-                        responsePage = repository.searchByNit(safeFilter, pageable);
-                        break;
-
-                    case "TIPO":
-                    case "TIPO_PROVEEDOR":
-                        responsePage = repository.searchByTipoProveedor(safeFilter, pageable);
-                        break;
-
-                    case "STATUS":
-                    case "ESTADO":
-                        if (safeFilter.isEmpty() || "ALL".equalsIgnoreCase(safeFilter)) {
-                            responsePage = repository.findAll(pageable);
-                        } else {
-                            responsePage = repository.searchByStatus(safeFilter, pageable);
-                        }
-                        break;
-
-                    case "TEXT":
-                    case "SEARCH":
-                    default:
-                        responsePage = repository.searchByText(safeFilter, pageable);
-                        break;
-                }
+            switch (safeParameter(parameter)) {
+                case "ID":
+                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
+                    break;
+                case "KEY":
+                    page = repository.searchByIdentifKey(search, pageable);
+                    break;
+                case "NIT":
+                    page = repository.searchByNit(search, pageable);
+                    break;
+                case "RAZON_SOCIAL":
+                    page = repository.searchByRazonSocial(search, pageable);
+                    break;
+                case "CORREO":
+                    page = repository.searchByCorreo(search, pageable);
+                    break;
+                case "STATUS":
+                    page = repository.searchByStatus(search, pageable);
+                    break;
+                default:
+                    page = repository.searchByText(search, pageable);
+                    break;
             }
 
-            List<EntyPrvmaeproveedoresmaDto> content = responsePage.getContent()
+            List<EntyPrvmaeproveedoresmaDto> data = page.getContent()
                     .stream()
-                    .map(this::mapToDto)
+                    .map(entity -> toDto(entity, EntyPrvmaeproveedoresmaDto.class))
                     .collect(Collectors.toList());
 
             EntyPrvmaeproveedoresmaResponse response = new EntyPrvmaeproveedoresmaResponse();
@@ -123,48 +83,29 @@ public class JpaProveedorDataProviders implements IjpaProveedorDataProviders {
             response.setRspValue("OK");
             response.setRspParentKey("NA");
             response.setRspAppKey("msvc-proveedores");
-            response.setRspData(content);
-            response.setRspPagination(
-                    headResponse(
-                            safeCurrentPage + 1,
-                            safePageSize,
-                            responsePage.getTotalElements(),
-                            responsePage.getTotalPages(),
-                            responsePage.hasNext(),
-                            responsePage.hasPrevious(),
-                            "LocalHost",
-                            "LocalHost"
-                    )
-            );
+            response.setRspData(data);
+            response.setRspPagination(buildPagination(pageNumber + 1, size, page));
 
             return response;
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando proveedores", e);
         }
     }
 
     @Override
-    public EntyPrvmaeproveedoresmaDto get(Integer id) throws EBusinessException {
+    public EntyPrvmaeproveedoresmaDto get(
+            Integer id
+    ) throws EBusinessException {
         try {
             EntyPrvmaeproveedoresma entity = repository.findById(id).orElse(null);
 
-            if (entity == null) {
-                return new EntyPrvmaeproveedoresmaDto();
-            }
-
-            return mapToDto(entity);
+            return entity == null
+                    ? new EntyPrvmaeproveedoresmaDto()
+                    : toDto(entity, EntyPrvmaeproveedoresmaDto.class);
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando proveedor", e);
         }
     }
 
@@ -173,17 +114,24 @@ public class JpaProveedorDataProviders implements IjpaProveedorDataProviders {
             EntyPrvmaeproveedoresmaDto dto
     ) throws EBusinessException {
         try {
-            EntyPrvmaeproveedoresma entity = dtoToEntityTranslate.translate(dto);
-            EntyPrvmaeproveedoresma saved = repository.save(entity);
+            dto.setPrvPrimarykeyMprv(null);
 
-            return mapToDto(saved);
+            if (dto.getPrvEstadoregMprv() == null || dto.getPrvEstadoregMprv().isBlank()) {
+                dto.setPrvEstadoregMprv("1");
+            }
+
+            EntyPrvmaeproveedoresma entity = toEntity(
+                    dto,
+                    EntyPrvmaeproveedoresma.class
+            );
+
+            return toDto(
+                    repository.save(entity),
+                    EntyPrvmaeproveedoresmaDto.class
+            );
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error creando proveedor", e);
         }
     }
 
@@ -191,28 +139,13 @@ public class JpaProveedorDataProviders implements IjpaProveedorDataProviders {
     public List<EntyPrvmaeproveedoresmaDto> save(
             List<EntyPrvmaeproveedoresmaDto> dtos
     ) throws EBusinessException {
-        try {
-            List<EntyPrvmaeproveedoresma> entities = new ArrayList<>();
+        List<EntyPrvmaeproveedoresmaDto> result = new ArrayList<>();
 
-            for (EntyPrvmaeproveedoresmaDto dto : dtos) {
-                entities.add(dtoToEntityTranslate.translate(dto));
-            }
-
-            List<EntyPrvmaeproveedoresmaDto> result = new ArrayList<>();
-
-            for (EntyPrvmaeproveedoresma entity : repository.saveAll(entities)) {
-                result.add(mapToDto(entity));
-            }
-
-            return result;
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+        for (EntyPrvmaeproveedoresmaDto dto : dtos) {
+            result.add(save(dto));
         }
+
+        return result;
     }
 
     @Override
@@ -227,92 +160,59 @@ public class JpaProveedorDataProviders implements IjpaProveedorDataProviders {
                 return new EntyPrvmaeproveedoresmaDto();
             }
 
-            old.setPrvIdentifkeyMprv(dto.getPrvIdentifkeyMprv());
-            old.setPrvNumeronitMprv(dto.getPrvNumeronitMprv());
-            old.setPrvRazonsocialMprv(dto.getPrvRazonsocialMprv());
-            old.setPrvNombrecomercialMprv(dto.getPrvNombrecomercialMprv());
-            old.setPrvTipoproveedorMprv(dto.getPrvTipoproveedorMprv());
-            old.setPrvContactoMprv(dto.getPrvContactoMprv());
-            old.setPrvTelefonoMprv(dto.getPrvTelefonoMprv());
-            old.setPrvCorreoMprv(dto.getPrvCorreoMprv());
-            old.setPrvDireccionMprv(dto.getPrvDireccionMprv());
-            old.setPrvCiudadMprv(dto.getPrvCiudadMprv());
-            old.setPrvDepartamentoMprv(dto.getPrvDepartamentoMprv());
-            old.setPrvFecharegistroMprv(dto.getPrvFecharegistroMprv());
-            old.setPrvObservacionMprv(dto.getPrvObservacionMprv());
-            old.setPrvEstadoregMprv(dto.getPrvEstadoregMprv());
+            dto.setPrvPrimarykeyMprv(id);
+            BeanUtils.copyProperties(dto, old);
 
-            return mapToDto(repository.save(old));
+            return toDto(
+                    repository.save(old),
+                    EntyPrvmaeproveedoresmaDto.class
+            );
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.UPDATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.UPDATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error actualizando proveedor", e);
         }
     }
 
     @Override
-    public void delete(Integer id) throws EBusinessException {
+    public void delete(
+            Integer id
+    ) throws EBusinessException {
         try {
-            EntyPrvmaeproveedoresma entity = repository.findById(id).orElse(null);
+            repository.deleteById(id);
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error eliminando proveedor", e);
+        }
+    }
 
-            if (entity != null) {
-                repository.delete(entity);
-            }
+    @Override
+    public EntyPrvmaeproveedoresmaDto findByKey(
+            String proveedorKey
+    ) throws EBusinessException {
+        try {
+            EntyPrvmaeproveedoresma entity = repository.findByPrvIdentifkeyMprv(proveedorKey)
+                    .orElse(null);
+
+            return entity == null
+                    ? new EntyPrvmaeproveedoresmaDto()
+                    : toDto(entity, EntyPrvmaeproveedoresmaDto.class);
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.DELETE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.DELETE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando proveedor por key", e);
         }
     }
 
-    private EntyPrvmaeproveedoresmaDto mapToDto(
-            EntyPrvmaeproveedoresma entity
-    ) {
-        EntyPrvmaeproveedoresmaDto dto = new EntyPrvmaeproveedoresmaDto();
-
+    @Override
+    public List<EntyPrvmaeproveedoresmaDto> findByEstado(
+            String estado
+    ) throws EBusinessException {
         try {
-            if (entity == null) {
-                return dto;
-            }
+            return repository.findByPrvEstadoregMprv(estado)
+                    .stream()
+                    .map(entity -> toDto(entity, EntyPrvmaeproveedoresmaDto.class))
+                    .collect(Collectors.toList());
 
-            return entityToDtoTranslate.translate(entity);
-
-        } catch (Exception e) {
-            logger.error(
-                    "Error mapeando proveedor a DTO. ID: {}",
-                    entity != null ? entity.getPrvPrimarykeyMprv() : null,
-                    e
-            );
-
-            return dto;
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando proveedores por estado", e);
         }
-    }
-
-    private PaginationResponse headResponse(
-            int currentPage,
-            int totalPageSize,
-            long totalResults,
-            int totalPages,
-            boolean hasNextPage,
-            boolean hasPreviousPage,
-            String nextPageUrl,
-            String previousPageUrl
-    ) {
-        return PaginationResponse.builder()
-                .currentPage(currentPage)
-                .totalPageSize(totalPageSize)
-                .totalResults(totalResults)
-                .totalPages(totalPages)
-                .hasNextPage(hasNextPage)
-                .hasPreviousPage(hasPreviousPage)
-                .nextPageUrl(nextPageUrl)
-                .previousPageUrl(previousPageUrl)
-                .build();
     }
 }

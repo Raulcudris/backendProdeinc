@@ -1,0 +1,132 @@
+{
+  "info": {
+    "_postman_id": "5f3c6b2a-6095-4f7d-proveedores",
+    "name": "Prodeinc - msvc-proveedores Gateway",
+    "description": "Colección Postman para probar msvc-proveedores por Gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:8088"
+    },
+    {
+      "key": "proveedor_key",
+      "value": "PROV-001"
+    },
+    {
+      "key": "proveedor_id",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health",
+      "item": [
+        {
+          "name": "Health msvc-proveedores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Proveedores",
+      "item": [
+        {
+          "name": "Crear Proveedor PROV-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvNumeronitMprv\": \"900123456-7\",\n  \"prvRazonsocialMprv\": \"Proveedor Maquinaria Amarilla S.A.S\",\n  \"prvObjetosocialMprv\": \"Alquiler y operación de maquinaria amarilla para obras civiles\",\n  \"sisTiposociedadTpso\": \"SAS\",\n  \"sisCodactividadCiiu\": \"4390\",\n  \"prvFechconstMprv\": \"2020-01-15\",\n  \"prvPaginawebMprv\": \"https://proveedor-maquinaria.example.com\",\n  \"prvDireccionMprv\": \"Carrera 10 # 20-30\",\n  \"prvTelefonoMprv\": \"3001234567\",\n  \"prvCorreoMprv\": \"contacto@proveedor.com\",\n  \"sisCodpaiSipa\": \"CO\",\n  \"sisIdedptSidp\": \"11\",\n  \"sisCodproSipr\": \"11001\",\n  \"prvCodposMprv\": \"110111\",\n  \"prvIdentifkeyRelg\": null,\n  \"prvEstadoregMprv\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/proveedores/proveedores/create"
+          }
+        },
+        {
+          "name": "Consultar Proveedores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/pages"
+          }
+        },
+        {
+          "name": "Consultar Proveedor por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/get/{{proveedor_id}}"
+          }
+        },
+        {
+          "name": "Consultar Proveedor por Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/by-key?proveedorKey={{proveedor_key}}"
+          }
+        },
+        {
+          "name": "Consultar Proveedores Activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/by-estado?estado=1"
+          }
+        },
+        {
+          "name": "Buscar por Razón Social",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/pages?currentpage=1&pagesize=10&parameter=RAZON_SOCIAL&filter=Maquinaria"
+          }
+        },
+        {
+          "name": "Actualizar Proveedor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvNumeronitMprv\": \"900123456-7\",\n  \"prvRazonsocialMprv\": \"Proveedor Maquinaria Amarilla Actualizado S.A.S\",\n  \"prvObjetosocialMprv\": \"Alquiler, operación y mantenimiento de maquinaria amarilla\",\n  \"sisTiposociedadTpso\": \"SAS\",\n  \"sisCodactividadCiiu\": \"4390\",\n  \"prvFechconstMprv\": \"2020-01-15\",\n  \"prvPaginawebMprv\": \"https://proveedor-maquinaria.example.com\",\n  \"prvDireccionMprv\": \"Carrera 10 # 20-30\",\n  \"prvTelefonoMprv\": \"3001234567\",\n  \"prvCorreoMprv\": \"contacto@proveedor.com\",\n  \"sisCodpaiSipa\": \"CO\",\n  \"sisIdedptSidp\": \"11\",\n  \"sisCodproSipr\": \"11001\",\n  \"prvCodposMprv\": \"110111\",\n  \"prvIdentifkeyRelg\": null,\n  \"prvEstadoregMprv\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/proveedores/proveedores/update/{{proveedor_id}}"
+          }
+        },
+        {
+          "name": "Cambiar Estado Proveedor a Inactivo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/changestatus/{{proveedor_id}}?estado=2"
+          }
+        },
+        {
+          "name": "Cambiar Estado Proveedor a Activo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/changestatus/{{proveedor_id}}?estado=1"
+          }
+        }
+      ]
+    }
+  ]
+}

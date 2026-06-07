@@ -1,33 +1,27 @@
-package com.system.modules.equiposmaquinaria.api;
+package com.system.modules.proveedores.api;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import com.system.crosscutting.domain.constants.ApiConstants;
-import com.system.crosscutting.domain.model.EntyEqutipmatipoequipoDto;
-import com.system.crosscutting.domain.model.EntyEqutipmatipoequipoResponse;
+import com.system.crosscutting.domain.model.EntyPrvmaeproveedoresmaDto;
+import com.system.crosscutting.domain.model.EntyPrvmaeproveedoresmaResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.modules.equiposmaquinaria.usecase.EntyTipoEquipoService;
-
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
+import com.system.modules.proveedores.usecase.ProveedorService;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(
-        value = "/api/equipos-maquinaria/tipos",
+        value = "/api/proveedores/proveedores",
         produces = {MediaType.APPLICATION_JSON_VALUE}
 )
-public class EntyTipoEquipoWebApi {
+public class ProveedorController {
 
-    private final EntyTipoEquipoService service;
+    @Autowired
+    private ProveedorService service;
 
-    @GetMapping("pages")
-    @ApiOperation(httpMethod = ApiConstants.GET_HTTP, value = ApiConstants.GET_ALL_DESC, notes = "")
-    public ResponseEntity<EntyEqutipmatipoequipoResponse> getAll(
+    @GetMapping("/pages")
+    public ResponseEntity<EntyPrvmaeproveedoresmaResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
@@ -39,10 +33,39 @@ public class EntyTipoEquipoWebApi {
         );
     }
 
-    @PostMapping("create")
-    @ApiOperation(httpMethod = ApiConstants.POST_HTTP, value = ApiConstants.POST_DESC, notes = "")
-    public ResponseEntity<EntyEqutipmatipoequipoDto> create(
-            @RequestBody EntyEqutipmatipoequipoDto dto
+    @GetMapping("/get/{id}")
+    public ResponseEntity<EntyPrvmaeproveedoresmaDto> get(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.get(id),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/by-key")
+    public ResponseEntity<EntyPrvmaeproveedoresmaDto> findByKey(
+            @RequestParam String proveedorKey
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.findByKey(proveedorKey),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/by-estado")
+    public ResponseEntity<?> findByEstado(
+            @RequestParam String estado
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.findByEstado(estado),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<EntyPrvmaeproveedoresmaDto> create(
+            @RequestBody EntyPrvmaeproveedoresmaDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.saveBefore(dto),
@@ -50,11 +73,10 @@ public class EntyTipoEquipoWebApi {
         );
     }
 
-    @PutMapping("update/{id}")
-    @ApiOperation(httpMethod = ApiConstants.PUT_HTTP, value = ApiConstants.PUT_DESC, notes = "")
-    public ResponseEntity<EntyEqutipmatipoequipoDto> update(
+    @PutMapping("/update/{id}")
+    public ResponseEntity<EntyPrvmaeproveedoresmaDto> update(
             @PathVariable Integer id,
-            @RequestBody EntyEqutipmatipoequipoDto dto
+            @RequestBody EntyPrvmaeproveedoresmaDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
@@ -62,8 +84,7 @@ public class EntyTipoEquipoWebApi {
         );
     }
 
-    @PatchMapping("changestatus/{id}")
-    @ApiOperation(httpMethod = ApiConstants.PATCH_HTTP, value = ApiConstants.PATCH_DESC, notes = "")
+    @PatchMapping("/changestatus/{id}")
     public ResponseEntity<String> changestatus(
             @PathVariable Integer id,
             @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
@@ -74,8 +95,7 @@ public class EntyTipoEquipoWebApi {
         );
     }
 
-    @DeleteMapping("delete/{id}")
-    @ApiOperation(httpMethod = ApiConstants.DELETE_HTTP, value = ApiConstants.DELETE_DESC, notes = "")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {

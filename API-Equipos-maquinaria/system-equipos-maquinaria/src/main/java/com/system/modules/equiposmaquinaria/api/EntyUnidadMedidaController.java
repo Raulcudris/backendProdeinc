@@ -1,33 +1,27 @@
 package com.system.modules.equiposmaquinaria.api;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import com.system.crosscutting.domain.constants.ApiConstants;
-import com.system.crosscutting.domain.model.EntyEqumedmaunidadmedidaDto;
-import com.system.crosscutting.domain.model.EntyEqumedmaunidadmedidaResponse;
+import com.system.crosscutting.domain.model.EntyPrvinvmdunidamedequipoDto;
+import com.system.crosscutting.domain.model.EntyPrvinvmdunidamedequipoResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.equiposmaquinaria.usecase.EntyUnidadMedidaService;
 
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
-
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(
         value = "/api/equipos-maquinaria/unidades",
         produces = {MediaType.APPLICATION_JSON_VALUE}
 )
-public class EntyUnidadMedidaWebApi {
+public class EntyUnidadMedidaController {
 
-    private final EntyUnidadMedidaService service;
+    @Autowired
+    private EntyUnidadMedidaService service;
 
-    @GetMapping("pages")
-    @ApiOperation(httpMethod = ApiConstants.GET_HTTP, value = ApiConstants.GET_ALL_DESC, notes = "")
-    public ResponseEntity<EntyEqumedmaunidadmedidaResponse> getAll(
+    @GetMapping("/pages")
+    public ResponseEntity<EntyPrvinvmdunidamedequipoResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
@@ -39,10 +33,42 @@ public class EntyUnidadMedidaWebApi {
         );
     }
 
-    @PostMapping("create")
-    @ApiOperation(httpMethod = ApiConstants.POST_HTTP, value = ApiConstants.POST_DESC, notes = "")
-    public ResponseEntity<EntyEqumedmaunidadmedidaDto> create(
-            @RequestBody EntyEqumedmaunidadmedidaDto dto
+    @GetMapping("/get/{id}")
+    public ResponseEntity<EntyPrvinvmdunidamedequipoDto> get(
+            @PathVariable Integer id
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.get(id),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/by-key")
+    public ResponseEntity<EntyPrvinvmdunidamedequipoDto> findByKey(
+            @RequestParam String unidadKey
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.findByKey(unidadKey),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/by-estado")
+    public ResponseEntity<?> findByEstado(
+            @RequestParam String estado
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.findByEstado(estado),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping(
+            value = "/create",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<EntyPrvinvmdunidamedequipoDto> create(
+            @RequestBody EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.saveBefore(dto),
@@ -50,11 +76,13 @@ public class EntyUnidadMedidaWebApi {
         );
     }
 
-    @PutMapping("update/{id}")
-    @ApiOperation(httpMethod = ApiConstants.PUT_HTTP, value = ApiConstants.PUT_DESC, notes = "")
-    public ResponseEntity<EntyEqumedmaunidadmedidaDto> update(
+    @PutMapping(
+            value = "/update/{id}",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<EntyPrvinvmdunidamedequipoDto> update(
             @PathVariable Integer id,
-            @RequestBody EntyEqumedmaunidadmedidaDto dto
+            @RequestBody EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
@@ -62,8 +90,7 @@ public class EntyUnidadMedidaWebApi {
         );
     }
 
-    @PatchMapping("changestatus/{id}")
-    @ApiOperation(httpMethod = ApiConstants.PATCH_HTTP, value = ApiConstants.PATCH_DESC, notes = "")
+    @PatchMapping("/changestatus/{id}")
     public ResponseEntity<String> changestatus(
             @PathVariable Integer id,
             @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
@@ -74,8 +101,7 @@ public class EntyUnidadMedidaWebApi {
         );
     }
 
-    @DeleteMapping("delete/{id}")
-    @ApiOperation(httpMethod = ApiConstants.DELETE_HTTP, value = ApiConstants.DELETE_DESC, notes = "")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {

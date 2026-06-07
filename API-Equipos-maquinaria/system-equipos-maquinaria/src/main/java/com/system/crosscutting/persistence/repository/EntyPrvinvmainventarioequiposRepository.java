@@ -1,5 +1,6 @@
 package com.system.crosscutting.persistence.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.system.crosscutting.persistence.entity.EntyPrvinvmainventarioequipos;
@@ -13,9 +14,28 @@ import org.springframework.data.repository.query.Param;
 public interface EntyPrvinvmainventarioequiposRepository
         extends JpaRepository<EntyPrvinvmainventarioequipos, Integer> {
 
-    Optional<EntyPrvinvmainventarioequipos> findByPrvIdentifkeyInve(String prvIdentifkeyInve);
+    Optional<EntyPrvinvmainventarioequipos> findByPrvIdentifkeyInve(
+            String prvIdentifkeyInve
+    );
 
-    @Query("SELECT e FROM EntyPrvinvmainventarioequipos e WHERE e.prvPrimarykeyInve = :id")
+    List<EntyPrvinvmainventarioequipos> findByPrvIdentifkeyMprv(
+            String prvIdentifkeyMprv
+    );
+
+    List<EntyPrvinvmainventarioequipos> findByPrvTipoequipoTieq(
+            String prvTipoequipoTieq
+    );
+
+    List<EntyPrvinvmainventarioequipos> findByPrvEquipoactivoInve(
+            String prvEquipoactivoInve
+    );
+
+    List<EntyPrvinvmainventarioequipos> findByPrvEstadoregInve(
+            String prvEstadoregInve
+    );
+
+    @Query("SELECT e FROM EntyPrvinvmainventarioequipos e " +
+            "WHERE e.prvPrimarykeyInve = :id")
     Page<EntyPrvinvmainventarioequipos> searchByPrimaryKey(
             @Param("id") Integer id,
             Pageable pageable
@@ -23,7 +43,7 @@ public interface EntyPrvinvmainventarioequiposRepository
 
     @Query("SELECT e FROM EntyPrvinvmainventarioequipos e " +
             "WHERE LOWER(e.prvIdentifkeyInve) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    Page<EntyPrvinvmainventarioequipos> searchByCodigo(
+    Page<EntyPrvinvmainventarioequipos> searchByIdentifKey(
             @Param("filter") String filter,
             Pageable pageable
     );
@@ -43,16 +63,9 @@ public interface EntyPrvinvmainventarioequiposRepository
     );
 
     @Query("SELECT e FROM EntyPrvinvmainventarioequipos e " +
-            "WHERE e.prvEquipoactivoInve = '1' " +
-            "AND e.prvEstadoregInve = '1'")
-    Page<EntyPrvinvmainventarioequipos> searchDisponibles(
-            Pageable pageable
-    );
-
-    @Query("SELECT e FROM EntyPrvinvmainventarioequipos e " +
-            "WHERE e.prvEquipoactivoInve = :activo")
-    Page<EntyPrvinvmainventarioequipos> searchByActivo(
-            @Param("activo") String activo,
+            "WHERE e.prvEquipoactivoInve = :disponible")
+    Page<EntyPrvinvmainventarioequipos> searchByDisponible(
+            @Param("disponible") String disponible,
             Pageable pageable
     );
 
@@ -69,7 +82,7 @@ public interface EntyPrvinvmainventarioequiposRepository
             "OR LOWER(e.prvTipoequipoTieq) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(e.prvNombrequipoInve) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(e.prvRefermodeloInve) LIKE LOWER(CONCAT('%', :filter, '%')) " +
-            "OR LOWER(e.prvEquipoestadoInve) LIKE LOWER(CONCAT('%', :filter, '%'))")
+            "OR LOWER(e.prvDescripcionInve) LIKE LOWER(CONCAT('%', :filter, '%'))")
     Page<EntyPrvinvmainventarioequipos> searchByText(
             @Param("filter") String filter,
             Pageable pageable

@@ -1,5 +1,8 @@
 package com.system.crosscutting.persistence.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.system.crosscutting.persistence.entity.EntyPrvinvmdunidamedequipo;
 
 import org.springframework.data.domain.Page;
@@ -11,16 +14,13 @@ import org.springframework.data.repository.query.Param;
 public interface EntyPrvinvmdunidamedequipoRepository
         extends JpaRepository<EntyPrvinvmdunidamedequipo, String> {
 
-    @Query("SELECT u FROM EntyPrvinvmdunidamedequipo u " +
-            "WHERE LOWER(u.prvTipunidamedUnme) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    Page<EntyPrvinvmdunidamedequipo> searchByCodigo(
-            @Param("filter") String filter,
-            Pageable pageable
-    );
+    Optional<EntyPrvinvmdunidamedequipo> findByPrvTipunidamedUnme(String prvTipunidamedUnme);
+
+    List<EntyPrvinvmdunidamedequipo> findByPrvEstadoregUnme(String prvEstadoregUnme);
 
     @Query("SELECT u FROM EntyPrvinvmdunidamedequipo u " +
-            "WHERE LOWER(u.prvDescmedidaUnme) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    Page<EntyPrvinvmdunidamedequipo> searchByDescripcion(
+            "WHERE LOWER(u.prvTipunidamedUnme) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyPrvinvmdunidamedequipo> searchByIdentifKey(
             @Param("filter") String filter,
             Pageable pageable
     );

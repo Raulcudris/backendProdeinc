@@ -1,5 +1,6 @@
 package com.system.crosscutting.persistence.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.system.crosscutting.persistence.entity.EntyPrvinvmdequipmaquinaria;
@@ -15,46 +16,25 @@ public interface EntyPrvinvmdequipmaquinariaRepository
 
     Optional<EntyPrvinvmdequipmaquinaria> findByPrvTipoequipoTieq(String prvTipoequipoTieq);
 
+    List<EntyPrvinvmdequipmaquinaria> findByPrvIdentifkeyUnme(String prvIdentifkeyUnme);
+
+    List<EntyPrvinvmdequipmaquinaria> findByPrvEstadoregTieq(String prvEstadoregTieq);
+
     @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t WHERE t.prvPrimarykeyTieq = :id")
-    Page<EntyPrvinvmdequipmaquinaria> searchByPrimaryKey(
-            @Param("id") Integer id,
-            Pageable pageable
-    );
+    Page<EntyPrvinvmdequipmaquinaria> searchByPrimaryKey(@Param("id") Integer id, Pageable pageable);
 
-    @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t " +
-            "WHERE LOWER(t.prvTipoequipoTieq) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    Page<EntyPrvinvmdequipmaquinaria> searchByCodigo(
-            @Param("filter") String filter,
-            Pageable pageable
-    );
+    @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t WHERE LOWER(t.prvTipoequipoTieq) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyPrvinvmdequipmaquinaria> searchByIdentifKey(@Param("filter") String filter, Pageable pageable);
 
-    @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t " +
-            "WHERE LOWER(t.prvDesequipoTieq) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    Page<EntyPrvinvmdequipmaquinaria> searchByDescripcion(
-            @Param("filter") String filter,
-            Pageable pageable
-    );
+    @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t WHERE LOWER(t.prvIdentifkeyUnme) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyPrvinvmdequipmaquinaria> searchByUnidad(@Param("filter") String filter, Pageable pageable);
 
-    @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t " +
-            "WHERE LOWER(t.prvTipunidamedUnme) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    Page<EntyPrvinvmdequipmaquinaria> searchByUnidadMedida(
-            @Param("filter") String filter,
-            Pageable pageable
-    );
-
-    @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t " +
-            "WHERE t.prvEstadoregTieq = :status")
-    Page<EntyPrvinvmdequipmaquinaria> searchByStatus(
-            @Param("status") String status,
-            Pageable pageable
-    );
+    @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t WHERE t.prvEstadoregTieq = :status")
+    Page<EntyPrvinvmdequipmaquinaria> searchByStatus(@Param("status") String status, Pageable pageable);
 
     @Query("SELECT t FROM EntyPrvinvmdequipmaquinaria t " +
             "WHERE LOWER(t.prvTipoequipoTieq) LIKE LOWER(CONCAT('%', :filter, '%')) " +
-            "OR LOWER(t.prvDesequipoTieq) LIKE LOWER(CONCAT('%', :filter, '%')) " +
-            "OR LOWER(t.prvTipunidamedUnme) LIKE LOWER(CONCAT('%', :filter, '%'))")
-    Page<EntyPrvinvmdequipmaquinaria> searchByText(
-            @Param("filter") String filter,
-            Pageable pageable
-    );
+            "OR LOWER(t.prvDescripcionTieq) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(t.prvIdentifkeyUnme) LIKE LOWER(CONCAT('%', :filter, '%'))")
+    Page<EntyPrvinvmdequipmaquinaria> searchByText(@Param("filter") String filter, Pageable pageable);
 }

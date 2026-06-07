@@ -1,73 +1,71 @@
 package com.system.crosscutting.persistence.entity;
-import java.io.Serializable;
+
 import java.time.LocalDate;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+
+import javax.persistence.*;
+
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Entidad JPA que representa la tabla PRVMAEPROVEEDORESMA.
- *
- * Esta tabla almacena proveedores de maquinaria, materiales,
- * servicios y suministros asociados a obras civiles.
- */
 @Getter
 @Setter
 @Entity
 @Table(name = "prvmaeproveedoresma")
-public class EntyPrvmaeproveedoresma implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class EntyPrvmaeproveedoresma {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "PRV_PRIMARYKEY_MPRV")
+    @Column(name = "prv_primarykey_mprv")
     private Integer prvPrimarykeyMprv;
 
-    @Column(name = "PRV_IDENTIFKEY_MPRV", length = 20, nullable = false)
+    @Column(name = "prv_identifkey_mprv", nullable = false, unique = true, length = 30)
     private String prvIdentifkeyMprv;
 
-    @Column(name = "PRV_NUMERONIT_MPRV", length = 30, nullable = false)
+    @Column(name = "prv_numeronit_mprv", nullable = false, length = 30)
     private String prvNumeronitMprv;
 
-    @Column(name = "PRV_RAZONSOCIAL_MPRV", length = 200)
+    @Column(name = "prv_razonsocial_mprv", nullable = false, length = 200)
     private String prvRazonsocialMprv;
 
-    @Column(name = "PRV_NOMBRECOMERCIAL_MPRV", length = 200)
-    private String prvNombrecomercialMprv;
+    @Column(name = "prv_objetosocial_mprv", length = 500)
+    private String prvObjetosocialMprv;
 
-    @Column(name = "PRV_TIPOPROVEEDOR_MPRV", length = 50)
-    private String prvTipoproveedorMprv;
+    @Column(name = "sis_tiposociedad_tpso", length = 30)
+    private String sisTiposociedadTpso;
 
-    @Column(name = "PRV_CONTACTO_MPRV", length = 120)
-    private String prvContactoMprv;
+    @Column(name = "sis_codactividad_ciiu", length = 30)
+    private String sisCodactividadCiiu;
 
-    @Column(name = "PRV_TELEFONO_MPRV", length = 50)
-    private String prvTelefonoMprv;
+    @Column(name = "prv_fechconst_mprv")
+    private LocalDate prvFechconstMprv;
 
-    @Column(name = "PRV_CORREO_MPRV", length = 120)
-    private String prvCorreoMprv;
+    @Column(name = "prv_paginaweb_mprv", length = 200)
+    private String prvPaginawebMprv;
 
-    @Column(name = "PRV_DIRECCION_MPRV", length = 200)
+    @Column(name = "prv_direccion_mprv", length = 250)
     private String prvDireccionMprv;
 
-    @Column(name = "PRV_CIUDAD_MPRV", length = 100)
-    private String prvCiudadMprv;
+    @Column(name = "prv_telefono_mprv", length = 50)
+    private String prvTelefonoMprv;
 
-    @Column(name = "PRV_DEPARTAMENTO_MPRV", length = 100)
-    private String prvDepartamentoMprv;
+    @Column(name = "prv_correo_mprv", length = 150)
+    private String prvCorreoMprv;
 
-    @Column(name = "PRV_FECHAREGISTRO_MPRV")
-    private LocalDate prvFecharegistroMprv;
+    @Column(name = "sis_codpai_sipa", length = 30)
+    private String sisCodpaiSipa;
 
-    @Column(name = "PRV_OBSERVACION_MPRV", columnDefinition = "TEXT")
-    private String prvObservacionMprv;
+    @Column(name = "sis_idedpt_sidp", length = 30)
+    private String sisIdedptSidp;
 
-    @Column(name = "PRV_ESTADOREG_MPRV", length = 1)
+    @Column(name = "sis_codpro_sipr", length = 30)
+    private String sisCodproSipr;
+
+    @Column(name = "prv_codpos_mprv", length = 30)
+    private String prvCodposMprv;
+
+    @Column(name = "prv_identifkey_relg", length = 30)
+    private String prvIdentifkeyRelg;
+
+    @Column(name = "prv_estadoreg_mprv", length = 2)
     private String prvEstadoregMprv;
 }

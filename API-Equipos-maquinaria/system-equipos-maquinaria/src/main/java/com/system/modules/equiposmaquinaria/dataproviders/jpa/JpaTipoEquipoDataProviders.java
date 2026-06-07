@@ -6,299 +6,248 @@ import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
 
-import com.system.modules.equiposmaquinaria.dataproviders.IjpaTipoEquipoDataProviders;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import com.system.crosscutting.domain.model.EntyEqutipmatipoequipoDto;
-import com.system.crosscutting.domain.model.EntyEqutipmatipoequipoResponse;
-import com.system.crosscutting.domain.model.PaginationResponse;
+import com.system.crosscutting.domain.model.EntyPrvinvmdequipmaquinariaDto;
+import com.system.crosscutting.domain.model.EntyPrvinvmdequipmaquinariaResponse;
 import com.system.crosscutting.exceptions.DataProvider;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.messages.SearchMessages;
-import com.system.crosscutting.patterns.Translator;
-import com.system.crosscutting.persistence.entity.EntyEqutipmatipoequipos;
-import com.system.crosscutting.persistence.repository.EntyEqutipmatipoequipoRepository;
+import com.system.crosscutting.persistence.entity.EntyPrvinvmdequipmaquinaria;
+import com.system.crosscutting.persistence.repository.EntyPrvinvmdequipmaquinariaRepository;
+import com.system.crosscutting.translate.EntyPrvinvmdequipmaquinariaDtoToEntityTranslate;
+import com.system.crosscutting.translate.EntyPrvinvmdequipmaquinariaEntityToDtoTranslate;
+import com.system.modules.equiposmaquinaria.dataproviders.IjpaTipoEquipoDataProviders;
+
+import lombok.RequiredArgsConstructor;
 
 @DataProvider
-public class JpaTipoEquipoDataProviders implements IjpaTipoEquipoDataProviders {
+@RequiredArgsConstructor
+public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
+        implements IjpaTipoEquipoDataProviders {
 
-    @Autowired
-    private EntyEqutipmatipoequipoRepository repository;
-
-    @Autowired
-    @Qualifier("entyEqutipmatipoequipoEntityToDtoTranslate")
-    private Translator<EntyEqutipmatipoequipos, EntyEqutipmatipoequipoDto> entityToDtoTranslate;
-
-    @Autowired
-    @Qualifier("entyEqutipmatipoequipoDtoToEntityTranslate")
-    private Translator<EntyEqutipmatipoequipoDto, EntyEqutipmatipoequipos> dtoToEntityTranslate;
-
-    private static final Logger logger = LogManager.getLogger(JpaTipoEquipoDataProviders.class);
+    private final EntyPrvinvmdequipmaquinariaRepository repository;
+    private final EntyPrvinvmdequipmaquinariaDtoToEntityTranslate dtoToEntityTranslate;
+    private final EntyPrvinvmdequipmaquinariaEntityToDtoTranslate entityToDtoTranslate;
 
     @Override
-    public EntyEqutipmatipoequipoResponse getAll() throws EBusinessException {
+    public EntyPrvinvmdequipmaquinariaResponse getAll() throws EBusinessException {
         return getAll(1, 10, "TEXT", "");
     }
 
     @Override
-    public EntyEqutipmatipoequipoResponse getAll(
+    public EntyPrvinvmdequipmaquinariaResponse getAll(
             int currentPage,
             int pageSize,
             String parameter,
             String filter
     ) throws EBusinessException {
         try {
-            int safeCurrentPage = currentPage <= 0 ? 0 : currentPage - 1;
-            int safePageSize = pageSize <= 0 ? 10 : pageSize;
+            int pageNumber = safeCurrentPage(currentPage);
+            int size = safePageSize(pageSize);
+            String search = safeFilter(filter);
 
-            String safeParameter = parameter == null || parameter.trim().isEmpty()
-                    ? "TEXT"
-                    : parameter.trim().toUpperCase();
+            Pageable pageable = PageRequest.of(pageNumber, size);
+            Page<EntyPrvinvmdequipmaquinaria> page;
 
-            String safeFilter = filter == null ? "" : filter.trim();
+            switch (safeParameter(parameter)) {
+                case "ID":
+                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
+                    break;
 
-            Pageable pageable = PageRequest.of(safeCurrentPage, safePageSize);
-            Page<EntyEqutipmatipoequipos> responsePage;
+                case "KEY":
+                    page = repository.searchByIdentifKey(search, pageable);
+                    break;
 
-            if (safeFilter.isEmpty()
-                    && !"STATUS".equals(safeParameter)
-                    && !"ESTADO".equals(safeParameter)) {
-                responsePage = repository.findAll(pageable);
-            } else {
-                switch (safeParameter) {
-                    case "PKEY":
-                        try {
-                            Integer id = Integer.parseInt(safeFilter);
-                            responsePage = repository.searchByPrimaryKey(id, pageable);
-                        } catch (NumberFormatException e) {
-                            responsePage = repository.searchByPrimaryKey(-1, pageable);
-                        }
-                        break;
+                case "UNIDAD":
+                    page = repository.searchByUnidad(search, pageable);
+                    break;
 
-                    case "REGKEY":
-                    case "IDENTIFKEY":
-                    case "CODIGO":
-                    case "CODE":
-                    case "TIPO":
-                        responsePage = repository.searchByIdentifKey(safeFilter, pageable);
-                        break;
+                case "STATUS":
+                    page = repository.searchByStatus(search, pageable);
+                    break;
 
-                    case "STATUS":
-                    case "ESTADO":
-                        if (safeFilter.isEmpty() || "ALL".equalsIgnoreCase(safeFilter)) {
-                            responsePage = repository.findAll(pageable);
-                        } else {
-                            responsePage = repository.searchByStatus(safeFilter, pageable);
-                        }
-                        break;
-
-                    case "TEXT":
-                    case "SEARCH":
-                    default:
-                        responsePage = repository.searchByText(safeFilter, pageable);
-                        break;
-                }
+                default:
+                    page = repository.searchByText(search, pageable);
+                    break;
             }
 
-            List<EntyEqutipmatipoequipoDto> content = responsePage.getContent()
-                    .stream()
-                    .map(this::mapToDto)
-                    .collect(Collectors.toList());
+            List<EntyPrvinvmdequipmaquinariaDto> data = new ArrayList<>();
 
-            EntyEqutipmatipoequipoResponse response = new EntyEqutipmatipoequipoResponse();
+            for (EntyPrvinvmdequipmaquinaria entity : page.getContent()) {
+                data.add(entityToDtoTranslate.translate(entity));
+            }
 
+            EntyPrvinvmdequipmaquinariaResponse response = new EntyPrvinvmdequipmaquinariaResponse();
             response.setRspMessage("OK");
             response.setRspValue("OK");
             response.setRspParentKey("NA");
-            response.setRspAppKey("NA");
-            response.setRspData(content);
-
-            response.setRspPagination(
-                    headResponse(
-                            safeCurrentPage + 1,
-                            safePageSize,
-                            responsePage.getTotalElements(),
-                            responsePage.getTotalPages(),
-                            responsePage.hasNext(),
-                            responsePage.hasPrevious(),
-                            "LocalHost",
-                            "LocalHost"
-                    )
-            );
+            response.setRspAppKey("msvc-equipos-maquinaria");
+            response.setRspData(data);
+            response.setRspPagination(buildPagination(pageNumber + 1, size, page));
 
             return response;
 
         } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
+            throw buildException("Error consultando tipos de equipo", e);
         }
     }
 
     @Override
-    public EntyEqutipmatipoequipoDto get(Integer id) throws EBusinessException {
+    public EntyPrvinvmdequipmaquinariaDto get(
+            Integer id
+    ) throws EBusinessException {
         try {
-            EntyEqutipmatipoequipos entity = repository.findById(id).orElse(null);
+            EntyPrvinvmdequipmaquinaria entity = repository.findById(id).orElse(null);
 
             if (entity == null) {
-                return new EntyEqutipmatipoequipoDto();
-            }
-
-            return mapToDto(entity);
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.SEARCH_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.SEARCH_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
-        }
-    }
-
-    @Override
-    public EntyEqutipmatipoequipoDto save(
-            EntyEqutipmatipoequipoDto dto
-    ) throws EBusinessException {
-        try {
-            EntyEqutipmatipoequipos entity = dtoToEntityTranslate.translate(dto);
-            EntyEqutipmatipoequipos saved = repository.save(entity);
-
-            return mapToDto(saved);
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
-        }
-    }
-
-    @Override
-    public List<EntyEqutipmatipoequipoDto> save(
-            List<EntyEqutipmatipoequipoDto> dtos
-    ) throws EBusinessException {
-        try {
-            List<EntyEqutipmatipoequipos> entities = new ArrayList<>();
-
-            for (EntyEqutipmatipoequipoDto dto : dtos) {
-                entities.add(dtoToEntityTranslate.translate(dto));
-            }
-
-            List<EntyEqutipmatipoequipoDto> result = new ArrayList<>();
-
-            for (EntyEqutipmatipoequipos entity : repository.saveAll(entities)) {
-                result.add(mapToDto(entity));
-            }
-
-            return result;
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.CREATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.CREATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
-        }
-    }
-
-    @Override
-    public EntyEqutipmatipoequipoDto update(
-            Integer id,
-            EntyEqutipmatipoequipoDto dto
-    ) throws EBusinessException {
-        try {
-            EntyEqutipmatipoequipos old = repository.findById(id).orElse(null);
-
-            if (old == null) {
-                return new EntyEqutipmatipoequipoDto();
-            }
-
-            old.setEquIdentifkeyTieq(dto.getEquIdentifkeyTieq());
-            old.setEquDescripcionTieq(dto.getEquDescripcionTieq());
-            old.setEquEstadoregTieq(dto.getEquEstadoregTieq());
-
-            return mapToDto(repository.save(old));
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.UPDATE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.UPDATE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
-        }
-    }
-
-    @Override
-    public void delete(Integer id) throws EBusinessException {
-        try {
-            EntyEqutipmatipoequipos entity = repository.findById(id).orElse(null);
-
-            if (entity != null) {
-                repository.delete(entity);
-            }
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw ExceptionBuilder.builder()
-                    .withMessage(SearchMessages.DELETE_ERROR_DESCRIPTION)
-                    .withCode(SearchMessages.DELETE_ERROR_ID)
-                    .withParentException(e)
-                    .buildBusinessException();
-        }
-    }
-
-    private EntyEqutipmatipoequipoDto mapToDto(
-            EntyEqutipmatipoequipos entity
-    ) {
-        EntyEqutipmatipoequipoDto dto = new EntyEqutipmatipoequipoDto();
-
-        try {
-            if (entity == null) {
-                return dto;
+                return new EntyPrvinvmdequipmaquinariaDto();
             }
 
             return entityToDtoTranslate.translate(entity);
 
-        } catch (Exception e) {
-            logger.error(
-                    "Error mapeando tipo de equipo a DTO. ID: {}",
-                    entity != null ? entity.getEquPrimarykeyTieq() : null,
-                    e
-            );
-
-            return dto;
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando tipo de equipo", e);
         }
     }
 
-    private PaginationResponse headResponse(
-            int currentPage,
-            int totalPageSize,
-            long totalResults,
-            int totalPages,
-            boolean hasNextPage,
-            boolean hasPreviousPage,
-            String nextPageUrl,
-            String previousPageUrl
+    @Override
+    public EntyPrvinvmdequipmaquinariaDto save(
+            EntyPrvinvmdequipmaquinariaDto dto
+    ) throws EBusinessException {
+        try {
+            dto.setPrvPrimarykeyTieq(null);
+
+            if (dto.getPrvTiporegistTieq() == null || dto.getPrvTiporegistTieq().isBlank()) {
+                dto.setPrvTiporegistTieq("1");
+            }
+
+            if (dto.getPrvEstadoregTieq() == null || dto.getPrvEstadoregTieq().isBlank()) {
+                dto.setPrvEstadoregTieq("1");
+            }
+
+            EntyPrvinvmdequipmaquinaria entity = dtoToEntityTranslate.translate(dto);
+            EntyPrvinvmdequipmaquinaria saved = repository.save(entity);
+
+            return entityToDtoTranslate.translate(saved);
+
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error creando tipo de equipo", e);
+        }
+    }
+
+    @Override
+    public List<EntyPrvinvmdequipmaquinariaDto> save(
+            List<EntyPrvinvmdequipmaquinariaDto> dtos
+    ) throws EBusinessException {
+        List<EntyPrvinvmdequipmaquinariaDto> result = new ArrayList<>();
+
+        for (EntyPrvinvmdequipmaquinariaDto dto : dtos) {
+            result.add(save(dto));
+        }
+
+        return result;
+    }
+
+    @Override
+    public EntyPrvinvmdequipmaquinariaDto update(
+            Integer id,
+            EntyPrvinvmdequipmaquinariaDto dto
+    ) throws EBusinessException {
+        try {
+            EntyPrvinvmdequipmaquinaria old = repository.findById(id).orElse(null);
+
+            if (old == null) {
+                return new EntyPrvinvmdequipmaquinariaDto();
+            }
+
+            dto.setPrvPrimarykeyTieq(id);
+
+            if (dto.getPrvTiporegistTieq() == null || dto.getPrvTiporegistTieq().isBlank()) {
+                dto.setPrvTiporegistTieq("1");
+            }
+
+            if (dto.getPrvEstadoregTieq() == null || dto.getPrvEstadoregTieq().isBlank()) {
+                dto.setPrvEstadoregTieq("1");
+            }
+
+            EntyPrvinvmdequipmaquinaria entity = dtoToEntityTranslate.translate(dto);
+            EntyPrvinvmdequipmaquinaria saved = repository.save(entity);
+
+            return entityToDtoTranslate.translate(saved);
+
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error actualizando tipo de equipo", e);
+        }
+    }
+
+    @Override
+    public void delete(
+            Integer id
+    ) throws EBusinessException {
+        try {
+            repository.deleteById(id);
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error eliminando tipo de equipo", e);
+        }
+    }
+
+    @Override
+    public EntyPrvinvmdequipmaquinariaDto findByKey(
+            String tipoEquipoKey
+    ) throws EBusinessException {
+        try {
+            EntyPrvinvmdequipmaquinaria entity = repository.findByPrvTipoequipoTieq(tipoEquipoKey)
+                    .orElse(null);
+
+            if (entity == null) {
+                return new EntyPrvinvmdequipmaquinariaDto();
+            }
+
+            return entityToDtoTranslate.translate(entity);
+
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando tipo de equipo por key", e);
+        }
+    }
+
+    @Override
+    public List<EntyPrvinvmdequipmaquinariaDto> findByUnidad(
+            String unidadKey
+    ) throws EBusinessException {
+        try {
+            return translateList(repository.findByPrvIdentifkeyUnme(unidadKey));
+
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando tipos de equipo por unidad", e);
+        }
+    }
+
+    @Override
+    public List<EntyPrvinvmdequipmaquinariaDto> findByEstado(
+            String estado
+    ) throws EBusinessException {
+        try {
+            return translateList(repository.findByPrvEstadoregTieq(estado));
+
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error consultando tipos de equipo por estado", e);
+        }
+    }
+
+    private List<EntyPrvinvmdequipmaquinariaDto> translateList(
+            List<EntyPrvinvmdequipmaquinaria> entities
     ) {
-        return PaginationResponse.builder()
-                .currentPage(currentPage)
-                .totalPageSize(totalPageSize)
-                .totalResults(totalResults)
-                .totalPages(totalPages)
-                .hasNextPage(hasNextPage)
-                .hasPreviousPage(hasPreviousPage)
-                .nextPageUrl(nextPageUrl)
-                .previousPageUrl(previousPageUrl)
-                .build();
+        return entities.stream()
+                .map(entity -> {
+                    try {
+                        return entityToDtoTranslate.translate(entity);
+                    } catch (EBusinessException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -7,12 +7,17 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EntyEqumedmaunidadmedidaResponse {
+public class EntyPrvinvmdunidamedequipoResponse {
 
     private String rspMessage;
+
     private String rspValue;
+
     private String rspParentKey;
+
     private String rspAppKey;
+
     private PaginationResponse rspPagination;
-    private List<EntyEqumedmaunidadmedidaDto> rspData;
+
+    private List<EntyPrvinvmdunidamedequipoDto> rspData;
 }

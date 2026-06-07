@@ -1,135 +1,84 @@
 package com.system.modules.equiposmaquinaria.usecase;
 
-import javax.annotation.PostConstruct;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import com.system.crosscutting.domain.model.EntyEqumedmaunidadmedidaDto;
-import com.system.crosscutting.domain.model.EntyEqumedmaunidadmedidaResponse;
-import com.system.crosscutting.exceptions.ExceptionBuilder;
+import com.system.crosscutting.domain.model.EntyPrvinvmdunidamedequipoDto;
+import com.system.crosscutting.domain.model.EntyPrvinvmdunidamedequipoResponse;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.crosscutting.persistence.repository.EntyEqumedmaunidadmedidaRepository;
-import com.system.modules.equiposmaquinaria.dataproviders.jpa.JpaUnidadMedidaDataProviders;
-import com.system.modules.equiposmaquinaria.services.UseCase;
-import com.system.modules.equiposmaquinaria.services.UsecaseServices;
+import com.system.modules.equiposmaquinaria.dataproviders.IjpaUnidadMedidaDataProviders;
 
-@UseCase
-public class EntyUnidadMedidaService
-        extends UsecaseServices<EntyEqumedmaunidadmedidaDto, JpaUnidadMedidaDataProviders> {
+@Service
+public class EntyUnidadMedidaService {
 
     @Autowired
-    private JpaUnidadMedidaDataProviders jpaDataProviders;
+    private IjpaUnidadMedidaDataProviders dataProviders;
 
-    @Autowired
-    private EntyEqumedmaunidadmedidaRepository repository;
-
-    @PostConstruct
-    public void init() {
-        this.ijpaDataProvider = jpaDataProviders;
+    public EntyPrvinvmdunidamedequipoResponse getAll()
+            throws EBusinessException {
+        return dataProviders.getAll();
     }
 
-    public EntyEqumedmaunidadmedidaResponse getAll(
+    public EntyPrvinvmdunidamedequipoResponse getAll(
             int currentPage,
             int pageSize,
             String parameter,
             String filter
     ) throws EBusinessException {
-        return this.jpaDataProviders.getAll(currentPage, pageSize, parameter, filter);
+        return dataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
-    public EntyEqumedmaunidadmedidaDto saveBefore(
-            EntyEqumedmaunidadmedidaDto dto
+    public EntyPrvinvmdunidamedequipoDto get(
+            Integer id
+    ) throws EBusinessException {
+        return dataProviders.get(id);
+    }
+
+    public EntyPrvinvmdunidamedequipoDto saveBefore(
+            EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException {
 
-        if (dto == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La unidad de medida es obligatoria")
-                    .withCode("400")
-                    .buildBusinessException();
+        if (dto.getPrvTipunidamedUnme() == null || dto.getPrvTipunidamedUnme().isBlank()) {
+            dto.setPrvTipunidamedUnme("HORA");
         }
 
-        if (dto.getEquIdentifkeyUnme() == null || dto.getEquIdentifkeyUnme().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código funcional de la unidad de medida es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
+            dto.setPrvDescmedidaUnme("Hora de trabajo");
         }
 
-        if (dto.getEquCodigoUnme() == null || dto.getEquCodigoUnme().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código corto de la unidad de medida es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
+            dto.setPrvEstadoregUnme("1");
         }
 
-        if (dto.getEquDescripcionUnme() == null || dto.getEquDescripcionUnme().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La descripción de la unidad de medida es obligatoria")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (repository.findByEquIdentifkeyUnme(dto.getEquIdentifkeyUnme()).isPresent()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("Ya existe una unidad de medida con el código funcional "
-                            + dto.getEquIdentifkeyUnme())
-                    .withCode("409")
-                    .buildBusinessException();
-        }
-
-        if (repository.findByEquCodigoUnme(dto.getEquCodigoUnme()).isPresent()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("Ya existe una unidad de medida con el código corto "
-                            + dto.getEquCodigoUnme())
-                    .withCode("409")
-                    .buildBusinessException();
-        }
-
-        if (dto.getEquEstadoregUnme() == null || dto.getEquEstadoregUnme().isBlank()) {
-            dto.setEquEstadoregUnme("1");
-        }
-
-        return this.jpaDataProviders.save(dto);
+        return dataProviders.save(dto);
     }
 
-    public EntyEqumedmaunidadmedidaDto updateBefore(
+    public List<EntyPrvinvmdunidamedequipoDto> saveBefore(
+            List<EntyPrvinvmdunidamedequipoDto> dtos
+    ) throws EBusinessException {
+        return dataProviders.save(dtos);
+    }
+
+    public EntyPrvinvmdunidamedequipoDto updateBefore(
             Integer id,
-            EntyEqumedmaunidadmedidaDto dto
+            EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException {
 
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la unidad de medida es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        if (dto.getPrvTipunidamedUnme() == null || dto.getPrvTipunidamedUnme().isBlank()) {
+            dto.setPrvTipunidamedUnme("HORA");
         }
 
-        if (dto == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La información de la unidad de medida es obligatoria")
-                    .withCode("400")
-                    .buildBusinessException();
+        if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
+            dto.setPrvDescmedidaUnme("Hora de trabajo");
         }
 
-        if (dto.getEquCodigoUnme() == null || dto.getEquCodigoUnme().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El código corto de la unidad de medida es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
+            dto.setPrvEstadoregUnme("1");
         }
 
-        if (dto.getEquDescripcionUnme() == null || dto.getEquDescripcionUnme().isBlank()) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La descripción de la unidad de medida es obligatoria")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
-
-        if (dto.getEquEstadoregUnme() == null || dto.getEquEstadoregUnme().isBlank()) {
-            dto.setEquEstadoregUnme("1");
-        }
-
-        return this.jpaDataProviders.update(id, dto);
+        return dataProviders.update(id, dto);
     }
 
     public String changestatus(
@@ -137,59 +86,35 @@ public class EntyUnidadMedidaService
             String estado
     ) throws EBusinessException {
 
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la unidad de medida es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
+        EntyPrvinvmdunidamedequipoDto dto = dataProviders.get(id);
+
+        if (dto == null || dto.getPrvTipunidamedUnme() == null) {
+            return "No existe la unidad de medida con id: " + id;
         }
 
-        EntyEqumedmaunidadmedidaDto unidad = this.jpaDataProviders.get(id);
+        dto.setPrvEstadoregUnme(estado);
 
-        if (unidad.getEquPrimarykeyUnme() == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La unidad de medida no fue encontrada")
-                    .withCode("404")
-                    .buildBusinessException();
-        }
+        dataProviders.update(id, dto);
 
-        String nextStatus;
-
-        if ("1".equals(estado) || "2".equals(estado)) {
-            nextStatus = estado;
-        } else {
-            nextStatus = "2";
-        }
-
-        unidad.setEquEstadoregUnme(nextStatus);
-
-        this.jpaDataProviders.update(id, unidad);
-
-        return "OK";
+        return "Estado actualizado correctamente";
     }
 
-    public String deleteBefore(Integer id) throws EBusinessException {
+    public String deleteBefore(
+            Integer id
+    ) throws EBusinessException {
+        dataProviders.delete(id);
+        return "Registro eliminado correctamente";
+    }
 
-        if (id == null || id <= 0) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("El id de la unidad de medida es obligatorio")
-                    .withCode("400")
-                    .buildBusinessException();
-        }
+    public EntyPrvinvmdunidamedequipoDto findByKey(
+            String unidadKey
+    ) throws EBusinessException {
+        return dataProviders.findByKey(unidadKey);
+    }
 
-        EntyEqumedmaunidadmedidaDto unidad = this.jpaDataProviders.get(id);
-
-        if (unidad.getEquPrimarykeyUnme() == null) {
-            throw ExceptionBuilder.builder()
-                    .withMessage("La unidad de medida no fue encontrada")
-                    .withCode("404")
-                    .buildBusinessException();
-        }
-
-        unidad.setEquEstadoregUnme("2");
-
-        this.jpaDataProviders.update(id, unidad);
-
-        return "OK";
+    public List<EntyPrvinvmdunidamedequipoDto> findByEstado(
+            String estado
+    ) throws EBusinessException {
+        return dataProviders.findByEstado(estado);
     }
 }
