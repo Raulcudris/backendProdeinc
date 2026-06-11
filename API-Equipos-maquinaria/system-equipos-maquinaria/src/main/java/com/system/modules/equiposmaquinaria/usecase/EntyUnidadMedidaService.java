@@ -1,5 +1,6 @@
 package com.system.modules.equiposmaquinaria.usecase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ import com.system.modules.equiposmaquinaria.dataproviders.IjpaUnidadMedidaDataPr
 @Service
 public class EntyUnidadMedidaService {
 
+    private static final String ESTADO_REGISTRO_ACTIVO = "1";
+    private static final String ESTADO_REGISTRO_INACTIVO = "2";
+
     @Autowired
     private IjpaUnidadMedidaDataProviders dataProviders;
 
@@ -22,101 +26,101 @@ public class EntyUnidadMedidaService {
     }
 
     public EntyPrvinvmdunidamedequipoResponse getAll(
-            int currentPage,
-            int pageSize,
-            String parameter,
-            String filter
+            final int currentPage,
+            final int pageSize,
+            final String parameter,
+            final String filter
     ) throws EBusinessException {
         return dataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
-    /*
-     * Se mantiene por compatibilidad, pero para unidad de medida
-     * se debe consultar por unidadKey.
-     */
     public EntyPrvinvmdunidamedequipoDto get(
-            Integer id
+            final Integer id
     ) throws EBusinessException {
+        validarId(id);
         return dataProviders.get(id);
     }
 
     public EntyPrvinvmdunidamedequipoDto saveBefore(
-            EntyPrvinvmdunidamedequipoDto dto
+            final EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException {
 
-        if (dto.getPrvTipunidamedUnme() == null || dto.getPrvTipunidamedUnme().isBlank()) {
-            return new EntyPrvinvmdunidamedequipoDto();
-        }
-
-        dto.setPrvTipunidamedUnme(dto.getPrvTipunidamedUnme().trim().toUpperCase());
-
-        if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
-            dto.setPrvDescmedidaUnme("Sin descripcion");
-        }
-
-        if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
-            dto.setPrvEstadoregUnme("1");
-        }
-
+        aplicarReglasCreacion(dto);
         return dataProviders.save(dto);
     }
 
     public List<EntyPrvinvmdunidamedequipoDto> saveBefore(
-            List<EntyPrvinvmdunidamedequipoDto> dtos
+            final List<EntyPrvinvmdunidamedequipoDto> dtos
     ) throws EBusinessException {
-        return dataProviders.save(dtos);
+
+        if (dtos == null || dtos.isEmpty()) {
+            throw new EBusinessException("La lista de unidades de medida no puede estar vacía.");
+        }
+
+        List<EntyPrvinvmdunidamedequipoDto> result = new ArrayList<>();
+
+        for (EntyPrvinvmdunidamedequipoDto dto : dtos) {
+            result.add(saveBefore(dto));
+        }
+
+        return result;
     }
 
-    /*
-     * Se mantiene por compatibilidad, pero para unidad de medida
-     * se debe actualizar por unidadKey.
-     */
     public EntyPrvinvmdunidamedequipoDto updateBefore(
-            Integer id,
-            EntyPrvinvmdunidamedequipoDto dto
+            final Integer id,
+            final EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException {
+
+        validarId(id);
+
+        if (dto == null) {
+            throw new EBusinessException("La unidad de medida no puede ser nula.");
+        }
+
+        normalizarDto(dto);
+        aplicarDefaults(dto);
+        validarEstadoRegistro(dto.getPrvEstadoregUnme());
+
         return dataProviders.update(id, dto);
     }
 
     public EntyPrvinvmdunidamedequipoDto updateByKey(
-            String unidadKey,
-            EntyPrvinvmdunidamedequipoDto dto
+            final String unidadKey,
+            final EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException {
 
-        if (unidadKey == null || unidadKey.isBlank()) {
-            return new EntyPrvinvmdunidamedequipoDto();
+        validarTextoObligatorio(unidadKey, "La key de la unidad de medida es obligatoria.");
+
+        if (dto == null) {
+            throw new EBusinessException("La unidad de medida no puede ser nula.");
         }
 
         String key = unidadKey.trim().toUpperCase();
+
         dto.setPrvTipunidamedUnme(key);
 
-        if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
-            dto.setPrvDescmedidaUnme("Sin descripcion");
-        }
-
-        if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
-            dto.setPrvEstadoregUnme("1");
-        }
+        normalizarDto(dto);
+        aplicarDefaults(dto);
+        validarEstadoRegistro(dto.getPrvEstadoregUnme());
 
         return dataProviders.updateByKey(key, dto);
     }
 
-    /*
-     * Se mantiene por compatibilidad, pero para unidad de medida
-     * se debe cambiar estado por unidadKey.
-     */
     public String changestatus(
-            Integer id,
-            String estado
+            final Integer id,
+            final String estado
     ) throws EBusinessException {
+
+        validarId(id);
+        validarEstadoRegistro(estado);
 
         EntyPrvinvmdunidamedequipoDto dto = dataProviders.get(id);
 
         if (dto == null || dto.getPrvTipunidamedUnme() == null) {
-            return "No existe la unidad de medida con id: " + id;
+            throw new EBusinessException("No existe la unidad de medida con id: " + id);
         }
 
-        dto.setPrvEstadoregUnme(estado);
+        dto.setPrvEstadoregUnme(estado.trim());
 
         dataProviders.update(id, dto);
 
@@ -124,47 +128,43 @@ public class EntyUnidadMedidaService {
     }
 
     public String changestatusByKey(
-            String unidadKey,
-            String estado
+            final String unidadKey,
+            final String estado
     ) throws EBusinessException {
 
-        if (unidadKey == null || unidadKey.isBlank()) {
-            return "La key de la unidad de medida es obligatoria";
-        }
+        validarTextoObligatorio(unidadKey, "La key de la unidad de medida es obligatoria.");
+        validarEstadoRegistro(estado);
 
         String key = unidadKey.trim().toUpperCase();
 
         EntyPrvinvmdunidamedequipoDto dto = dataProviders.findByKey(key);
 
         if (dto == null || dto.getPrvTipunidamedUnme() == null) {
-            return "No existe la unidad de medida con key: " + key;
+            throw new EBusinessException("No existe la unidad de medida con key: " + key);
         }
 
-        dto.setPrvEstadoregUnme(estado);
+        dto.setPrvEstadoregUnme(estado.trim());
 
         dataProviders.updateByKey(key, dto);
 
         return "Estado actualizado correctamente";
     }
 
-    /*
-     * Se mantiene por compatibilidad, pero para unidad de medida
-     * se debe eliminar por unidadKey.
-     */
     public String deleteBefore(
-            Integer id
+            final Integer id
     ) throws EBusinessException {
+
+        validarId(id);
         dataProviders.delete(id);
+
         return "Registro eliminado correctamente";
     }
 
     public String deleteByKey(
-            String unidadKey
+            final String unidadKey
     ) throws EBusinessException {
 
-        if (unidadKey == null || unidadKey.isBlank()) {
-            return "La key de la unidad de medida es obligatoria";
-        }
+        validarTextoObligatorio(unidadKey, "La key de la unidad de medida es obligatoria.");
 
         dataProviders.deleteByKey(unidadKey.trim().toUpperCase());
 
@@ -172,19 +172,109 @@ public class EntyUnidadMedidaService {
     }
 
     public EntyPrvinvmdunidamedequipoDto findByKey(
-            String unidadKey
+            final String unidadKey
     ) throws EBusinessException {
 
-        if (unidadKey == null || unidadKey.isBlank()) {
-            return new EntyPrvinvmdunidamedequipoDto();
-        }
+        validarTextoObligatorio(unidadKey, "La key de la unidad de medida es obligatoria.");
 
         return dataProviders.findByKey(unidadKey.trim().toUpperCase());
     }
 
     public List<EntyPrvinvmdunidamedequipoDto> findByEstado(
-            String estado
+            final String estado
     ) throws EBusinessException {
-        return dataProviders.findByEstado(estado);
+
+        validarEstadoRegistro(estado);
+
+        return dataProviders.findByEstado(estado.trim());
+    }
+
+    private void aplicarReglasCreacion(
+            final EntyPrvinvmdunidamedequipoDto dto
+    ) throws EBusinessException {
+
+        if (dto == null) {
+            throw new EBusinessException("La unidad de medida no puede ser nula.");
+        }
+
+        normalizarDto(dto);
+        aplicarDefaults(dto);
+        validarObligatoriosCreacion(dto);
+    }
+
+    private void normalizarDto(
+            final EntyPrvinvmdunidamedequipoDto dto
+    ) {
+        if (dto.getPrvTipunidamedUnme() != null) {
+            dto.setPrvTipunidamedUnme(dto.getPrvTipunidamedUnme().trim().toUpperCase());
+        }
+
+        if (dto.getPrvDescmedidaUnme() != null) {
+            dto.setPrvDescmedidaUnme(dto.getPrvDescmedidaUnme().trim().toUpperCase());
+        }
+
+        if (dto.getPrvEstadoregUnme() != null) {
+            dto.setPrvEstadoregUnme(dto.getPrvEstadoregUnme().trim());
+        }
+    }
+
+    private void aplicarDefaults(
+            final EntyPrvinvmdunidamedequipoDto dto
+    ) {
+        if (esVacio(dto.getPrvDescmedidaUnme())) {
+            dto.setPrvDescmedidaUnme("SIN DESCRIPCION");
+        }
+
+        if (esVacio(dto.getPrvEstadoregUnme())) {
+            dto.setPrvEstadoregUnme(ESTADO_REGISTRO_ACTIVO);
+        }
+    }
+
+    private void validarObligatoriosCreacion(
+            final EntyPrvinvmdunidamedequipoDto dto
+    ) throws EBusinessException {
+
+        if (esVacio(dto.getPrvTipunidamedUnme())) {
+            throw new EBusinessException("El código de la unidad de medida es obligatorio.");
+        }
+
+        validarEstadoRegistro(dto.getPrvEstadoregUnme());
+    }
+
+    private void validarId(
+            final Integer id
+    ) throws EBusinessException {
+        if (id == null || id <= 0) {
+            throw new EBusinessException("El id de la unidad de medida no es válido.");
+        }
+    }
+
+    private void validarTextoObligatorio(
+            final String valor,
+            final String mensaje
+    ) throws EBusinessException {
+        if (esVacio(valor)) {
+            throw new EBusinessException(mensaje);
+        }
+    }
+
+    private void validarEstadoRegistro(
+            final String estado
+    ) throws EBusinessException {
+
+        validarTextoObligatorio(estado, "El estado del registro es obligatorio.");
+
+        String valor = estado.trim();
+
+        if (!ESTADO_REGISTRO_ACTIVO.equals(valor)
+                && !ESTADO_REGISTRO_INACTIVO.equals(valor)) {
+            throw new EBusinessException("Estado de registro no válido. Use 1=Activo o 2=Inactivo.");
+        }
+    }
+
+    private boolean esVacio(
+            final String valor
+    ) {
+        return valor == null || valor.trim().isEmpty();
     }
 }

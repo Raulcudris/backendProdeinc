@@ -1,5 +1,6 @@
 package com.system.modules.equiposmaquinaria.usecase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,11 @@ import com.system.modules.equiposmaquinaria.dataproviders.IjpaTipoEquipoDataProv
 @Service
 public class EntyTipoEquipoService {
 
+    private static final String ESTADO_REGISTRO_ACTIVO = "1";
+    private static final String ESTADO_REGISTRO_INACTIVO = "2";
+    private static final String TIPO_REGISTRO_ORIGINAL = "1";
+    private static final String UNIDAD_DEFAULT = "HORA";
+
     @Autowired
     private IjpaTipoEquipoDataProviders dataProviders;
 
@@ -22,66 +28,79 @@ public class EntyTipoEquipoService {
     }
 
     public EntyPrvinvmdequipmaquinariaResponse getAll(
-            int currentPage,
-            int pageSize,
-            String parameter,
-            String filter
+            final int currentPage,
+            final int pageSize,
+            final String parameter,
+            final String filter
     ) throws EBusinessException {
         return dataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
     public EntyPrvinvmdequipmaquinariaDto get(
-            Integer id
+            final Integer id
     ) throws EBusinessException {
+        validarId(id);
         return dataProviders.get(id);
     }
 
     public EntyPrvinvmdequipmaquinariaDto saveBefore(
-            EntyPrvinvmdequipmaquinariaDto dto
+            final EntyPrvinvmdequipmaquinariaDto dto
     ) throws EBusinessException {
 
-        if (dto.getPrvTipoequipoTieq() == null ||
-                dto.getPrvTipoequipoTieq().isBlank()) {
-            return new EntyPrvinvmdequipmaquinariaDto();
-        }
-
-        normalizeDto(dto);
-
+        aplicarReglasCreacion(dto);
         return dataProviders.save(dto);
     }
 
     public List<EntyPrvinvmdequipmaquinariaDto> saveBefore(
-            List<EntyPrvinvmdequipmaquinariaDto> dtos
+            final List<EntyPrvinvmdequipmaquinariaDto> dtos
     ) throws EBusinessException {
-        return dataProviders.save(dtos);
+
+        if (dtos == null || dtos.isEmpty()) {
+            throw new EBusinessException("La lista de tipos de equipo no puede estar vacía.");
+        }
+
+        List<EntyPrvinvmdequipmaquinariaDto> result = new ArrayList<>();
+
+        for (EntyPrvinvmdequipmaquinariaDto dto : dtos) {
+            result.add(saveBefore(dto));
+        }
+
+        return result;
     }
 
     public EntyPrvinvmdequipmaquinariaDto updateBefore(
-            Integer id,
-            EntyPrvinvmdequipmaquinariaDto dto
+            final Integer id,
+            final EntyPrvinvmdequipmaquinariaDto dto
     ) throws EBusinessException {
 
-        if (id == null) {
-            return new EntyPrvinvmdequipmaquinariaDto();
+        validarId(id);
+
+        if (dto == null) {
+            throw new EBusinessException("El tipo de equipo no puede ser nulo.");
         }
 
-        normalizeDtoForUpdate(dto);
+        normalizarDto(dto);
+        aplicarDefaultsUpdate(dto);
+        validarEstadoRegistro(dto.getPrvEstadoregTieq());
 
         return dataProviders.update(id, dto);
     }
 
     public String changestatus(
-            Integer id,
-            String estado
+            final Integer id,
+            final String estado
     ) throws EBusinessException {
+
+        validarId(id);
+        validarEstadoRegistro(estado);
 
         EntyPrvinvmdequipmaquinariaDto dto = dataProviders.get(id);
 
         if (dto == null || dto.getPrvPrimarykeyTieq() == null) {
-            return "No existe el tipo de equipo con id: " + id;
+            throw new EBusinessException("No existe el tipo de equipo con id: " + id);
         }
 
-        dto.setPrvEstadoregTieq(estado);
+        dto.setPrvEstadoregTieq(estado.trim());
 
         dataProviders.update(id, dto);
 
@@ -89,89 +108,168 @@ public class EntyTipoEquipoService {
     }
 
     public String deleteBefore(
-            Integer id
+            final Integer id
     ) throws EBusinessException {
+
+        validarId(id);
         dataProviders.delete(id);
+
         return "Registro eliminado correctamente";
     }
 
     public EntyPrvinvmdequipmaquinariaDto findByKey(
-            String tipoEquipoKey
+            final String tipoEquipoKey
     ) throws EBusinessException {
 
-        if (tipoEquipoKey == null || tipoEquipoKey.isBlank()) {
-            return new EntyPrvinvmdequipmaquinariaDto();
-        }
+        validarTextoObligatorio(tipoEquipoKey, "El código del tipo de equipo es obligatorio.");
 
         return dataProviders.findByKey(tipoEquipoKey.trim().toUpperCase());
     }
 
     public List<EntyPrvinvmdequipmaquinariaDto> findByUnidad(
-            String unidadKey
+            final String unidadKey
     ) throws EBusinessException {
 
-        if (unidadKey == null || unidadKey.isBlank()) {
-            return List.of();
-        }
+        validarTextoObligatorio(unidadKey, "El código de la unidad de medida es obligatorio.");
 
         return dataProviders.findByUnidad(unidadKey.trim().toUpperCase());
     }
 
     public List<EntyPrvinvmdequipmaquinariaDto> findByEstado(
-            String estado
+            final String estado
     ) throws EBusinessException {
-        return dataProviders.findByEstado(estado);
+
+        validarEstadoRegistro(estado);
+
+        return dataProviders.findByEstado(estado.trim());
     }
 
-    private void normalizeDto(
-            EntyPrvinvmdequipmaquinariaDto dto
-    ) {
-        dto.setPrvTipoequipoTieq(dto.getPrvTipoequipoTieq().trim().toUpperCase());
+    private void aplicarReglasCreacion(
+            final EntyPrvinvmdequipmaquinariaDto dto
+    ) throws EBusinessException {
 
-        if (dto.getPrvDescripcionTieq() == null ||
-                dto.getPrvDescripcionTieq().isBlank()) {
-            dto.setPrvDescripcionTieq("Sin descripcion");
+        if (dto == null) {
+            throw new EBusinessException("El tipo de equipo no puede ser nulo.");
         }
 
-        if (dto.getPrvIdentifkeyUnme() == null ||
-                dto.getPrvIdentifkeyUnme().isBlank()) {
-            dto.setPrvIdentifkeyUnme("HORA");
-        } else {
-            dto.setPrvIdentifkeyUnme(dto.getPrvIdentifkeyUnme().trim().toUpperCase());
-        }
-
-        if (dto.getPrvTiporegistTieq() == null ||
-                dto.getPrvTiporegistTieq().isBlank()) {
-            dto.setPrvTiporegistTieq("1");
-        }
-
-        if (dto.getPrvEstadoregTieq() == null ||
-                dto.getPrvEstadoregTieq().isBlank()) {
-            dto.setPrvEstadoregTieq("1");
-        }
+        normalizarDto(dto);
+        aplicarDefaultsCreacion(dto);
+        validarObligatoriosCreacion(dto);
     }
 
-    private void normalizeDtoForUpdate(
-            EntyPrvinvmdequipmaquinariaDto dto
+    private void normalizarDto(
+            final EntyPrvinvmdequipmaquinariaDto dto
     ) {
-        if (dto.getPrvTipoequipoTieq() != null &&
-                !dto.getPrvTipoequipoTieq().isBlank()) {
+        if (dto.getPrvTipoequipoTieq() != null) {
             dto.setPrvTipoequipoTieq(dto.getPrvTipoequipoTieq().trim().toUpperCase());
         }
 
-        if (dto.getPrvIdentifkeyUnme() != null &&
-                !dto.getPrvIdentifkeyUnme().isBlank()) {
+        if (dto.getPrvIdentifkeyUnme() != null) {
             dto.setPrvIdentifkeyUnme(dto.getPrvIdentifkeyUnme().trim().toUpperCase());
         }
 
-        if (dto.getPrvTiporegistTieq() == null ||
-                dto.getPrvTiporegistTieq().isBlank()) {
-            dto.setPrvTiporegistTieq("1");
+        if (dto.getPrvDescripcionTieq() != null) {
+            dto.setPrvDescripcionTieq(dto.getPrvDescripcionTieq().trim().toUpperCase());
         }
 
-        if (dto.getPrvEstadoregTieq() == null ||
-                dto.getPrvEstadoregTieq().isBlank()) {
-            dto.setPrvEstadoregTieq("1");
+        if (dto.getPrvTiporegistTieq() != null) {
+            dto.setPrvTiporegistTieq(dto.getPrvTiporegistTieq().trim());
         }
+
+        if (dto.getPrvEstadoregTieq() != null) {
+            dto.setPrvEstadoregTieq(dto.getPrvEstadoregTieq().trim());
+        }
+    }
+
+    private void aplicarDefaultsCreacion(
+            final EntyPrvinvmdequipmaquinariaDto dto
+    ) {
+        if (esVacio(dto.getPrvDescripcionTieq())) {
+            dto.setPrvDescripcionTieq("SIN DESCRIPCION");
+        }
+
+        if (esVacio(dto.getPrvIdentifkeyUnme())) {
+            dto.setPrvIdentifkeyUnme(UNIDAD_DEFAULT);
+        }
+
+        if (esVacio(dto.getPrvTiporegistTieq())) {
+            dto.setPrvTiporegistTieq(TIPO_REGISTRO_ORIGINAL);
+        }
+
+        if (esVacio(dto.getPrvEstadoregTieq())) {
+            dto.setPrvEstadoregTieq(ESTADO_REGISTRO_ACTIVO);
+        }
+    }
+
+    private void aplicarDefaultsUpdate(
+            final EntyPrvinvmdequipmaquinariaDto dto
+    ) {
+        if (esVacio(dto.getPrvIdentifkeyUnme())) {
+            dto.setPrvIdentifkeyUnme(UNIDAD_DEFAULT);
+        }
+
+        if (esVacio(dto.getPrvTiporegistTieq())) {
+            dto.setPrvTiporegistTieq(TIPO_REGISTRO_ORIGINAL);
+        }
+
+        if (esVacio(dto.getPrvEstadoregTieq())) {
+            dto.setPrvEstadoregTieq(ESTADO_REGISTRO_ACTIVO);
+        }
+
+        if (esVacio(dto.getPrvDescripcionTieq())) {
+            dto.setPrvDescripcionTieq("SIN DESCRIPCION");
+        }
+    }
+
+    private void validarObligatoriosCreacion(
+            final EntyPrvinvmdequipmaquinariaDto dto
+    ) throws EBusinessException {
+
+        if (esVacio(dto.getPrvTipoequipoTieq())) {
+            throw new EBusinessException("El código del tipo de equipo es obligatorio.");
+        }
+
+        if (esVacio(dto.getPrvIdentifkeyUnme())) {
+            throw new EBusinessException("La unidad de medida del tipo de equipo es obligatoria.");
+        }
+
+        validarEstadoRegistro(dto.getPrvEstadoregTieq());
+    }
+
+    private void validarId(
+            final Integer id
+    ) throws EBusinessException {
+        if (id == null || id <= 0) {
+            throw new EBusinessException("El id del tipo de equipo no es válido.");
+        }
+    }
+
+    private void validarTextoObligatorio(
+            final String valor,
+            final String mensaje
+    ) throws EBusinessException {
+        if (esVacio(valor)) {
+            throw new EBusinessException(mensaje);
+        }
+    }
+
+    private void validarEstadoRegistro(
+            final String estado
+    ) throws EBusinessException {
+
+        validarTextoObligatorio(estado, "El estado del registro es obligatorio.");
+
+        String valor = estado.trim();
+
+        if (!ESTADO_REGISTRO_ACTIVO.equals(valor)
+                && !ESTADO_REGISTRO_INACTIVO.equals(valor)) {
+            throw new EBusinessException("Estado de registro no válido. Use 1=Activo o 2=Inactivo.");
+        }
+    }
+
+    private boolean esVacio(
+            final String valor
+    ) {
+        return valor == null || valor.trim().isEmpty();
     }
 }

@@ -14,6 +14,14 @@ import com.system.modules.equiposmaquinaria.dataproviders.IjpaEquipoDataProvider
 @Service
 public class EntyEquipoService {
 
+    private static final String ESTADO_REGISTRO_ACTIVO = "1";
+    private static final String ESTADO_REGISTRO_INACTIVO = "2";
+
+    private static final String EQUIPO_DISPONIBLE = "1";
+    private static final String EQUIPO_NO_DISPONIBLE = "2";
+
+    private static final String ESTADO_OPERATIVO = "OPE";
+
     @Autowired
     private IjpaEquipoDataProviders dataProviders;
 
@@ -23,37 +31,38 @@ public class EntyEquipoService {
     }
 
     public EntyPrvinvmainventarioequiposResponse getAll(
-            int currentPage,
-            int pageSize,
-            String parameter,
-            String filter
+            final int currentPage,
+            final int pageSize,
+            final String parameter,
+            final String filter
     ) throws EBusinessException {
         return dataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
     public EntyPrvinvmainventarioequiposDto get(
-            Integer id
+            final Integer id
     ) throws EBusinessException {
+
+        validarId(id);
         return dataProviders.get(id);
     }
 
     public EntyPrvinvmainventarioequiposDto saveBefore(
-            EntyPrvinvmainventarioequiposDto dto
+            final EntyPrvinvmainventarioequiposDto dto
     ) throws EBusinessException {
 
-        if (dto.getPrvIdentifkeyInve() == null ||
-                dto.getPrvIdentifkeyInve().isBlank()) {
-            return new EntyPrvinvmainventarioequiposDto();
-        }
-
-        normalizeDto(dto);
-
+        aplicarReglasCreacion(dto);
         return dataProviders.save(dto);
     }
 
     public List<EntyPrvinvmainventarioequiposDto> saveBefore(
-            List<EntyPrvinvmainventarioequiposDto> dtos
+            final List<EntyPrvinvmainventarioequiposDto> dtos
     ) throws EBusinessException {
+
+        if (dtos == null || dtos.isEmpty()) {
+            throw new EBusinessException("La lista de equipos no puede estar vacía.");
+        }
+
         List<EntyPrvinvmainventarioequiposDto> result = new ArrayList<>();
 
         for (EntyPrvinvmainventarioequiposDto dto : dtos) {
@@ -64,31 +73,37 @@ public class EntyEquipoService {
     }
 
     public EntyPrvinvmainventarioequiposDto updateBefore(
-            Integer id,
-            EntyPrvinvmainventarioequiposDto dto
+            final Integer id,
+            final EntyPrvinvmainventarioequiposDto dto
     ) throws EBusinessException {
 
-        if (id == null) {
-            return new EntyPrvinvmainventarioequiposDto();
+        validarId(id);
+
+        if (dto == null) {
+            throw new EBusinessException("El equipo no puede ser nulo.");
         }
 
-        normalizeDtoForUpdate(dto);
+        normalizarDto(dto);
+        aplicarDefaultsUpdate(dto);
 
         return dataProviders.update(id, dto);
     }
 
     public String changestatus(
-            Integer id,
-            String estado
+            final Integer id,
+            final String estado
     ) throws EBusinessException {
+
+        validarId(id);
+        validarEstadoRegistro(estado);
 
         EntyPrvinvmainventarioequiposDto dto = dataProviders.get(id);
 
         if (dto == null || dto.getPrvPrimarykeyInve() == null) {
-            return "No existe el equipo con id: " + id;
+            throw new EBusinessException("No existe el equipo con id: " + id);
         }
 
-        dto.setPrvEstadoregInve(estado);
+        dto.setPrvEstadoregInve(estado.trim());
 
         dataProviders.update(id, dto);
 
@@ -96,17 +111,20 @@ public class EntyEquipoService {
     }
 
     public String cambiarDisponibilidad(
-            Integer id,
-            String disponible
+            final Integer id,
+            final String disponible
     ) throws EBusinessException {
+
+        validarId(id);
+        validarDisponibilidad(disponible);
 
         EntyPrvinvmainventarioequiposDto dto = dataProviders.get(id);
 
         if (dto == null || dto.getPrvPrimarykeyInve() == null) {
-            return "No existe el equipo con id: " + id;
+            throw new EBusinessException("No existe el equipo con id: " + id);
         }
 
-        dto.setPrvEquipoactivoInve(disponible);
+        dto.setPrvEquipoactivoInve(disponible.trim());
 
         dataProviders.update(id, dto);
 
@@ -114,134 +132,225 @@ public class EntyEquipoService {
     }
 
     public String deleteBefore(
-            Integer id
+            final Integer id
     ) throws EBusinessException {
+
+        validarId(id);
         dataProviders.delete(id);
+
         return "Registro eliminado correctamente";
     }
 
     public EntyPrvinvmainventarioequiposDto findByKey(
-            String equipoKey
+            final String equipoKey
     ) throws EBusinessException {
 
-        if (equipoKey == null || equipoKey.isBlank()) {
-            return new EntyPrvinvmainventarioequiposDto();
-        }
+        validarTextoObligatorio(equipoKey, "El código del equipo es obligatorio.");
 
         return dataProviders.findByKey(equipoKey.trim().toUpperCase());
     }
 
     public List<EntyPrvinvmainventarioequiposDto> findByProveedor(
-            String proveedorKey
+            final String proveedorKey
     ) throws EBusinessException {
 
-        if (proveedorKey == null || proveedorKey.isBlank()) {
-            return new ArrayList<>();
-        }
+        validarTextoObligatorio(proveedorKey, "El código del proveedor es obligatorio.");
 
         return dataProviders.findByProveedor(proveedorKey.trim().toUpperCase());
     }
 
     public List<EntyPrvinvmainventarioequiposDto> findByTipoEquipo(
-            String tipoEquipoKey
+            final String tipoEquipoKey
     ) throws EBusinessException {
 
-        if (tipoEquipoKey == null || tipoEquipoKey.isBlank()) {
-            return new ArrayList<>();
-        }
+        validarTextoObligatorio(tipoEquipoKey, "El tipo de equipo es obligatorio.");
 
         return dataProviders.findByTipoEquipo(tipoEquipoKey.trim().toUpperCase());
     }
 
     public List<EntyPrvinvmainventarioequiposDto> findByDisponible(
-            String disponible
+            final String disponible
     ) throws EBusinessException {
-        return dataProviders.findByDisponible(disponible);
+
+        validarDisponibilidad(disponible);
+        return dataProviders.findByDisponible(disponible.trim());
     }
 
     public List<EntyPrvinvmainventarioequiposDto> findByEstado(
-            String estado
+            final String estado
     ) throws EBusinessException {
-        return dataProviders.findByEstado(estado);
+
+        validarEstadoRegistro(estado);
+        return dataProviders.findByEstado(estado.trim());
     }
 
-    private void normalizeDto(
-            EntyPrvinvmainventarioequiposDto dto
-    ) {
-        dto.setPrvIdentifkeyInve(dto.getPrvIdentifkeyInve().trim().toUpperCase());
+    private void aplicarReglasCreacion(
+            final EntyPrvinvmainventarioequiposDto dto
+    ) throws EBusinessException {
 
-        if (dto.getPrvIdentifkeyMprv() != null &&
-                !dto.getPrvIdentifkeyMprv().isBlank()) {
-            dto.setPrvIdentifkeyMprv(dto.getPrvIdentifkeyMprv().trim().toUpperCase());
+        if (dto == null) {
+            throw new EBusinessException("El equipo no puede ser nulo.");
         }
 
-        if (dto.getPrvTipoequipoTieq() != null &&
-                !dto.getPrvTipoequipoTieq().isBlank()) {
-            dto.setPrvTipoequipoTieq(dto.getPrvTipoequipoTieq().trim().toUpperCase());
-        }
-
-        if (dto.getPrvNombrequipoInve() == null ||
-                dto.getPrvNombrequipoInve().isBlank()) {
-            dto.setPrvNombrequipoInve("Sin nombre");
-        }
-
-        if (dto.getPrvRefermodeloInve() == null ||
-                dto.getPrvRefermodeloInve().isBlank()) {
-            dto.setPrvRefermodeloInve("Sin referencia");
-        }
-
-        if (dto.getPrvEquipoestadoInve() == null ||
-                dto.getPrvEquipoestadoInve().isBlank()) {
-            dto.setPrvEquipoestadoInve("OPE");
-        }
-
-        if (dto.getPrvEquipoactivoInve() == null ||
-                dto.getPrvEquipoactivoInve().isBlank()) {
-            dto.setPrvEquipoactivoInve("1");
-        }
-
-        if (dto.getPrvEstadoregInve() == null ||
-                dto.getPrvEstadoregInve().isBlank()) {
-            dto.setPrvEstadoregInve("1");
-        }
-
-        if (dto.getPrvDescripcionInve() == null ||
-                dto.getPrvDescripcionInve().isBlank()) {
-            dto.setPrvDescripcionInve("Sin descripcion");
-        }
+        normalizarDto(dto);
+        aplicarDefaultsCreacion(dto);
+        validarObligatoriosCreacion(dto);
     }
 
-    private void normalizeDtoForUpdate(
-            EntyPrvinvmainventarioequiposDto dto
+    private void normalizarDto(
+            final EntyPrvinvmainventarioequiposDto dto
     ) {
-        if (dto.getPrvIdentifkeyInve() != null &&
-                !dto.getPrvIdentifkeyInve().isBlank()) {
+        if (dto.getPrvIdentifkeyInve() != null) {
             dto.setPrvIdentifkeyInve(dto.getPrvIdentifkeyInve().trim().toUpperCase());
         }
 
-        if (dto.getPrvIdentifkeyMprv() != null &&
-                !dto.getPrvIdentifkeyMprv().isBlank()) {
+        if (dto.getPrvIdentifkeyMprv() != null) {
             dto.setPrvIdentifkeyMprv(dto.getPrvIdentifkeyMprv().trim().toUpperCase());
         }
 
-        if (dto.getPrvTipoequipoTieq() != null &&
-                !dto.getPrvTipoequipoTieq().isBlank()) {
+        if (dto.getPrvTipoequipoTieq() != null) {
             dto.setPrvTipoequipoTieq(dto.getPrvTipoequipoTieq().trim().toUpperCase());
         }
 
-        if (dto.getPrvEquipoestadoInve() == null ||
-                dto.getPrvEquipoestadoInve().isBlank()) {
-            dto.setPrvEquipoestadoInve("OPE");
+        if (dto.getPrvNombrequipoInve() != null) {
+            dto.setPrvNombrequipoInve(dto.getPrvNombrequipoInve().trim().toUpperCase());
         }
 
-        if (dto.getPrvEquipoactivoInve() == null ||
-                dto.getPrvEquipoactivoInve().isBlank()) {
-            dto.setPrvEquipoactivoInve("1");
+        if (dto.getPrvRefermodeloInve() != null) {
+            dto.setPrvRefermodeloInve(dto.getPrvRefermodeloInve().trim().toUpperCase());
         }
 
-        if (dto.getPrvEstadoregInve() == null ||
-                dto.getPrvEstadoregInve().isBlank()) {
-            dto.setPrvEstadoregInve("1");
+        if (dto.getPrvEquipoestadoInve() != null) {
+            dto.setPrvEquipoestadoInve(dto.getPrvEquipoestadoInve().trim().toUpperCase());
         }
+
+        if (dto.getPrvEquipoactivoInve() != null) {
+            dto.setPrvEquipoactivoInve(dto.getPrvEquipoactivoInve().trim());
+        }
+
+        if (dto.getPrvEstadoregInve() != null) {
+            dto.setPrvEstadoregInve(dto.getPrvEstadoregInve().trim());
+        }
+
+        if (dto.getPrvDescripcionInve() != null) {
+            dto.setPrvDescripcionInve(dto.getPrvDescripcionInve().trim());
+        }
+    }
+
+    private void aplicarDefaultsCreacion(
+            final EntyPrvinvmainventarioequiposDto dto
+    ) {
+        if (esVacio(dto.getPrvRefermodeloInve())) {
+            dto.setPrvRefermodeloInve("SIN REFERENCIA");
+        }
+
+        if (esVacio(dto.getPrvEquipoestadoInve())) {
+            dto.setPrvEquipoestadoInve(ESTADO_OPERATIVO);
+        }
+
+        if (esVacio(dto.getPrvEquipoactivoInve())) {
+            dto.setPrvEquipoactivoInve(EQUIPO_DISPONIBLE);
+        }
+
+        if (esVacio(dto.getPrvEstadoregInve())) {
+            dto.setPrvEstadoregInve(ESTADO_REGISTRO_ACTIVO);
+        }
+
+        if (esVacio(dto.getPrvDescripcionInve())) {
+            dto.setPrvDescripcionInve("SIN DESCRIPCION");
+        }
+    }
+
+    private void aplicarDefaultsUpdate(
+            final EntyPrvinvmainventarioequiposDto dto
+    ) {
+        if (esVacio(dto.getPrvEquipoestadoInve())) {
+            dto.setPrvEquipoestadoInve(ESTADO_OPERATIVO);
+        }
+
+        if (esVacio(dto.getPrvEquipoactivoInve())) {
+            dto.setPrvEquipoactivoInve(EQUIPO_DISPONIBLE);
+        }
+
+        if (esVacio(dto.getPrvEstadoregInve())) {
+            dto.setPrvEstadoregInve(ESTADO_REGISTRO_ACTIVO);
+        }
+
+        if (esVacio(dto.getPrvDescripcionInve())) {
+            dto.setPrvDescripcionInve("SIN DESCRIPCION");
+        }
+    }
+
+    private void validarObligatoriosCreacion(
+            final EntyPrvinvmainventarioequiposDto dto
+    ) throws EBusinessException {
+
+        if (esVacio(dto.getPrvIdentifkeyInve())) {
+            throw new EBusinessException("El código único del equipo es obligatorio.");
+        }
+
+        if (esVacio(dto.getPrvIdentifkeyMprv())) {
+            throw new EBusinessException("El proveedor del equipo es obligatorio.");
+        }
+
+        if (esVacio(dto.getPrvTipoequipoTieq())) {
+            throw new EBusinessException("El tipo de equipo es obligatorio.");
+        }
+
+        if (esVacio(dto.getPrvNombrequipoInve())) {
+            throw new EBusinessException("El nombre del equipo es obligatorio.");
+        }
+
+        validarEstadoRegistro(dto.getPrvEstadoregInve());
+        validarDisponibilidad(dto.getPrvEquipoactivoInve());
+    }
+
+    private void validarId(
+            final Integer id
+    ) throws EBusinessException {
+        if (id == null || id <= 0) {
+            throw new EBusinessException("El id del equipo no es válido.");
+        }
+    }
+
+    private void validarTextoObligatorio(
+            final String valor,
+            final String mensaje
+    ) throws EBusinessException {
+        if (esVacio(valor)) {
+            throw new EBusinessException(mensaje);
+        }
+    }
+
+    private void validarEstadoRegistro(
+            final String estado
+    ) throws EBusinessException {
+        validarTextoObligatorio(estado, "El estado del registro es obligatorio.");
+
+        String valor = estado.trim();
+
+        if (!ESTADO_REGISTRO_ACTIVO.equals(valor)
+                && !ESTADO_REGISTRO_INACTIVO.equals(valor)) {
+            throw new EBusinessException("Estado de registro no válido. Use 1=Activo o 2=Inactivo.");
+        }
+    }
+
+    private void validarDisponibilidad(
+            final String disponible
+    ) throws EBusinessException {
+        validarTextoObligatorio(disponible, "La disponibilidad del equipo es obligatoria.");
+
+        String valor = disponible.trim();
+
+        if (!EQUIPO_DISPONIBLE.equals(valor)
+                && !EQUIPO_NO_DISPONIBLE.equals(valor)) {
+            throw new EBusinessException("Disponibilidad no válida. Use 1=Disponible o 2=No disponible.");
+        }
+    }
+
+    private boolean esVacio(
+            final String valor
+    ) {
+        return valor == null || valor.trim().isEmpty();
     }
 }
