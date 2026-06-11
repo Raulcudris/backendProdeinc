@@ -14,6 +14,10 @@ public interface IjpaProveedorDataProviders
             String proveedorKey
     ) throws EBusinessException;
 
+    EntyPrvmaeproveedoresmaDto findByNit(
+            String numeroNit
+    ) throws EBusinessException;
+
     List<EntyPrvmaeproveedoresmaDto> findByEstado(
             String estado
     ) throws EBusinessException;

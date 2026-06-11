@@ -1,5 +1,7 @@
 package com.system.modules.proveedores.api;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,7 @@ import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.modules.proveedores.usecase.ProveedorService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(
         value = "/api/proveedores/proveedores",
@@ -20,8 +23,22 @@ public class ProveedorController {
     @Autowired
     private ProveedorService service;
 
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("Proveedor service OK");
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<EntyPrvmaeproveedoresmaResponse> getAll()
+            throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.getAll(),
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping("/pages")
-    public ResponseEntity<EntyPrvmaeproveedoresmaResponse> getAll(
+    public ResponseEntity<EntyPrvmaeproveedoresmaResponse> getAllPages(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
@@ -53,8 +70,18 @@ public class ProveedorController {
         );
     }
 
+    @GetMapping("/by-nit")
+    public ResponseEntity<EntyPrvmaeproveedoresmaDto> findByNit(
+            @RequestParam String numeroNit
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.findByNit(numeroNit),
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping("/by-estado")
-    public ResponseEntity<?> findByEstado(
+    public ResponseEntity<List<EntyPrvmaeproveedoresmaDto>> findByEstado(
             @RequestParam String estado
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
@@ -69,6 +96,16 @@ public class ProveedorController {
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.saveBefore(dto),
+                HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping("/create-list")
+    public ResponseEntity<List<EntyPrvmaeproveedoresmaDto>> createList(
+            @RequestBody List<EntyPrvmaeproveedoresmaDto> dtoList
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.saveBefore(dtoList),
                 HttpStatus.CREATED
         );
     }

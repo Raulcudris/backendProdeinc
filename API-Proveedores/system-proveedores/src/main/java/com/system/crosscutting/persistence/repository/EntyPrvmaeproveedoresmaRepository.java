@@ -16,6 +16,8 @@ public interface EntyPrvmaeproveedoresmaRepository
 
     Optional<EntyPrvmaeproveedoresma> findByPrvIdentifkeyMprv(String prvIdentifkeyMprv);
 
+    Optional<EntyPrvmaeproveedoresma> findByPrvNumeronitMprv(String prvNumeronitMprv);
+
     List<EntyPrvmaeproveedoresma> findByPrvEstadoregMprv(String prvEstadoregMprv);
 
     @Query("SELECT p FROM EntyPrvmaeproveedoresma p " +

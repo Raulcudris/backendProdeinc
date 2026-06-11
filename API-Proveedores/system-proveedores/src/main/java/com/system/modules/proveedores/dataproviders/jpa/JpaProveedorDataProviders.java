@@ -202,6 +202,16 @@ public class JpaProveedorDataProviders extends JpaDataProviderSupport
     }
 
     @Override
+    public EntyPrvmaeproveedoresmaDto findByNit(
+            final String numeroNit
+    ) throws EBusinessException {
+
+        return repository.findByPrvNumeronitMprv(numeroNit)
+                .map(entity -> toDto(entity, EntyPrvmaeproveedoresmaDto.class))
+                .orElseGet(EntyPrvmaeproveedoresmaDto::new);
+    }
+
+    @Override
     public List<EntyPrvmaeproveedoresmaDto> findByEstado(
             String estado
     ) throws EBusinessException {
