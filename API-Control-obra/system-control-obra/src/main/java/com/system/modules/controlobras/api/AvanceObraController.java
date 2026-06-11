@@ -1,9 +1,7 @@
 package com.system.modules.controlobras.api;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-
 import com.system.crosscutting.domain.model.AvanceObraResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
