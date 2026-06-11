@@ -1,9 +1,19 @@
 package com.system.modules.evidencia.api;
-
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaDto;
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
@@ -20,12 +30,46 @@ public class TipoEvidenciaController {
     @Autowired
     private EntyTipoEvidenciaService service;
 
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("Tipo evidencia service OK");
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<EntyEvitipmatipoevidenciaDto> create(
+            @RequestBody final EntyEvitipmatipoevidenciaDto dto
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.saveBefore(dto),
+                HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping("/create-list")
+    public ResponseEntity<List<EntyEvitipmatipoevidenciaDto>> createList(
+            @RequestBody final List<EntyEvitipmatipoevidenciaDto> dtos
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.saveBefore(dtos),
+                HttpStatus.CREATED
+        );
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<EntyEvitipmatipoevidenciaResponse> all()
+            throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.getAll(),
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping("/pages")
     public ResponseEntity<EntyEvitipmatipoevidenciaResponse> getAll(
-            @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") String parameter,
-            @RequestParam(value = "filter", required = false, defaultValue = "") String filter
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") final int currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") final int pageSize,
+            @RequestParam(value = "parameter", required = false, defaultValue = "TEXT") final String parameter,
+            @RequestParam(value = "filter", required = false, defaultValue = "") final String filter
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.getAll(currentPage, pageSize, parameter, filter),
@@ -35,7 +79,7 @@ public class TipoEvidenciaController {
 
     @GetMapping("/get/{id}")
     public ResponseEntity<EntyEvitipmatipoevidenciaDto> get(
-            @PathVariable Integer id
+            @PathVariable final Integer id
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.get(id),
@@ -43,9 +87,19 @@ public class TipoEvidenciaController {
         );
     }
 
+    @GetMapping("/by-key")
+    public ResponseEntity<EntyEvitipmatipoevidenciaDto> findByKey(
+            @RequestParam final String tipoEvidenciaKey
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.findByKey(tipoEvidenciaKey),
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping("/by-estado")
-    public ResponseEntity<?> findByEstado(
-            @RequestParam String estado
+    public ResponseEntity<EntyEvitipmatipoevidenciaResponse> findByEstado(
+            @RequestParam final String estado
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.findByEstado(estado),
@@ -53,20 +107,10 @@ public class TipoEvidenciaController {
         );
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<EntyEvitipmatipoevidenciaDto> create(
-            @RequestBody EntyEvitipmatipoevidenciaDto dto
-    ) throws EBusinessException, MicroEventException {
-        return new ResponseEntity<>(
-                service.saveBefore(dto),
-                HttpStatus.CREATED
-        );
-    }
-
     @PutMapping("/update/{id}")
     public ResponseEntity<EntyEvitipmatipoevidenciaDto> update(
-            @PathVariable Integer id,
-            @RequestBody EntyEvitipmatipoevidenciaDto dto
+            @PathVariable final Integer id,
+            @RequestBody final EntyEvitipmatipoevidenciaDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
@@ -75,9 +119,9 @@ public class TipoEvidenciaController {
     }
 
     @PatchMapping("/changestatus/{id}")
-    public ResponseEntity<String> changestatus(
-            @PathVariable Integer id,
-            @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
+    public ResponseEntity<EntyEvitipmatipoevidenciaDto> changestatus(
+            @PathVariable final Integer id,
+            @RequestParam(value = "estado", required = false, defaultValue = "2") final String estado
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.changestatus(id, estado),
@@ -86,12 +130,10 @@ public class TipoEvidenciaController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> delete(
-            @PathVariable Integer id
+    public ResponseEntity<Void> delete(
+            @PathVariable final Integer id
     ) throws EBusinessException, MicroEventException {
-        return new ResponseEntity<>(
-                service.deleteBefore(id),
-                HttpStatus.OK
-        );
+        service.deleteBefore(id);
+        return ResponseEntity.noContent().build();
     }
 }

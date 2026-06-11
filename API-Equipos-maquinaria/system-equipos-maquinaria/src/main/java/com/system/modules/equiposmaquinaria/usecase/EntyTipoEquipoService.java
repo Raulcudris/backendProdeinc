@@ -40,13 +40,12 @@ public class EntyTipoEquipoService {
             EntyPrvinvmdequipmaquinariaDto dto
     ) throws EBusinessException {
 
-        if (dto.getPrvTiporegistTieq() == null || dto.getPrvTiporegistTieq().isBlank()) {
-            dto.setPrvTiporegistTieq("1");
+        if (dto.getPrvTipoequipoTieq() == null ||
+                dto.getPrvTipoequipoTieq().isBlank()) {
+            return new EntyPrvinvmdequipmaquinariaDto();
         }
 
-        if (dto.getPrvEstadoregTieq() == null || dto.getPrvEstadoregTieq().isBlank()) {
-            dto.setPrvEstadoregTieq("1");
-        }
+        normalizeDto(dto);
 
         return dataProviders.save(dto);
     }
@@ -62,13 +61,11 @@ public class EntyTipoEquipoService {
             EntyPrvinvmdequipmaquinariaDto dto
     ) throws EBusinessException {
 
-        if (dto.getPrvTiporegistTieq() == null || dto.getPrvTiporegistTieq().isBlank()) {
-            dto.setPrvTiporegistTieq("1");
+        if (id == null) {
+            return new EntyPrvinvmdequipmaquinariaDto();
         }
 
-        if (dto.getPrvEstadoregTieq() == null || dto.getPrvEstadoregTieq().isBlank()) {
-            dto.setPrvEstadoregTieq("1");
-        }
+        normalizeDtoForUpdate(dto);
 
         return dataProviders.update(id, dto);
     }
@@ -101,18 +98,80 @@ public class EntyTipoEquipoService {
     public EntyPrvinvmdequipmaquinariaDto findByKey(
             String tipoEquipoKey
     ) throws EBusinessException {
-        return dataProviders.findByKey(tipoEquipoKey);
+
+        if (tipoEquipoKey == null || tipoEquipoKey.isBlank()) {
+            return new EntyPrvinvmdequipmaquinariaDto();
+        }
+
+        return dataProviders.findByKey(tipoEquipoKey.trim().toUpperCase());
     }
 
     public List<EntyPrvinvmdequipmaquinariaDto> findByUnidad(
             String unidadKey
     ) throws EBusinessException {
-        return dataProviders.findByUnidad(unidadKey);
+
+        if (unidadKey == null || unidadKey.isBlank()) {
+            return List.of();
+        }
+
+        return dataProviders.findByUnidad(unidadKey.trim().toUpperCase());
     }
 
     public List<EntyPrvinvmdequipmaquinariaDto> findByEstado(
             String estado
     ) throws EBusinessException {
         return dataProviders.findByEstado(estado);
+    }
+
+    private void normalizeDto(
+            EntyPrvinvmdequipmaquinariaDto dto
+    ) {
+        dto.setPrvTipoequipoTieq(dto.getPrvTipoequipoTieq().trim().toUpperCase());
+
+        if (dto.getPrvDescripcionTieq() == null ||
+                dto.getPrvDescripcionTieq().isBlank()) {
+            dto.setPrvDescripcionTieq("Sin descripcion");
+        }
+
+        if (dto.getPrvIdentifkeyUnme() == null ||
+                dto.getPrvIdentifkeyUnme().isBlank()) {
+            dto.setPrvIdentifkeyUnme("HORA");
+        } else {
+            dto.setPrvIdentifkeyUnme(dto.getPrvIdentifkeyUnme().trim().toUpperCase());
+        }
+
+        if (dto.getPrvTiporegistTieq() == null ||
+                dto.getPrvTiporegistTieq().isBlank()) {
+            dto.setPrvTiporegistTieq("1");
+        }
+
+        if (dto.getPrvEstadoregTieq() == null ||
+                dto.getPrvEstadoregTieq().isBlank()) {
+            dto.setPrvEstadoregTieq("1");
+        }
+    }
+
+    private void normalizeDtoForUpdate(
+            EntyPrvinvmdequipmaquinariaDto dto
+    ) {
+        if (dto.getPrvTipoequipoTieq() != null &&
+                !dto.getPrvTipoequipoTieq().isBlank()) {
+            dto.setPrvTipoequipoTieq(dto.getPrvTipoequipoTieq().trim().toUpperCase());
+        }
+
+        if (dto.getPrvIdentifkeyUnme() != null &&
+                !dto.getPrvIdentifkeyUnme().isBlank()) {
+            dto.setPrvIdentifkeyUnme(dto.getPrvIdentifkeyUnme().trim().toUpperCase());
+        }
+
+        if (dto.getPrvTiporegistTieq() == null ||
+                dto.getPrvTiporegistTieq().isBlank()) {
+            dto.setPrvTiporegistTieq("1");
+        }
+
+        if (dto.getPrvEstadoregTieq() == null ||
+                dto.getPrvEstadoregTieq().isBlank()) {
+            dto.setPrvEstadoregTieq("1");
+        }
     }
 }

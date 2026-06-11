@@ -8,7 +8,7 @@ import com.system.crosscutting.domain.model.EntyOrsplamaplandetrabajoDto;
 import com.system.crosscutting.domain.model.EntyOrsplamaplandetrabajoResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.modules.controlobras.usecase.PlanTrabajoService;
+import com.system.modules.controlobras.usecase.EntyPlanTrabajoService;
 
 @RestController
 @RequestMapping(
@@ -18,7 +18,7 @@ import com.system.modules.controlobras.usecase.PlanTrabajoService;
 public class PlanTrabajoController {
 
     @Autowired
-    private PlanTrabajoService service;
+    private EntyPlanTrabajoService service;
 
     @GetMapping("/pages")
     public ResponseEntity<EntyOrsplamaplandetrabajoResponse> getAll(

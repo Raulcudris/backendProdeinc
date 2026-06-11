@@ -33,7 +33,8 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
     private final EntyPrvinvmainventarioequiposEntityToDtoTranslate entityToDtoTranslate;
 
     @Override
-    public EntyPrvinvmainventarioequiposResponse getAll() throws EBusinessException {
+    public EntyPrvinvmainventarioequiposResponse getAll()
+            throws EBusinessException {
         return getAll(1, 10, "TEXT", "");
     }
 
@@ -54,7 +55,8 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
 
             switch (safeParameter(parameter)) {
                 case "ID":
-                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
+                    Integer id = parseInteger(search);
+                    page = repository.searchByPrimaryKey(id, pageable);
                     break;
 
                 case "KEY":
@@ -65,7 +67,7 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
                     page = repository.searchByProveedor(search, pageable);
                     break;
 
-                case "TIPO":
+                case "TIPO_EQUIPO":
                     page = repository.searchByTipoEquipo(search, pageable);
                     break;
 
@@ -88,7 +90,9 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
                 data.add(entityToDtoTranslate.translate(entity));
             }
 
-            EntyPrvinvmainventarioequiposResponse response = new EntyPrvinvmainventarioequiposResponse();
+            EntyPrvinvmainventarioequiposResponse response =
+                    new EntyPrvinvmainventarioequiposResponse();
+
             response.setRspMessage("OK");
             response.setRspValue("OK");
             response.setRspParentKey("NA");
@@ -99,7 +103,7 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
             return response;
 
         } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando inventario de equipos", e);
+            throw buildException("Error consultando equipos", e);
         }
     }
 
@@ -108,7 +112,12 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
             Integer id
     ) throws EBusinessException {
         try {
-            EntyPrvinvmainventarioequipos entity = repository.findById(id).orElse(null);
+            if (id == null) {
+                return new EntyPrvinvmainventarioequiposDto();
+            }
+
+            EntyPrvinvmainventarioequipos entity = repository.findById(id)
+                    .orElse(null);
 
             if (entity == null) {
                 return new EntyPrvinvmainventarioequiposDto();
@@ -126,19 +135,13 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
             EntyPrvinvmainventarioequiposDto dto
     ) throws EBusinessException {
         try {
+            if (dto.getPrvIdentifkeyInve() == null ||
+                    dto.getPrvIdentifkeyInve().isBlank()) {
+                return new EntyPrvinvmainventarioequiposDto();
+            }
+
             dto.setPrvPrimarykeyInve(null);
-
-            if (dto.getPrvEquipoestadoInve() == null || dto.getPrvEquipoestadoInve().isBlank()) {
-                dto.setPrvEquipoestadoInve("A01");
-            }
-
-            if (dto.getPrvEquipoactivoInve() == null || dto.getPrvEquipoactivoInve().isBlank()) {
-                dto.setPrvEquipoactivoInve("1");
-            }
-
-            if (dto.getPrvEstadoregInve() == null || dto.getPrvEstadoregInve().isBlank()) {
-                dto.setPrvEstadoregInve("1");
-            }
+            normalizeDto(dto);
 
             EntyPrvinvmainventarioequipos entity = dtoToEntityTranslate.translate(dto);
             EntyPrvinvmainventarioequipos saved = repository.save(entity);
@@ -169,25 +172,65 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
             EntyPrvinvmainventarioequiposDto dto
     ) throws EBusinessException {
         try {
-            EntyPrvinvmainventarioequipos old = repository.findById(id).orElse(null);
+            if (id == null) {
+                return new EntyPrvinvmainventarioequiposDto();
+            }
 
-            if (old == null) {
+            EntyPrvinvmainventarioequipos current = repository.findById(id)
+                    .orElse(null);
+
+            if (current == null) {
                 return new EntyPrvinvmainventarioequiposDto();
             }
 
             dto.setPrvPrimarykeyInve(id);
 
-            if (dto.getPrvEquipoestadoInve() == null || dto.getPrvEquipoestadoInve().isBlank()) {
-                dto.setPrvEquipoestadoInve("A01");
+            if (dto.getPrvIdentifkeyInve() == null ||
+                    dto.getPrvIdentifkeyInve().isBlank()) {
+                dto.setPrvIdentifkeyInve(current.getPrvIdentifkeyInve());
             }
 
-            if (dto.getPrvEquipoactivoInve() == null || dto.getPrvEquipoactivoInve().isBlank()) {
-                dto.setPrvEquipoactivoInve("1");
+            if (dto.getPrvIdentifkeyMprv() == null ||
+                    dto.getPrvIdentifkeyMprv().isBlank()) {
+                dto.setPrvIdentifkeyMprv(current.getPrvIdentifkeyMprv());
             }
 
-            if (dto.getPrvEstadoregInve() == null || dto.getPrvEstadoregInve().isBlank()) {
-                dto.setPrvEstadoregInve("1");
+            if (dto.getPrvTipoequipoTieq() == null ||
+                    dto.getPrvTipoequipoTieq().isBlank()) {
+                dto.setPrvTipoequipoTieq(current.getPrvTipoequipoTieq());
             }
+
+            if (dto.getPrvNombrequipoInve() == null ||
+                    dto.getPrvNombrequipoInve().isBlank()) {
+                dto.setPrvNombrequipoInve(current.getPrvNombrequipoInve());
+            }
+
+            if (dto.getPrvRefermodeloInve() == null ||
+                    dto.getPrvRefermodeloInve().isBlank()) {
+                dto.setPrvRefermodeloInve(current.getPrvRefermodeloInve());
+            }
+
+            if (dto.getPrvEquipoestadoInve() == null ||
+                    dto.getPrvEquipoestadoInve().isBlank()) {
+                dto.setPrvEquipoestadoInve(current.getPrvEquipoestadoInve());
+            }
+
+            if (dto.getPrvEquipoactivoInve() == null ||
+                    dto.getPrvEquipoactivoInve().isBlank()) {
+                dto.setPrvEquipoactivoInve(current.getPrvEquipoactivoInve());
+            }
+
+            if (dto.getPrvEstadoregInve() == null ||
+                    dto.getPrvEstadoregInve().isBlank()) {
+                dto.setPrvEstadoregInve(current.getPrvEstadoregInve());
+            }
+
+            if (dto.getPrvDescripcionInve() == null ||
+                    dto.getPrvDescripcionInve().isBlank()) {
+                dto.setPrvDescripcionInve(current.getPrvDescripcionInve());
+            }
+
+            normalizeDto(dto);
 
             EntyPrvinvmainventarioequipos entity = dtoToEntityTranslate.translate(dto);
             EntyPrvinvmainventarioequipos saved = repository.save(entity);
@@ -204,7 +247,12 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
             Integer id
     ) throws EBusinessException {
         try {
+            if (id == null || !repository.existsById(id)) {
+                return;
+            }
+
             repository.deleteById(id);
+
         } catch (PersistenceException | DataAccessException e) {
             throw buildException("Error eliminando equipo", e);
         }
@@ -215,7 +263,14 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
             String equipoKey
     ) throws EBusinessException {
         try {
-            EntyPrvinvmainventarioequipos entity = repository.findByPrvIdentifkeyInve(equipoKey)
+            if (equipoKey == null || equipoKey.isBlank()) {
+                return new EntyPrvinvmainventarioequiposDto();
+            }
+
+            String key = equipoKey.trim().toUpperCase();
+
+            EntyPrvinvmainventarioequipos entity = repository
+                    .findByPrvIdentifkeyInve(key)
                     .orElse(null);
 
             if (entity == null) {
@@ -234,7 +289,13 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
             String proveedorKey
     ) throws EBusinessException {
         try {
-            return translateList(repository.findByPrvIdentifkeyMprv(proveedorKey));
+            if (proveedorKey == null || proveedorKey.isBlank()) {
+                return new ArrayList<>();
+            }
+
+            String key = proveedorKey.trim().toUpperCase();
+
+            return translateList(repository.findByPrvIdentifkeyMprv(key));
 
         } catch (PersistenceException | DataAccessException e) {
             throw buildException("Error consultando equipos por proveedor", e);
@@ -246,10 +307,16 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
             String tipoEquipoKey
     ) throws EBusinessException {
         try {
-            return translateList(repository.findByPrvTipoequipoTieq(tipoEquipoKey));
+            if (tipoEquipoKey == null || tipoEquipoKey.isBlank()) {
+                return new ArrayList<>();
+            }
+
+            String key = tipoEquipoKey.trim().toUpperCase();
+
+            return translateList(repository.findByPrvTipoequipoTieq(key));
 
         } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando equipos por tipo", e);
+            throw buildException("Error consultando equipos por tipo de equipo", e);
         }
     }
 
@@ -259,7 +326,6 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
     ) throws EBusinessException {
         try {
             return translateList(repository.findByPrvEquipoactivoInve(disponible));
-
         } catch (PersistenceException | DataAccessException e) {
             throw buildException("Error consultando equipos por disponibilidad", e);
         }
@@ -271,7 +337,6 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
     ) throws EBusinessException {
         try {
             return translateList(repository.findByPrvEstadoregInve(estado));
-
         } catch (PersistenceException | DataAccessException e) {
             throw buildException("Error consultando equipos por estado", e);
         }
@@ -289,5 +354,53 @@ public class JpaEquipoDataProviders extends JpaDataProviderSupport
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void normalizeDto(
+            EntyPrvinvmainventarioequiposDto dto
+    ) {
+        if (dto.getPrvIdentifkeyInve() != null) {
+            dto.setPrvIdentifkeyInve(dto.getPrvIdentifkeyInve().trim().toUpperCase());
+        }
+
+        if (dto.getPrvIdentifkeyMprv() != null &&
+                !dto.getPrvIdentifkeyMprv().isBlank()) {
+            dto.setPrvIdentifkeyMprv(dto.getPrvIdentifkeyMprv().trim().toUpperCase());
+        }
+
+        if (dto.getPrvTipoequipoTieq() != null &&
+                !dto.getPrvTipoequipoTieq().isBlank()) {
+            dto.setPrvTipoequipoTieq(dto.getPrvTipoequipoTieq().trim().toUpperCase());
+        }
+
+        if (dto.getPrvNombrequipoInve() == null ||
+                dto.getPrvNombrequipoInve().isBlank()) {
+            dto.setPrvNombrequipoInve("Sin nombre");
+        }
+
+        if (dto.getPrvRefermodeloInve() == null ||
+                dto.getPrvRefermodeloInve().isBlank()) {
+            dto.setPrvRefermodeloInve("Sin referencia");
+        }
+
+        if (dto.getPrvEquipoestadoInve() == null ||
+                dto.getPrvEquipoestadoInve().isBlank()) {
+            dto.setPrvEquipoestadoInve("OPE");
+        }
+
+        if (dto.getPrvEquipoactivoInve() == null ||
+                dto.getPrvEquipoactivoInve().isBlank()) {
+            dto.setPrvEquipoactivoInve("1");
+        }
+
+        if (dto.getPrvEstadoregInve() == null ||
+                dto.getPrvEstadoregInve().isBlank()) {
+            dto.setPrvEstadoregInve("1");
+        }
+
+        if (dto.getPrvDescripcionInve() == null ||
+                dto.getPrvDescripcionInve().isBlank()) {
+            dto.setPrvDescripcionInve("Sin descripcion");
+        }
     }
 }

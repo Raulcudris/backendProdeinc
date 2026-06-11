@@ -1,7 +1,5 @@
 package com.system.crosscutting.persistence.entity;
-
 import javax.persistence.*;
-
 import lombok.Getter;
 import lombok.Setter;
 

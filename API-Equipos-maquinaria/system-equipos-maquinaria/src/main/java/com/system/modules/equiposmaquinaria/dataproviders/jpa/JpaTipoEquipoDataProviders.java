@@ -33,7 +33,8 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
     private final EntyPrvinvmdequipmaquinariaEntityToDtoTranslate entityToDtoTranslate;
 
     @Override
-    public EntyPrvinvmdequipmaquinariaResponse getAll() throws EBusinessException {
+    public EntyPrvinvmdequipmaquinariaResponse getAll()
+            throws EBusinessException {
         return getAll(1, 10, "TEXT", "");
     }
 
@@ -54,7 +55,8 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
 
             switch (safeParameter(parameter)) {
                 case "ID":
-                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
+                    Integer id = parseInteger(search);
+                    page = repository.searchByPrimaryKey(id, pageable);
                     break;
 
                 case "KEY":
@@ -80,7 +82,9 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
                 data.add(entityToDtoTranslate.translate(entity));
             }
 
-            EntyPrvinvmdequipmaquinariaResponse response = new EntyPrvinvmdequipmaquinariaResponse();
+            EntyPrvinvmdequipmaquinariaResponse response =
+                    new EntyPrvinvmdequipmaquinariaResponse();
+
             response.setRspMessage("OK");
             response.setRspValue("OK");
             response.setRspParentKey("NA");
@@ -100,7 +104,12 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
             Integer id
     ) throws EBusinessException {
         try {
-            EntyPrvinvmdequipmaquinaria entity = repository.findById(id).orElse(null);
+            if (id == null) {
+                return new EntyPrvinvmdequipmaquinariaDto();
+            }
+
+            EntyPrvinvmdequipmaquinaria entity = repository.findById(id)
+                    .orElse(null);
 
             if (entity == null) {
                 return new EntyPrvinvmdequipmaquinariaDto();
@@ -118,15 +127,13 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
             EntyPrvinvmdequipmaquinariaDto dto
     ) throws EBusinessException {
         try {
+            if (dto.getPrvTipoequipoTieq() == null ||
+                    dto.getPrvTipoequipoTieq().isBlank()) {
+                return new EntyPrvinvmdequipmaquinariaDto();
+            }
+
             dto.setPrvPrimarykeyTieq(null);
-
-            if (dto.getPrvTiporegistTieq() == null || dto.getPrvTiporegistTieq().isBlank()) {
-                dto.setPrvTiporegistTieq("1");
-            }
-
-            if (dto.getPrvEstadoregTieq() == null || dto.getPrvEstadoregTieq().isBlank()) {
-                dto.setPrvEstadoregTieq("1");
-            }
+            normalizeDto(dto);
 
             EntyPrvinvmdequipmaquinaria entity = dtoToEntityTranslate.translate(dto);
             EntyPrvinvmdequipmaquinaria saved = repository.save(entity);
@@ -157,21 +164,45 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
             EntyPrvinvmdequipmaquinariaDto dto
     ) throws EBusinessException {
         try {
-            EntyPrvinvmdequipmaquinaria old = repository.findById(id).orElse(null);
+            if (id == null) {
+                return new EntyPrvinvmdequipmaquinariaDto();
+            }
 
-            if (old == null) {
+            EntyPrvinvmdequipmaquinaria current = repository.findById(id)
+                    .orElse(null);
+
+            if (current == null) {
                 return new EntyPrvinvmdequipmaquinariaDto();
             }
 
             dto.setPrvPrimarykeyTieq(id);
 
-            if (dto.getPrvTiporegistTieq() == null || dto.getPrvTiporegistTieq().isBlank()) {
-                dto.setPrvTiporegistTieq("1");
+            if (dto.getPrvTipoequipoTieq() == null ||
+                    dto.getPrvTipoequipoTieq().isBlank()) {
+                dto.setPrvTipoequipoTieq(current.getPrvTipoequipoTieq());
             }
 
-            if (dto.getPrvEstadoregTieq() == null || dto.getPrvEstadoregTieq().isBlank()) {
-                dto.setPrvEstadoregTieq("1");
+            if (dto.getPrvDescripcionTieq() == null ||
+                    dto.getPrvDescripcionTieq().isBlank()) {
+                dto.setPrvDescripcionTieq(current.getPrvDescripcionTieq());
             }
+
+            if (dto.getPrvIdentifkeyUnme() == null ||
+                    dto.getPrvIdentifkeyUnme().isBlank()) {
+                dto.setPrvIdentifkeyUnme(current.getPrvIdentifkeyUnme());
+            }
+
+            if (dto.getPrvTiporegistTieq() == null ||
+                    dto.getPrvTiporegistTieq().isBlank()) {
+                dto.setPrvTiporegistTieq(current.getPrvTiporegistTieq());
+            }
+
+            if (dto.getPrvEstadoregTieq() == null ||
+                    dto.getPrvEstadoregTieq().isBlank()) {
+                dto.setPrvEstadoregTieq(current.getPrvEstadoregTieq());
+            }
+
+            normalizeDto(dto);
 
             EntyPrvinvmdequipmaquinaria entity = dtoToEntityTranslate.translate(dto);
             EntyPrvinvmdequipmaquinaria saved = repository.save(entity);
@@ -188,7 +219,12 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
             Integer id
     ) throws EBusinessException {
         try {
+            if (id == null || !repository.existsById(id)) {
+                return;
+            }
+
             repository.deleteById(id);
+
         } catch (PersistenceException | DataAccessException e) {
             throw buildException("Error eliminando tipo de equipo", e);
         }
@@ -199,7 +235,14 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
             String tipoEquipoKey
     ) throws EBusinessException {
         try {
-            EntyPrvinvmdequipmaquinaria entity = repository.findByPrvTipoequipoTieq(tipoEquipoKey)
+            if (tipoEquipoKey == null || tipoEquipoKey.isBlank()) {
+                return new EntyPrvinvmdequipmaquinariaDto();
+            }
+
+            String key = tipoEquipoKey.trim().toUpperCase();
+
+            EntyPrvinvmdequipmaquinaria entity = repository
+                    .findByPrvTipoequipoTieq(key)
                     .orElse(null);
 
             if (entity == null) {
@@ -218,7 +261,13 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
             String unidadKey
     ) throws EBusinessException {
         try {
-            return translateList(repository.findByPrvIdentifkeyUnme(unidadKey));
+            if (unidadKey == null || unidadKey.isBlank()) {
+                return new ArrayList<>();
+            }
+
+            String key = unidadKey.trim().toUpperCase();
+
+            return translateList(repository.findByPrvIdentifkeyUnme(key));
 
         } catch (PersistenceException | DataAccessException e) {
             throw buildException("Error consultando tipos de equipo por unidad", e);
@@ -231,7 +280,6 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
     ) throws EBusinessException {
         try {
             return translateList(repository.findByPrvEstadoregTieq(estado));
-
         } catch (PersistenceException | DataAccessException e) {
             throw buildException("Error consultando tipos de equipo por estado", e);
         }
@@ -249,5 +297,38 @@ public class JpaTipoEquipoDataProviders extends JpaDataProviderSupport
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void normalizeDto(
+            EntyPrvinvmdequipmaquinariaDto dto
+    ) {
+        if (dto.getPrvTipoequipoTieq() != null) {
+            dto.setPrvTipoequipoTieq(dto.getPrvTipoequipoTieq().trim().toUpperCase());
+        }
+
+        if (dto.getPrvIdentifkeyUnme() != null &&
+                !dto.getPrvIdentifkeyUnme().isBlank()) {
+            dto.setPrvIdentifkeyUnme(dto.getPrvIdentifkeyUnme().trim().toUpperCase());
+        }
+
+        if (dto.getPrvDescripcionTieq() == null ||
+                dto.getPrvDescripcionTieq().isBlank()) {
+            dto.setPrvDescripcionTieq("Sin descripcion");
+        }
+
+        if (dto.getPrvIdentifkeyUnme() == null ||
+                dto.getPrvIdentifkeyUnme().isBlank()) {
+            dto.setPrvIdentifkeyUnme("HORA");
+        }
+
+        if (dto.getPrvTiporegistTieq() == null ||
+                dto.getPrvTiporegistTieq().isBlank()) {
+            dto.setPrvTiporegistTieq("1");
+        }
+
+        if (dto.getPrvEstadoregTieq() == null ||
+                dto.getPrvEstadoregTieq().isBlank()) {
+            dto.setPrvEstadoregTieq("1");
+        }
     }
 }

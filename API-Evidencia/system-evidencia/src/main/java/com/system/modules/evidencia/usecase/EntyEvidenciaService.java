@@ -23,86 +23,128 @@ public class EntyEvidenciaService {
     }
 
     public EntyEvievimaevidenciaResponse getAll(
-            int currentPage,
-            int pageSize,
-            String parameter,
-            String filter
+            final int currentPage,
+            final int pageSize,
+            final String parameter,
+            final String filter
     ) throws EBusinessException {
         return dataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
     public EntyEvievimaevidenciaDto get(
-            Integer id
+            final Integer id
     ) throws EBusinessException {
         return dataProviders.get(id);
     }
 
     public EntyEvievimaevidenciaDto saveBefore(
-            EntyEvievimaevidenciaDto dto
+            final EntyEvievimaevidenciaDto dto
     ) throws EBusinessException {
 
-        if (dto.getEviFechacapturaEvid() == null) {
-            dto.setEviFechacapturaEvid(LocalDate.now());
-        }
-
-        if (dto.getEviTiporegistEvid() == null || dto.getEviTiporegistEvid().isBlank()) {
-            dto.setEviTiporegistEvid("1");
-        }
-
-        if (dto.getEviEstadoregEvid() == null || dto.getEviEstadoregEvid().isBlank()) {
-            dto.setEviEstadoregEvid("1");
-        }
+        prepareBeforeSave(dto);
 
         return dataProviders.save(dto);
     }
 
     public List<EntyEvievimaevidenciaDto> saveBefore(
-            List<EntyEvievimaevidenciaDto> dtos
+            final List<EntyEvievimaevidenciaDto> dtos
     ) throws EBusinessException {
+
+        if (dtos != null) {
+            for (EntyEvievimaevidenciaDto dto : dtos) {
+                prepareBeforeSave(dto);
+            }
+        }
+
         return dataProviders.save(dtos);
     }
 
     public EntyEvievimaevidenciaDto updateBefore(
-            Integer id,
-            EntyEvievimaevidenciaDto dto
+            final Integer id,
+            final EntyEvievimaevidenciaDto dto
     ) throws EBusinessException {
+
+        prepareBeforeSave(dto);
+
         return dataProviders.update(id, dto);
     }
 
-    public String changestatus(
-            Integer id,
-            String estado
+    public EntyEvievimaevidenciaDto changestatus(
+            final Integer id,
+            final String estado
     ) throws EBusinessException {
 
-        EntyEvievimaevidenciaDto dto = dataProviders.get(id);
-
-        if (dto == null || dto.getEviPrimarykeyEvid() == null) {
-            return "No existe la evidencia con id: " + id;
+        if (!"1".equals(estado) && !"2".equals(estado)) {
+            throw new EBusinessException("El estado debe ser 1 activo o 2 inactivo.");
         }
 
-        dto.setEviEstadoregEvid(estado);
-
-        dataProviders.update(id, dto);
-
-        return "Estado actualizado correctamente";
+        return dataProviders.changestatus(id, estado);
     }
 
-    public String deleteBefore(
-            Integer id
+    public void deleteBefore(
+            final Integer id
     ) throws EBusinessException {
         dataProviders.delete(id);
-        return "Registro eliminado correctamente";
     }
 
-    public List<EntyEvievimaevidenciaDto> findByTipo(
-            String tipoKey
+    public EntyEvievimaevidenciaDto findByKey(
+            final String evidenciaKey
+    ) throws EBusinessException {
+        return dataProviders.findByKey(evidenciaKey);
+    }
+
+    public EntyEvievimaevidenciaResponse findByTipo(
+            final String tipoKey
     ) throws EBusinessException {
         return dataProviders.findByTipo(tipoKey);
     }
 
-    public List<EntyEvievimaevidenciaDto> findByEstado(
-            String estado
+    public EntyEvievimaevidenciaResponse findByEstado(
+            final String estado
     ) throws EBusinessException {
         return dataProviders.findByEstado(estado);
+    }
+
+    private void prepareBeforeSave(
+            final EntyEvievimaevidenciaDto dto
+    ) throws EBusinessException {
+
+        if (dto == null) {
+            throw new EBusinessException("La evidencia es obligatoria.");
+        }
+
+        if (dto.getEviIdentifkeyEvid() == null
+                || dto.getEviIdentifkeyEvid().isBlank()) {
+            throw new EBusinessException("El código de la evidencia es obligatorio.");
+        }
+
+        if (dto.getEviIdentifkeyTiev() == null
+                || dto.getEviIdentifkeyTiev().isBlank()) {
+            throw new EBusinessException("El tipo de evidencia es obligatorio.");
+        }
+
+        if (dto.getEviNombrearchivoEvid() == null
+                || dto.getEviNombrearchivoEvid().isBlank()) {
+            throw new EBusinessException("El nombre del archivo es obligatorio.");
+        }
+
+        if (dto.getEviUrlarchivoEvid() == null
+                || dto.getEviUrlarchivoEvid().isBlank()) {
+            throw new EBusinessException("La URL del archivo es obligatoria.");
+        }
+
+        if (dto.getEviFechacapturaEvid() == null) {
+            dto.setEviFechacapturaEvid(LocalDate.now());
+        }
+
+        if (dto.getEviTiporegistEvid() == null
+                || dto.getEviTiporegistEvid().isBlank()) {
+            dto.setEviTiporegistEvid("1");
+        }
+
+        if (dto.getEviEstadoregEvid() == null
+                || dto.getEviEstadoregEvid().isBlank()) {
+            dto.setEviEstadoregEvid("1");
+        }
     }
 }

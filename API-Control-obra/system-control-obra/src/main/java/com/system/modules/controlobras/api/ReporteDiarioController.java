@@ -8,7 +8,7 @@ import com.system.crosscutting.domain.model.EntyOrsplamdreportediarioDto;
 import com.system.crosscutting.domain.model.EntyOrsplamdreportediarioResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.modules.controlobras.usecase.ReporteDiarioService;
+import com.system.modules.controlobras.usecase.EntyReporteDiarioService;
 
 @RestController
 @RequestMapping(
@@ -18,7 +18,7 @@ import com.system.modules.controlobras.usecase.ReporteDiarioService;
 public class ReporteDiarioController {
 
     @Autowired
-    private ReporteDiarioService service;
+    private EntyReporteDiarioService service;
 
     @GetMapping("/pages")
     public ResponseEntity<EntyOrsplamdreportediarioResponse> getAll(

@@ -14,6 +14,15 @@ public interface IjpaUnidadMedidaDataProviders
             String unidadKey
     ) throws EBusinessException;
 
+    EntyPrvinvmdunidamedequipoDto updateByKey(
+            String unidadKey,
+            EntyPrvinvmdunidamedequipoDto dto
+    ) throws EBusinessException;
+
+    void deleteByKey(
+            String unidadKey
+    ) throws EBusinessException;
+
     List<EntyPrvinvmdunidamedequipoDto> findByEstado(
             String estado
     ) throws EBusinessException;

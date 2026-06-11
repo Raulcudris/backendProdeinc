@@ -1,20 +1,16 @@
 package com.system.modules.evidencia.dataproviders.jpa;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.persistence.PersistenceException;
-
+import com.system.crosscutting.domain.constants.TipoRegistroEvidenciaConstants;
 import org.springframework.beans.BeanUtils;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import com.system.crosscutting.domain.model.EntyEvirefmdreferenciaDto;
 import com.system.crosscutting.domain.model.EntyEvirefmdreferenciaResponse;
-import com.system.crosscutting.exceptions.DataProvider;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
 import com.system.crosscutting.persistence.entity.EntyEvirefmdreferencia;
 import com.system.crosscutting.persistence.repository.EntyEvirefmdreferenciaRepository;
@@ -22,245 +18,312 @@ import com.system.modules.evidencia.dataproviders.IjpaReferenciaEvidenciaDataPro
 
 import lombok.RequiredArgsConstructor;
 
-@DataProvider
+@Service
 @RequiredArgsConstructor
-public class JpaReferenciaEvidenciaDataProviders extends JpaDataProviderSupport
+public class JpaReferenciaEvidenciaDataProviders
+        extends JpaDataProviderSupport
         implements IjpaReferenciaEvidenciaDataProviders {
 
     private final EntyEvirefmdreferenciaRepository repository;
 
     @Override
     public EntyEvirefmdreferenciaResponse getAll() throws EBusinessException {
-        return getAll(1, 10, "TEXT", "");
+        try {
+            List<EntyEvirefmdreferenciaDto> data = repository.findAll()
+                    .stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList());
+
+            return buildResponse(data, null);
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar las referencias de evidencia.", e);
+        }
     }
 
     @Override
     public EntyEvirefmdreferenciaResponse getAll(
-            int currentPage,
-            int pageSize,
-            String parameter,
-            String filter
+            final int currentPage,
+            final int pageSize,
+            final String parameter,
+            final String filter
     ) throws EBusinessException {
         try {
-            int pageNumber = safeCurrentPage(currentPage);
+            int page = safeCurrentPage(currentPage);
             int size = safePageSize(pageSize);
-            String search = safeFilter(filter);
+            String parameterValue = safeParameter(parameter);
+            String filterValue = safeFilter(filter);
 
-            Pageable pageable = PageRequest.of(pageNumber, size);
-            Page<EntyEvirefmdreferencia> page;
+            Page<EntyEvirefmdreferencia> result;
 
-            switch (safeParameter(parameter)) {
-                case "ID":
-                    page = repository.searchByPrimaryKey(parseInteger(search), pageable);
-                    break;
-                case "KEY":
-                    page = repository.searchByIdentifKey(search, pageable);
-                    break;
-                case "EVIDENCIA":
-                    page = repository.searchByEvidencia(search, pageable);
-                    break;
-                case "REGISTRO":
-                    page = repository.searchByRegistro(search, pageable);
-                    break;
-                case "TIPO_REGISTRO":
-                    page = repository.searchByTipoRegistro(search, pageable);
-                    break;
-                case "STATUS":
-                    page = repository.searchByStatus(search, pageable);
-                    break;
-                default:
-                    page = repository.searchByText(search, pageable);
-                    break;
+            if ("EVIDENCIA".equals(parameterValue)) {
+                result = repository.findByEviIdentifkeyEvidContainingIgnoreCase(
+                        filterValue,
+                        PageRequest.of(page, size)
+                );
+            } else if ("REGISTRO".equals(parameterValue)) {
+                result = repository.findByEviIdentifregistroRefeContainingIgnoreCase(
+                        filterValue,
+                        PageRequest.of(page, size)
+                );
+            } else if ("TIPO_REGISTRO".equals(parameterValue)) {
+                result = repository.findByEviTiporegistroRefeContainingIgnoreCase(
+                        TipoRegistroEvidenciaConstants.normalize(filterValue),
+                        PageRequest.of(page, size)
+                );
+            } else if ("ESTADO".equals(parameterValue)) {
+                result = repository.findByEviEstadoregRefeContainingIgnoreCase(
+                        filterValue,
+                        PageRequest.of(page, size)
+                );
+            } else {
+                result = repository.findByEviIdentifkeyRefeContainingIgnoreCaseOrEviIdentifkeyEvidContainingIgnoreCaseOrEviIdentifregistroRefeContainingIgnoreCaseOrEviObservacionRefeContainingIgnoreCase(
+                        filterValue,
+                        filterValue,
+                        filterValue,
+                        filterValue,
+                        PageRequest.of(page, size)
+                );
             }
 
-            List<EntyEvirefmdreferenciaDto> data = page.getContent()
+            List<EntyEvirefmdreferenciaDto> data = result.getContent()
                     .stream()
-                    .map(entity -> toDto(entity, EntyEvirefmdreferenciaDto.class))
+                    .map(this::toDto)
                     .collect(Collectors.toList());
 
-            EntyEvirefmdreferenciaResponse response = new EntyEvirefmdreferenciaResponse();
-            response.setRspMessage("OK");
-            response.setRspValue("OK");
-            response.setRspParentKey("NA");
-            response.setRspAppKey("msvc-evidencias");
-            response.setRspData(data);
-            response.setRspPagination(buildPagination(pageNumber + 1, size, page));
-
-            return response;
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando referencias de evidencia", e);
+            return buildResponse(data, buildPagination(currentPage, size, result));
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar las referencias de evidencia paginadas.", e);
         }
     }
 
     @Override
-    public EntyEvirefmdreferenciaDto get(Integer id) throws EBusinessException {
+    public EntyEvirefmdreferenciaDto get(final Integer id)
+            throws EBusinessException {
         try {
-            EntyEvirefmdreferencia entity = repository.findById(id).orElse(null);
+            EntyEvirefmdreferencia entity = repository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("No se encontró la referencia de evidencia."));
 
-            return entity == null
-                    ? new EntyEvirefmdreferenciaDto()
-                    : toDto(entity, EntyEvirefmdreferenciaDto.class);
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando referencia de evidencia", e);
+            return toDto(entity);
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar la referencia de evidencia.", e);
         }
     }
 
     @Override
-    public EntyEvirefmdreferenciaDto save(
-            EntyEvirefmdreferenciaDto dto
-    ) throws EBusinessException {
+    public EntyEvirefmdreferenciaDto save(final EntyEvirefmdreferenciaDto dto)
+            throws EBusinessException {
         try {
-            dto.setEviPrimarykeyRefe(null);
+            EntyEvirefmdreferencia entity = toEntity(dto);
+            EntyEvirefmdreferencia saved = repository.save(entity);
 
-            if (dto.getEviTiporegistRefe() == null || dto.getEviTiporegistRefe().isBlank()) {
-                dto.setEviTiporegistRefe("1");
-            }
-
-            if (dto.getEviEstadoregRefe() == null || dto.getEviEstadoregRefe().isBlank()) {
-                dto.setEviEstadoregRefe("1");
-            }
-
-            EntyEvirefmdreferencia entity = toEntity(
-                    dto,
-                    EntyEvirefmdreferencia.class
-            );
-
-            return toDto(
-                    repository.save(entity),
-                    EntyEvirefmdreferenciaDto.class
-            );
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error creando referencia de evidencia", e);
+            return toDto(saved);
+        } catch (Exception e) {
+            throw buildException("No fue posible guardar la referencia de evidencia.", e);
         }
     }
 
     @Override
     public List<EntyEvirefmdreferenciaDto> save(
-            List<EntyEvirefmdreferenciaDto> dtos
+            final List<EntyEvirefmdreferenciaDto> dto
     ) throws EBusinessException {
-        List<EntyEvirefmdreferenciaDto> result = new ArrayList<>();
+        try {
+            List<EntyEvirefmdreferencia> entities = dto.stream()
+                    .map(this::toEntity)
+                    .collect(Collectors.toList());
 
-        for (EntyEvirefmdreferenciaDto dto : dtos) {
-            result.add(save(dto));
+            return repository.saveAll(entities)
+                    .stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw buildException("No fue posible guardar la lista de referencias de evidencia.", e);
         }
-
-        return result;
     }
 
     @Override
     public EntyEvirefmdreferenciaDto update(
-            Integer id,
-            EntyEvirefmdreferenciaDto dto
+            final Integer id,
+            final EntyEvirefmdreferenciaDto dto
     ) throws EBusinessException {
         try {
-            EntyEvirefmdreferencia old = repository.findById(id).orElse(null);
+            EntyEvirefmdreferencia current = repository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("No se encontró la referencia de evidencia."));
 
-            if (old == null) {
-                return new EntyEvirefmdreferenciaDto();
-            }
+            Integer primaryKey = current.getEviPrimarykeyRefe();
 
-            dto.setEviPrimarykeyRefe(id);
-            BeanUtils.copyProperties(dto, old);
+            BeanUtils.copyProperties(dto, current);
+            current.setEviPrimarykeyRefe(primaryKey);
 
-            return toDto(
-                    repository.save(old),
-                    EntyEvirefmdreferenciaDto.class
-            );
+            EntyEvirefmdreferencia saved = repository.save(current);
 
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error actualizando referencia de evidencia", e);
+            return toDto(saved);
+        } catch (Exception e) {
+            throw buildException("No fue posible actualizar la referencia de evidencia.", e);
         }
     }
 
     @Override
-    public void delete(Integer id) throws EBusinessException {
+    public void delete(final Integer id) throws EBusinessException {
         try {
             repository.deleteById(id);
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error eliminando referencia de evidencia", e);
+        } catch (Exception e) {
+            throw buildException("No fue posible eliminar la referencia de evidencia.", e);
         }
     }
 
     @Override
-    public List<EntyEvirefmdreferenciaDto> findByEvidencia(
-            String evidenciaKey
-    ) throws EBusinessException {
+    public EntyEvirefmdreferenciaDto findByKey(final String referenciaKey)
+            throws EBusinessException {
         try {
-            return repository.findByEviIdentifkeyEvid(evidenciaKey)
-                    .stream()
-                    .map(entity -> toDto(entity, EntyEvirefmdreferenciaDto.class))
-                    .collect(Collectors.toList());
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando referencias por evidencia", e);
+            return repository.findByEviIdentifkeyRefe(referenciaKey)
+                    .map(this::toDto)
+                    .orElse(null);
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar la referencia por key.", e);
         }
     }
 
     @Override
-    public List<EntyEvirefmdreferenciaDto> findByRegistro(
-            String registroKey
+    public EntyEvirefmdreferenciaResponse findByEvidencia(
+            final String evidenciaKey
     ) throws EBusinessException {
         try {
-            return repository.findByEviIdentifregistroRefe(registroKey)
-                    .stream()
-                    .map(entity -> toDto(entity, EntyEvirefmdreferenciaDto.class))
-                    .collect(Collectors.toList());
+            List<EntyEvirefmdreferenciaDto> data =
+                    repository.findByEviIdentifkeyEvid(evidenciaKey)
+                            .stream()
+                            .map(this::toDto)
+                            .collect(Collectors.toList());
 
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando referencias por registro", e);
+            return buildResponse(data, null);
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar referencias por evidencia.", e);
         }
     }
 
     @Override
-    public List<EntyEvirefmdreferenciaDto> findByTipoRegistro(
-            String tipoRegistro
+    public EntyEvirefmdreferenciaResponse findByRegistro(
+            final String registroKey
     ) throws EBusinessException {
         try {
-            return repository.findByEviTiporegistroRefe(tipoRegistro)
-                    .stream()
-                    .map(entity -> toDto(entity, EntyEvirefmdreferenciaDto.class))
-                    .collect(Collectors.toList());
+            List<EntyEvirefmdreferenciaDto> data =
+                    repository.findByEviIdentifregistroRefe(registroKey)
+                            .stream()
+                            .map(this::toDto)
+                            .collect(Collectors.toList());
 
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando referencias por tipo de registro", e);
+            return buildResponse(data, null);
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar referencias por registro.", e);
         }
     }
 
     @Override
-    public List<EntyEvirefmdreferenciaDto> findByTipoRegistroAndRegistro(
-            String tipoRegistro,
-            String registroKey
+    public EntyEvirefmdreferenciaResponse findByTipoRegistro(
+            final String tipoRegistro
     ) throws EBusinessException {
         try {
-            return repository.findByEviTiporegistroRefeAndEviIdentifregistroRefe(
-                            tipoRegistro,
-                            registroKey
-                    )
-                    .stream()
-                    .map(entity -> toDto(entity, EntyEvirefmdreferenciaDto.class))
-                    .collect(Collectors.toList());
+            String tipoNormalizado =
+                    TipoRegistroEvidenciaConstants.normalize(tipoRegistro);
 
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando referencias por tipo y registro", e);
+            List<EntyEvirefmdreferenciaDto> data =
+                    repository.findByEviTiporegistroRefe(tipoNormalizado)
+                            .stream()
+                            .map(this::toDto)
+                            .collect(Collectors.toList());
+
+            return buildResponse(data, null);
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar referencias por tipo de registro.", e);
         }
     }
 
     @Override
-    public List<EntyEvirefmdreferenciaDto> findByEstado(
-            String estado
+    public EntyEvirefmdreferenciaResponse findByTipoRegistroAndRegistro(
+            final String tipoRegistro,
+            final String registroKey
     ) throws EBusinessException {
         try {
-            return repository.searchByStatus(estado, Pageable.unpaged())
-                    .getContent()
-                    .stream()
-                    .map(entity -> toDto(entity, EntyEvirefmdreferenciaDto.class))
-                    .collect(Collectors.toList());
+            String tipoNormalizado =
+                    TipoRegistroEvidenciaConstants.normalize(tipoRegistro);
 
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando referencias por estado", e);
+            List<EntyEvirefmdreferenciaDto> data =
+                    repository.findByEviTiporegistroRefeAndEviIdentifregistroRefe(
+                                    tipoNormalizado,
+                                    registroKey
+                            )
+                            .stream()
+                            .map(this::toDto)
+                            .collect(Collectors.toList());
+
+            return buildResponse(data, null);
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar referencias por tipo de registro y registro.", e);
         }
+    }
+
+    @Override
+    public EntyEvirefmdreferenciaResponse findByEstado(final String estado)
+            throws EBusinessException {
+        try {
+            List<EntyEvirefmdreferenciaDto> data =
+                    repository.findByEviEstadoregRefe(estado)
+                            .stream()
+                            .map(this::toDto)
+                            .collect(Collectors.toList());
+
+            return buildResponse(data, null);
+        } catch (Exception e) {
+            throw buildException("No fue posible consultar referencias por estado.", e);
+        }
+    }
+
+    @Override
+    public EntyEvirefmdreferenciaDto changestatus(
+            final Integer id,
+            final String estado
+    ) throws EBusinessException {
+        try {
+            EntyEvirefmdreferencia entity = repository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("No se encontró la referencia de evidencia."));
+
+            entity.setEviEstadoregRefe(estado);
+
+            return toDto(repository.save(entity));
+        } catch (Exception e) {
+            throw buildException("No fue posible cambiar el estado de la referencia de evidencia.", e);
+        }
+    }
+
+    private EntyEvirefmdreferenciaDto toDto(
+            final EntyEvirefmdreferencia entity
+    ) {
+        EntyEvirefmdreferenciaDto dto = new EntyEvirefmdreferenciaDto();
+        BeanUtils.copyProperties(entity, dto);
+        return dto;
+    }
+
+    private EntyEvirefmdreferencia toEntity(
+            final EntyEvirefmdreferenciaDto dto
+    ) {
+        EntyEvirefmdreferencia entity = new EntyEvirefmdreferencia();
+        BeanUtils.copyProperties(dto, entity);
+        return entity;
+    }
+
+    private EntyEvirefmdreferenciaResponse buildResponse(
+            final List<EntyEvirefmdreferenciaDto> data,
+            final com.system.crosscutting.domain.model.PaginationResponse pagination
+    ) {
+        EntyEvirefmdreferenciaResponse response =
+                new EntyEvirefmdreferenciaResponse();
+
+        response.setRspMessage("Consulta ejecutada correctamente.");
+        response.setRspValue("OK");
+        response.setRspParentKey("");
+        response.setRspAppKey("MSVC-EVIDENCIA");
+        response.setRspPagination(pagination);
+        response.setRspData(data);
+
+        return response;
     }
 }

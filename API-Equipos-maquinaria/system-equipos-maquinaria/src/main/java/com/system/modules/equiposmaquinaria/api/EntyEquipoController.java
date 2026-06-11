@@ -20,6 +20,14 @@ public class EntyEquipoController {
     @Autowired
     private EntyEquipoService service;
 
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return new ResponseEntity<>(
+                "msvc-equipos-maquinaria equipos OK",
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping("/pages")
     public ResponseEntity<EntyPrvinvmainventarioequiposResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
@@ -63,21 +71,12 @@ public class EntyEquipoController {
         );
     }
 
-    @GetMapping("/by-tipo")
+    @GetMapping("/by-tipo-equipo")
     public ResponseEntity<?> findByTipoEquipo(
             @RequestParam String tipoEquipoKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.findByTipoEquipo(tipoEquipoKey),
-                HttpStatus.OK
-        );
-    }
-
-    @GetMapping("/disponibles")
-    public ResponseEntity<?> disponibles()
-            throws EBusinessException, MicroEventException {
-        return new ResponseEntity<>(
-                service.findByDisponible("1"),
                 HttpStatus.OK
         );
     }
@@ -115,6 +114,19 @@ public class EntyEquipoController {
         );
     }
 
+    @PostMapping(
+            value = "/create-list",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<?> createList(
+            @RequestBody java.util.List<EntyPrvinvmainventarioequiposDto> dtos
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.saveBefore(dtos),
+                HttpStatus.CREATED
+        );
+    }
+
     @PutMapping(
             value = "/update/{id}",
             consumes = {MediaType.APPLICATION_JSON_VALUE}
@@ -140,24 +152,13 @@ public class EntyEquipoController {
         );
     }
 
-    @PatchMapping("/cambiar-disponibilidad/{id}")
+    @PatchMapping("/changedisponible/{id}")
     public ResponseEntity<String> cambiarDisponibilidad(
             @PathVariable Integer id,
-            @RequestParam(value = "disponible", required = false, defaultValue = "1") String disponible
+            @RequestParam(value = "disponible", required = false, defaultValue = "2") String disponible
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.cambiarDisponibilidad(id, disponible),
-                HttpStatus.OK
-        );
-    }
-
-    @PatchMapping("/cambiar-estado-operativo/{id}")
-    public ResponseEntity<String> cambiarEstadoOperativo(
-            @PathVariable Integer id,
-            @RequestParam(value = "estadoOperativo", required = false, defaultValue = "A01") String estadoOperativo
-    ) throws EBusinessException, MicroEventException {
-        return new ResponseEntity<>(
-                service.cambiarEstadoOperativo(id, estadoOperativo),
                 HttpStatus.OK
         );
     }

@@ -8,7 +8,7 @@ import com.system.crosscutting.domain.model.EntyOrsconfnovedadhistoriDto;
 import com.system.crosscutting.domain.model.EntyOrsconfnovedadhistoriResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.modules.controlobras.usecase.NovedadService;
+import com.system.modules.controlobras.usecase.EntyNovedadService;
 
 @RestController
 @RequestMapping(
@@ -18,7 +18,7 @@ import com.system.modules.controlobras.usecase.NovedadService;
 public class NovedadController {
 
     @Autowired
-    private NovedadService service;
+    private EntyNovedadService service;
 
     @GetMapping("/pages")
     public ResponseEntity<EntyOrsconfnovedadhistoriResponse> getAll(

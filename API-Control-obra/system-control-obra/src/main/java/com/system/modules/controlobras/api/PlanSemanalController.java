@@ -8,7 +8,7 @@ import com.system.crosscutting.domain.model.EntyOrsplamdplantrabsemanaDto;
 import com.system.crosscutting.domain.model.EntyOrsplamdplantrabsemanaResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.modules.controlobras.usecase.PlanSemanalService;
+import com.system.modules.controlobras.usecase.EntyPlanSemanalService;
 
 @RestController
 @RequestMapping(
@@ -18,7 +18,7 @@ import com.system.modules.controlobras.usecase.PlanSemanalService;
 public class PlanSemanalController {
 
     @Autowired
-    private PlanSemanalService service;
+    private EntyPlanSemanalService service;
 
     @GetMapping("/pages")
     public ResponseEntity<EntyOrsplamdplantrabsemanaResponse> getAll(

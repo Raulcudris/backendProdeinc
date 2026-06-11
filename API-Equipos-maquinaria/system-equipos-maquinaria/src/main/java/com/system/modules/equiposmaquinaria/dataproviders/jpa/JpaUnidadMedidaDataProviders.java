@@ -87,15 +87,16 @@ public class JpaUnidadMedidaDataProviders extends JpaDataProviderSupport
         }
     }
 
+    /*
+     * Método heredado del contrato genérico.
+     * La entidad prvinvmdunidamedequipo no tiene ID numérico.
+     * Para este módulo se debe usar findByKey(String unidadKey).
+     */
     @Override
     public EntyPrvinvmdunidamedequipoDto get(
             Integer id
     ) throws EBusinessException {
-        try {
-            return new EntyPrvinvmdunidamedequipoDto();
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error consultando unidad de medida", e);
-        }
+        return new EntyPrvinvmdunidamedequipoDto();
     }
 
     @Override
@@ -104,11 +105,14 @@ public class JpaUnidadMedidaDataProviders extends JpaDataProviderSupport
     ) throws EBusinessException {
         try {
             if (dto.getPrvTipunidamedUnme() == null || dto.getPrvTipunidamedUnme().isBlank()) {
-                dto.setPrvTipunidamedUnme("HORA");
+                return new EntyPrvinvmdunidamedequipoDto();
             }
 
+            String unidadKey = dto.getPrvTipunidamedUnme().trim().toUpperCase();
+            dto.setPrvTipunidamedUnme(unidadKey);
+
             if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
-                dto.setPrvDescmedidaUnme("Hora de trabajo");
+                dto.setPrvDescmedidaUnme("Sin descripcion");
             }
 
             if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
@@ -138,43 +142,27 @@ public class JpaUnidadMedidaDataProviders extends JpaDataProviderSupport
         return result;
     }
 
+    /*
+     * Método heredado del contrato genérico.
+     * No se usa para unidad de medida porque esta tabla no tiene Integer id.
+     */
     @Override
     public EntyPrvinvmdunidamedequipoDto update(
             Integer id,
             EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException {
-        try {
-            if (dto.getPrvTipunidamedUnme() == null || dto.getPrvTipunidamedUnme().isBlank()) {
-                return new EntyPrvinvmdunidamedequipoDto();
-            }
-
-            if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
-                dto.setPrvDescmedidaUnme("Hora de trabajo");
-            }
-
-            if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
-                dto.setPrvEstadoregUnme("1");
-            }
-
-            EntyPrvinvmdunidamedequipo entity = dtoToEntityTranslate.translate(dto);
-            EntyPrvinvmdunidamedequipo saved = repository.save(entity);
-
-            return entityToDtoTranslate.translate(saved);
-
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error actualizando unidad de medida", e);
-        }
+        return new EntyPrvinvmdunidamedequipoDto();
     }
 
+    /*
+     * Método heredado del contrato genérico.
+     * No se usa para unidad de medida porque esta tabla no tiene Integer id.
+     */
     @Override
     public void delete(
             Integer id
     ) throws EBusinessException {
-        try {
-            // La tabla real no tiene ID numérico. Usar eliminación por key si se requiere.
-        } catch (PersistenceException | DataAccessException e) {
-            throw buildException("Error eliminando unidad de medida", e);
-        }
+        // No aplica para esta entidad.
     }
 
     @Override
@@ -182,7 +170,12 @@ public class JpaUnidadMedidaDataProviders extends JpaDataProviderSupport
             String unidadKey
     ) throws EBusinessException {
         try {
-            EntyPrvinvmdunidamedequipo entity = repository.findByPrvTipunidamedUnme(unidadKey)
+            if (unidadKey == null || unidadKey.isBlank()) {
+                return new EntyPrvinvmdunidamedequipoDto();
+            }
+
+            EntyPrvinvmdunidamedequipo entity = repository
+                    .findByPrvTipunidamedUnme(unidadKey.trim().toUpperCase())
                     .orElse(null);
 
             if (entity == null) {
@@ -193,6 +186,70 @@ public class JpaUnidadMedidaDataProviders extends JpaDataProviderSupport
 
         } catch (PersistenceException | DataAccessException e) {
             throw buildException("Error consultando unidad de medida por key", e);
+        }
+    }
+
+    @Override
+    public EntyPrvinvmdunidamedequipoDto updateByKey(
+            String unidadKey,
+            EntyPrvinvmdunidamedequipoDto dto
+    ) throws EBusinessException {
+        try {
+            if (unidadKey == null || unidadKey.isBlank()) {
+                return new EntyPrvinvmdunidamedequipoDto();
+            }
+
+            String key = unidadKey.trim().toUpperCase();
+
+            EntyPrvinvmdunidamedequipo current = repository
+                    .findByPrvTipunidamedUnme(key)
+                    .orElse(null);
+
+            if (current == null) {
+                return new EntyPrvinvmdunidamedequipoDto();
+            }
+
+            dto.setPrvTipunidamedUnme(key);
+
+            if (dto.getPrvDescmedidaUnme() == null || dto.getPrvDescmedidaUnme().isBlank()) {
+                dto.setPrvDescmedidaUnme(current.getPrvDescmedidaUnme());
+            }
+
+            if (dto.getPrvEstadoregUnme() == null || dto.getPrvEstadoregUnme().isBlank()) {
+                dto.setPrvEstadoregUnme(current.getPrvEstadoregUnme());
+            }
+
+            EntyPrvinvmdunidamedequipo entity = dtoToEntityTranslate.translate(dto);
+            EntyPrvinvmdunidamedequipo saved = repository.save(entity);
+
+            return entityToDtoTranslate.translate(saved);
+
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error actualizando unidad de medida por key", e);
+        }
+    }
+
+    @Override
+    public void deleteByKey(
+            String unidadKey
+    ) throws EBusinessException {
+        try {
+            if (unidadKey == null || unidadKey.isBlank()) {
+                return;
+            }
+
+            String key = unidadKey.trim().toUpperCase();
+
+            EntyPrvinvmdunidamedequipo current = repository
+                    .findByPrvTipunidamedUnme(key)
+                    .orElse(null);
+
+            if (current != null) {
+                repository.delete(current);
+            }
+
+        } catch (PersistenceException | DataAccessException e) {
+            throw buildException("Error eliminando unidad de medida por key", e);
         }
     }
 

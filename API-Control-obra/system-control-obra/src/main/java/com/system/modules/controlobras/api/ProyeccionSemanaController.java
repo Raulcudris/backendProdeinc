@@ -8,7 +8,7 @@ import com.system.crosscutting.domain.model.EntyOrsordmdproyecsemanaDto;
 import com.system.crosscutting.domain.model.EntyOrsordmdproyecsemanaResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.modules.controlobras.usecase.ProyeccionSemanaService;
+import com.system.modules.controlobras.usecase.EntyProyeccionSemanaService;
 
 @RestController
 @RequestMapping(
@@ -18,7 +18,7 @@ import com.system.modules.controlobras.usecase.ProyeccionSemanaService;
 public class ProyeccionSemanaController {
 
     @Autowired
-    private ProyeccionSemanaService service;
+    private EntyProyeccionSemanaService service;
 
     @GetMapping("/pages")
     public ResponseEntity<EntyOrsordmdproyecsemanaResponse> getAll(

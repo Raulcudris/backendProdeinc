@@ -1,0 +1,464 @@
+{
+  "info": {
+    "_postman_id": "prodeinc-mvp-completo-gateway-actualizado",
+    "name": "Prodeinc MVP Completo Gateway Actualizado",
+    "description": "Colección Postman completa para probar el MVP: proveedores, equipos-maquinaria, control-obras y evidencias por Gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:8088"
+    },
+    {
+      "key": "proveedor_key",
+      "value": "PROV-001"
+    },
+    {
+      "key": "unidad_key",
+      "value": "HORA"
+    },
+    {
+      "key": "tipo_equipo_key",
+      "value": "EXC"
+    },
+    {
+      "key": "equipo_key",
+      "value": "EQ001"
+    },
+    {
+      "key": "equipo_id",
+      "value": "1"
+    },
+    {
+      "key": "orden_key",
+      "value": "ORS-001"
+    },
+    {
+      "key": "resumen_equipo_key",
+      "value": "RSEQ-001"
+    },
+    {
+      "key": "punto_key",
+      "value": "PUNT-001"
+    },
+    {
+      "key": "proyeccion_key",
+      "value": "PSEM-001"
+    },
+    {
+      "key": "plan_key",
+      "value": "PLTR-001"
+    },
+    {
+      "key": "plan_semana_key",
+      "value": "PLSE-001"
+    },
+    {
+      "key": "reporte_key",
+      "value": "PDIA-001"
+    },
+    {
+      "key": "novedad_key",
+      "value": "NOVE-001"
+    },
+    {
+      "key": "tipo_evidencia_key",
+      "value": "FOTO"
+    },
+    {
+      "key": "evidencia_key",
+      "value": "EVI-001"
+    },
+    {
+      "key": "referencia_key",
+      "value": "REF-001"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health General",
+      "item": [
+        {
+          "name": "Health Proveedores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/health"
+          }
+        },
+        {
+          "name": "Health Equipos Maquinaria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/health"
+          }
+        },
+        {
+          "name": "Health Control Obras",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/health"
+          }
+        },
+        {
+          "name": "Health Evidencias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Proveedores",
+      "item": [
+        {
+          "name": "Crear Proveedor PROV-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvNumeronitMprv\": \"900123456-7\",\n  \"prvRazonsocialMprv\": \"Proveedor Maquinaria Amarilla S.A.S\",\n  \"prvObjetosocialMprv\": \"Alquiler y operación de maquinaria amarilla para obras civiles\",\n  \"sisTiposociedadTpso\": \"SAS\",\n  \"sisCodactividadCiiu\": \"4390\",\n  \"prvFechconstMprv\": \"2020-01-15\",\n  \"prvPaginawebMprv\": \"https://proveedor-maquinaria.example.com\",\n  \"prvDireccionMprv\": \"Carrera 10 # 20-30\",\n  \"prvTelefonoMprv\": \"3001234567\",\n  \"prvCorreoMprv\": \"contacto@proveedor.com\",\n  \"sisCodpaiSipa\": \"CO\",\n  \"sisIdedptSidp\": \"11\",\n  \"sisCodproSipr\": \"11001\",\n  \"prvCodposMprv\": \"110111\",\n  \"prvIdentifkeyRelg\": null,\n  \"prvEstadoregMprv\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/proveedores/proveedores/create"
+          }
+        },
+        {
+          "name": "Consultar Proveedor por Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/by-key?proveedorKey={{proveedor_key}}"
+          }
+        },
+        {
+          "name": "Consultar Proveedores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/pages"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Equipos Maquinaria",
+      "item": [
+        {
+          "name": "Crear Unidad HORA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipunidamedUnme\": \"{{unidad_key}}\",\n  \"prvDescmedidaUnme\": \"Hora de trabajo\",\n  \"prvEstadoregUnme\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/create"
+          }
+        },
+        {
+          "name": "Crear Tipo Equipo EXC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"prvDescripcionTieq\": \"Excavadora hidráulica\",\n  \"prvIdentifkeyUnme\": \"{{unidad_key}}\",\n  \"prvTiporegistTieq\": \"1\",\n  \"prvEstadoregTieq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/create"
+          }
+        },
+        {
+          "name": "Crear Equipo EQ001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prvIdentifkeyInve\": \"{{equipo_key}}\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"prvNombrequipoInve\": \"Excavadora hidráulica\",\n  \"prvRefermodeloInve\": \"CAT 320D\",\n  \"prvEquipoestadoInve\": \"A01\",\n  \"prvEquipoactivoInve\": \"1\",\n  \"prvEstadoregInve\": \"1\",\n  \"prvDescripcionInve\": \"Excavadora hidráulica para obra civil\"\n}"
+            },
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/create"
+          }
+        },
+        {
+          "name": "Consultar Equipos Disponibles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/disponibles"
+          }
+        },
+        {
+          "name": "Consultar Equipo por Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-key?equipoKey={{equipo_key}}"
+          }
+        },
+        {
+          "name": "Cambiar Equipo a Asignado",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/cambiar-disponibilidad/{{equipo_id}}?disponible=2"
+          }
+        },
+        {
+          "name": "Cambiar Equipo a Disponible",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/cambiar-disponibilidad/{{equipo_id}}?disponible=1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Control Obras",
+      "item": [
+        {
+          "name": "Crear Orden ORS-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsAutorifechaOrde\": \"2026-06-05\",\n  \"orsCodservicioSebs\": \"MAQ\",\n  \"orsServiceventOrde\": \"Atención de emergencia vial\",\n  \"orsServiclugarOrde\": \"Sector rural afectado\",\n  \"orsServicobjetoOrde\": \"Prestación de servicio de maquinaria amarilla\",\n  \"orsPlanfechiniOrde\": \"2026-06-06\",\n  \"orsPlanfechfinOrde\": \"2026-06-12\",\n  \"prvIdentifkeyMprv\": \"{{proveedor_key}}\",\n  \"prvIdentifkeyRelg\": null,\n  \"orsValorbaseOrde\": 15000000,\n  \"orsValordeivaOrde\": 2850000,\n  \"orsValortotalOrde\": 17850000,\n  \"orsTiporegistOrde\": \"1\",\n  \"orsEstadoregOrde\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/ordenes/create"
+          }
+        },
+        {
+          "name": "Crear Resumen Equipo RSEQ-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyRseq\": \"{{resumen_equipo_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"prvTipoequipoTieq\": \"{{tipo_equipo_key}}\",\n  \"orsCantidunidadRseq\": 40,\n  \"orsValorunidadRseq\": 250000,\n  \"orsValortotalRseq\": 10000000,\n  \"orsTiporegistRseq\": \"1\",\n  \"orsEstadoregRseq\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/resumen-equipos/create"
+          }
+        },
+        {
+          "name": "Crear Sitio PUNT-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPunt\": \"{{punto_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsNombresitioPunt\": \"Sector rural K12+300\",\n  \"sisCodproSipr\": \"CO-11-001\",\n  \"orsGeolatitudePunt\": 4.711,\n  \"orsGeolongitudePunt\": -74.0721,\n  \"orsPathimagenPunt\": \"https://storage/puntos/punt-001.jpg\",\n  \"orsTiporegistPunt\": \"1\",\n  \"orsEstadoregPunt\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/sitios/create"
+          }
+        },
+        {
+          "name": "Crear Proyección Semanal PSEM-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsNumerosemPsem\": 1,\n  \"orsTitulosemPsem\": \"SEMANA 1 del 06 al 12 junio\",\n  \"orsSemfechiniPsem\": \"2026-06-06\",\n  \"orsSemfechfinPsem\": \"2026-06-12\",\n  \"orsDiashabilesPsem\": \"LUN,MAR,MIE,JUE,VIE,SAB\",\n  \"orsDiasnhabilesPsem\": \"DOM\",\n  \"orsTiporegistPsem\": \"1\",\n  \"orsEstadoregPsem\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/create"
+          }
+        },
+        {
+          "name": "Crear Plan Trabajo PLTR-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPltr\": \"{{plan_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPunt\": \"{{punto_key}}\",\n  \"orsDesactividadPltr\": \"Retiro de material y conformación de vía\",\n  \"orsIdentifkeyRseq\": \"{{resumen_equipo_key}}\",\n  \"prvIdentifkeyInve\": \"{{equipo_key}}\",\n  \"orsCantidunidadRseq\": 40,\n  \"orsValorunidadRseq\": 250000,\n  \"orsValortotalRseq\": 10000000,\n  \"orsTiporegistPltr\": \"1\",\n  \"orsEstadoregPltr\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/planes/create"
+          }
+        },
+        {
+          "name": "Crear Plan Semanal PLSE-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPlse\": \"{{plan_semana_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPltr\": \"{{plan_key}}\",\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsCantidunidadPlse\": 25,\n  \"orsValorunidadPlse\": 250000,\n  \"orsValortotalPlse\": 6250000,\n  \"orsEjecutunidadPlse\": 0,\n  \"orsValorejecutPlse\": 0,\n  \"orsTiporegistPlse\": \"1\",\n  \"orsEstadoregPlse\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/create"
+          }
+        },
+        {
+          "name": "Crear Reporte Diario PDIA-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyPdia\": \"{{reporte_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsIdentifkeyPlse\": \"{{plan_semana_key}}\",\n  \"orsIdentifkeyPsem\": \"{{proyeccion_key}}\",\n  \"orsObservacionPdia\": \"Se ejecuta retiro parcial de material\",\n  \"orsFechareportPdia\": \"2026-06-06\",\n  \"orsEjecutunidadPdia\": 8,\n  \"orsFechasistemaPdia\": \"2026-06-06\",\n  \"orsTiporegistPdia\": \"1\",\n  \"orsEstadoregPdia\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/create"
+          }
+        },
+        {
+          "name": "Crear Novedad NOVE-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orsIdentifkeyNove\": \"{{novedad_key}}\",\n  \"orsIdentifkeyOrde\": \"{{orden_key}}\",\n  \"orsFechreportNove\": \"2026-06-06\",\n  \"orsTiponovedadNovt\": \"CLIMA\",\n  \"orsRegistrbaseNove\": \"{{reporte_key}}\",\n  \"orsRegistrnoveNove\": \"PDIA-001-NOV\",\n  \"orsEstadoregNove\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/control-obras/novedades/create"
+          }
+        },
+        {
+          "name": "Consultar Avance por Orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/avances/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Consultar Avance por Plan Semanal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/control-obras/avances/by-plan-semanal?planSemanalKey={{plan_semana_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Evidencias",
+      "item": [
+        {
+          "name": "Crear Tipo Evidencia FOTO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyTiev\": \"{{tipo_evidencia_key}}\",\n  \"eviDescripcionTiev\": \"Fotografía de obra\",\n  \"eviTiporegistTiev\": \"1\",\n  \"eviEstadoregTiev\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/tipos/create"
+          }
+        },
+        {
+          "name": "Crear Evidencia EVI-001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyEvid\": \"{{evidencia_key}}\",\n  \"eviIdentifkeyTiev\": \"{{tipo_evidencia_key}}\",\n  \"eviNombrearchivoEvid\": \"foto_reporte_pdia001.jpg\",\n  \"eviDescripcionEvid\": \"Foto del avance reportado en la planilla diaria\",\n  \"eviUrlarchivoEvid\": \"https://storage/prodeinc/evidencias/foto_reporte_pdia001.jpg\",\n  \"eviFechacapturaEvid\": \"2026-06-06\",\n  \"eviLatitudEvid\": 4.71100000,\n  \"eviLongitudEvid\": -74.07210000,\n  \"eviTiporegistEvid\": \"1\",\n  \"eviEstadoregEvid\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/evidencias/create"
+          }
+        },
+        {
+          "name": "Asociar Evidencia a Reporte Diario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eviIdentifkeyRefe\": \"{{referencia_key}}\",\n  \"eviIdentifkeyEvid\": \"{{evidencia_key}}\",\n  \"eviTiporegistroRefe\": \"REPORTE_DIARIO\",\n  \"eviIdentifregistroRefe\": \"{{reporte_key}}\",\n  \"eviObservacionRefe\": \"Evidencia asociada al reporte diario PDIA-001\",\n  \"eviTiporegistRefe\": \"1\",\n  \"eviEstadoregRefe\": \"1\"\n}"
+            },
+            "url": "{{gateway_url}}/api/evidencias/referencias/create"
+          }
+        },
+        {
+          "name": "Consultar Evidencias del Reporte",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{gateway_url}}/api/evidencias/referencias/by-tipo-registro-and-registro?tipoRegistro=REPORTE_DIARIO&registroKey={{reporte_key}}"
+          }
+        }
+      ]
+    }
+  ]
+}

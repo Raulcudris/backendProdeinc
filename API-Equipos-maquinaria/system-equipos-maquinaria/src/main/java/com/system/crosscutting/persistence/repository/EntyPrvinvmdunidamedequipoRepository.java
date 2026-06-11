@@ -14,9 +14,13 @@ import org.springframework.data.repository.query.Param;
 public interface EntyPrvinvmdunidamedequipoRepository
         extends JpaRepository<EntyPrvinvmdunidamedequipo, String> {
 
-    Optional<EntyPrvinvmdunidamedequipo> findByPrvTipunidamedUnme(String prvTipunidamedUnme);
+    Optional<EntyPrvinvmdunidamedequipo> findByPrvTipunidamedUnme(
+            String prvTipunidamedUnme
+    );
 
-    List<EntyPrvinvmdunidamedequipo> findByPrvEstadoregUnme(String prvEstadoregUnme);
+    List<EntyPrvinvmdunidamedequipo> findByPrvEstadoregUnme(
+            String prvEstadoregUnme
+    );
 
     @Query("SELECT u FROM EntyPrvinvmdunidamedequipo u " +
             "WHERE LOWER(u.prvTipunidamedUnme) LIKE LOWER(CONCAT('%', :filter, '%'))")

@@ -82,6 +82,7 @@ public interface EntyPrvinvmainventarioequiposRepository
             "OR LOWER(e.prvTipoequipoTieq) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(e.prvNombrequipoInve) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(e.prvRefermodeloInve) LIKE LOWER(CONCAT('%', :filter, '%')) " +
+            "OR LOWER(e.prvEquipoestadoInve) LIKE LOWER(CONCAT('%', :filter, '%')) " +
             "OR LOWER(e.prvDescripcionInve) LIKE LOWER(CONCAT('%', :filter, '%'))")
     Page<EntyPrvinvmainventarioequipos> searchByText(
             @Param("filter") String filter,

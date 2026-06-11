@@ -8,7 +8,7 @@ import com.system.crosscutting.domain.model.EntyOrsordmdsitiospuntosDto;
 import com.system.crosscutting.domain.model.EntyOrsordmdsitiospuntosResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
-import com.system.modules.controlobras.usecase.SitioService;
+import com.system.modules.controlobras.usecase.EntySitioService;
 
 @RestController
 @RequestMapping(
@@ -18,7 +18,7 @@ import com.system.modules.controlobras.usecase.SitioService;
 public class SitioController {
 
     @Autowired
-    private SitioService service;
+    private EntySitioService service;
 
     @GetMapping("/pages")
     public ResponseEntity<EntyOrsordmdsitiospuntosResponse> getAll(

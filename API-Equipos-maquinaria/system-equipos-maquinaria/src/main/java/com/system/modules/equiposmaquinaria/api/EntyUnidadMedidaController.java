@@ -20,6 +20,14 @@ public class EntyUnidadMedidaController {
     @Autowired
     private EntyUnidadMedidaService service;
 
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return new ResponseEntity<>(
+                "msvc-equipos-maquinaria unidades OK",
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping("/pages")
     public ResponseEntity<EntyPrvinvmdunidamedequipoResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
@@ -33,12 +41,12 @@ public class EntyUnidadMedidaController {
         );
     }
 
-    @GetMapping("/get/{id}")
+    @GetMapping("/get/{unidadKey}")
     public ResponseEntity<EntyPrvinvmdunidamedequipoDto> get(
-            @PathVariable Integer id
+            @PathVariable String unidadKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.get(id),
+                service.findByKey(unidadKey),
                 HttpStatus.OK
         );
     }
@@ -77,36 +85,36 @@ public class EntyUnidadMedidaController {
     }
 
     @PutMapping(
-            value = "/update/{id}",
+            value = "/update/{unidadKey}",
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
     public ResponseEntity<EntyPrvinvmdunidamedequipoDto> update(
-            @PathVariable Integer id,
+            @PathVariable String unidadKey,
             @RequestBody EntyPrvinvmdunidamedequipoDto dto
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.updateBefore(id, dto),
+                service.updateByKey(unidadKey, dto),
                 HttpStatus.OK
         );
     }
 
-    @PatchMapping("/changestatus/{id}")
+    @PatchMapping("/changestatus/{unidadKey}")
     public ResponseEntity<String> changestatus(
-            @PathVariable Integer id,
+            @PathVariable String unidadKey,
             @RequestParam(value = "estado", required = false, defaultValue = "2") String estado
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.changestatus(id, estado),
+                service.changestatusByKey(unidadKey, estado),
                 HttpStatus.OK
         );
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete/{unidadKey}")
     public ResponseEntity<String> delete(
-            @PathVariable Integer id
+            @PathVariable String unidadKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
-                service.deleteBefore(id),
+                service.deleteByKey(unidadKey),
                 HttpStatus.OK
         );
     }

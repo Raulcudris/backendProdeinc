@@ -1,10 +1,7 @@
 package com.system.modules.evidencia.usecase;
-
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaDto;
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaResponse;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
@@ -22,76 +19,108 @@ public class EntyTipoEvidenciaService {
     }
 
     public EntyEvitipmatipoevidenciaResponse getAll(
-            int currentPage,
-            int pageSize,
-            String parameter,
-            String filter
+            final int currentPage,
+            final int pageSize,
+            final String parameter,
+            final String filter
     ) throws EBusinessException {
         return dataProviders.getAll(currentPage, pageSize, parameter, filter);
     }
 
     public EntyEvitipmatipoevidenciaDto get(
-            Integer id
+            final Integer id
     ) throws EBusinessException {
         return dataProviders.get(id);
     }
 
     public EntyEvitipmatipoevidenciaDto saveBefore(
-            EntyEvitipmatipoevidenciaDto dto
+            final EntyEvitipmatipoevidenciaDto dto
     ) throws EBusinessException {
+        prepareBeforeSave(dto);
 
-        if (dto.getEviTiporegistTiev() == null || dto.getEviTiporegistTiev().isBlank()) {
-            dto.setEviTiporegistTiev("1");
-        }
-
-        if (dto.getEviEstadoregTiev() == null || dto.getEviEstadoregTiev().isBlank()) {
-            dto.setEviEstadoregTiev("1");
-        }
+        dto.setEviIdentifkeyTiev(dto.getEviIdentifkeyTiev().trim().toUpperCase());
 
         return dataProviders.save(dto);
     }
 
     public List<EntyEvitipmatipoevidenciaDto> saveBefore(
-            List<EntyEvitipmatipoevidenciaDto> dtos
+            final List<EntyEvitipmatipoevidenciaDto> dtos
     ) throws EBusinessException {
+        if (dtos != null) {
+            for (EntyEvitipmatipoevidenciaDto dto : dtos) {
+                prepareBeforeSave(dto);
+                dto.setEviIdentifkeyTiev(dto.getEviIdentifkeyTiev().trim().toUpperCase());
+            }
+        }
+
         return dataProviders.save(dtos);
     }
 
     public EntyEvitipmatipoevidenciaDto updateBefore(
-            Integer id,
-            EntyEvitipmatipoevidenciaDto dto
+            final Integer id,
+            final EntyEvitipmatipoevidenciaDto dto
     ) throws EBusinessException {
+        prepareBeforeSave(dto);
+
+        dto.setEviIdentifkeyTiev(dto.getEviIdentifkeyTiev().trim().toUpperCase());
+
         return dataProviders.update(id, dto);
     }
 
-    public String changestatus(
-            Integer id,
-            String estado
+    public EntyEvitipmatipoevidenciaDto changestatus(
+            final Integer id,
+            final String estado
     ) throws EBusinessException {
-
-        EntyEvitipmatipoevidenciaDto dto = dataProviders.get(id);
-
-        if (dto == null || dto.getEviPrimarykeyTiev() == null) {
-            return "No existe el tipo de evidencia con id: " + id;
+        if (!"1".equals(estado) && !"2".equals(estado)) {
+            throw new EBusinessException("El estado debe ser 1 activo o 2 inactivo.");
         }
 
-        dto.setEviEstadoregTiev(estado);
-
-        dataProviders.update(id, dto);
-
-        return "Estado actualizado correctamente";
+        return dataProviders.changestatus(id, estado);
     }
 
-    public String deleteBefore(
-            Integer id
+    public void deleteBefore(
+            final Integer id
     ) throws EBusinessException {
         dataProviders.delete(id);
-        return "Registro eliminado correctamente";
     }
 
-    public List<EntyEvitipmatipoevidenciaDto> findByEstado(
-            String estado
+    public EntyEvitipmatipoevidenciaDto findByKey(
+            final String tipoEvidenciaKey
+    ) throws EBusinessException {
+        return dataProviders.findByKey(tipoEvidenciaKey);
+    }
+
+    public EntyEvitipmatipoevidenciaResponse findByEstado(
+            final String estado
     ) throws EBusinessException {
         return dataProviders.findByEstado(estado);
+    }
+
+    private void prepareBeforeSave(
+            final EntyEvitipmatipoevidenciaDto dto
+    ) throws EBusinessException {
+        if (dto == null) {
+            throw new EBusinessException("El tipo de evidencia es obligatorio.");
+        }
+
+        if (dto.getEviIdentifkeyTiev() == null
+                || dto.getEviIdentifkeyTiev().isBlank()) {
+            throw new EBusinessException("El código del tipo de evidencia es obligatorio.");
+        }
+
+        if (dto.getEviDescripcionTiev() == null
+                || dto.getEviDescripcionTiev().isBlank()) {
+            throw new EBusinessException("La descripción del tipo de evidencia es obligatoria.");
+        }
+
+        if (dto.getEviTiporegistTiev() == null
+                || dto.getEviTiporegistTiev().isBlank()) {
+            dto.setEviTiporegistTiev("1");
+        }
+
+        if (dto.getEviEstadoregTiev() == null
+                || dto.getEviEstadoregTiev().isBlank()) {
+            dto.setEviEstadoregTiev("1");
+        }
     }
 }

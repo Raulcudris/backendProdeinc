@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import com.system.modules.controlobras.usecase.ControlObrasService;
+import com.system.modules.controlobras.usecase.EntyControlObrasService;
 
 @RestController
 @RequestMapping(
@@ -16,7 +16,7 @@ import com.system.modules.controlobras.usecase.ControlObrasService;
 public class ControlObrasWebApi {
 
     @Autowired
-    private ControlObrasService service;
+    private EntyControlObrasService service;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> status() {

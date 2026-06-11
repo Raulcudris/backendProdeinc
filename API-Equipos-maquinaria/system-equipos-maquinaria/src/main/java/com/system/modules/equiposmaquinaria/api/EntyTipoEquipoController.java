@@ -20,6 +20,14 @@ public class EntyTipoEquipoController {
     @Autowired
     private EntyTipoEquipoService service;
 
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return new ResponseEntity<>(
+                "msvc-equipos-maquinaria tipos-equipo OK",
+                HttpStatus.OK
+        );
+    }
+
     @GetMapping("/pages")
     public ResponseEntity<EntyPrvinvmdequipmaquinariaResponse> getAll(
             @RequestParam(value = "currentpage", required = false, defaultValue = "1") int currentPage,
@@ -82,6 +90,19 @@ public class EntyTipoEquipoController {
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.saveBefore(dto),
+                HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping(
+            value = "/create-list",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<?> createList(
+            @RequestBody java.util.List<EntyPrvinvmdequipmaquinariaDto> dtos
+    ) throws EBusinessException, MicroEventException {
+        return new ResponseEntity<>(
+                service.saveBefore(dtos),
                 HttpStatus.CREATED
         );
     }
