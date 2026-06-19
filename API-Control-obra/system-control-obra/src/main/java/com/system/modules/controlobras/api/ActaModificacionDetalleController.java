@@ -2,9 +2,12 @@ package com.system.modules.controlobras.api;
 
 import java.util.List;
 
+import com.system.crosscutting.domain.model.ChangeStatusRequestDto;
+import com.system.crosscutting.domain.model.DeleteRequestDto;
 import com.system.crosscutting.domain.model.EntyOrsordmdactamodificaciondetalleDto;
 import com.system.crosscutting.domain.model.EntyOrsordmdactamodificaciondetalleResponse;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.crosscutting.utils.ResponsePayloadUtil;
 import com.system.modules.controlobras.usecase.EntyActaModificacionDetalleService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,15 +29,27 @@ public class ActaModificacionDetalleController {
 
     @PostMapping("/create")
     public ResponseEntity<EntyOrsordmdactamodificaciondetalleDto> create(
-            @RequestBody final EntyOrsordmdactamodificaciondetalleDto dto
+            @RequestBody final EntyOrsordmdactamodificaciondetalleResponse request
     ) throws EBusinessException {
+
+        EntyOrsordmdactamodificaciondetalleDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un detalle de acta de modificación en rspData."
+        );
+
         return ResponseEntity.ok(service.saveBefore(dto));
     }
 
     @PostMapping("/create-list")
     public ResponseEntity<List<EntyOrsordmdactamodificaciondetalleDto>> createList(
-            @RequestBody final List<EntyOrsordmdactamodificaciondetalleDto> dtoList
+            @RequestBody final EntyOrsordmdactamodificaciondetalleResponse request
     ) throws EBusinessException {
+
+        List<EntyOrsordmdactamodificaciondetalleDto> dtoList = ResponsePayloadUtil.getData(
+                request.getRspData(),
+                "Debe enviar detalles de acta de modificación en rspData."
+        );
+
         return ResponseEntity.ok(service.saveBefore(dtoList));
     }
 
@@ -106,8 +121,14 @@ public class ActaModificacionDetalleController {
     @PutMapping("/update/{id}")
     public ResponseEntity<EntyOrsordmdactamodificaciondetalleDto> update(
             @PathVariable final Integer id,
-            @RequestBody final EntyOrsordmdactamodificaciondetalleDto dto
+            @RequestBody final EntyOrsordmdactamodificaciondetalleResponse request
     ) throws EBusinessException {
+
+        EntyOrsordmdactamodificaciondetalleDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un detalle de acta de modificación en rspData."
+        );
+
         return ResponseEntity.ok(service.updateBefore(id, dto));
     }
 
@@ -119,11 +140,55 @@ public class ActaModificacionDetalleController {
         return ResponseEntity.ok(service.changestatus(id, estado));
     }
 
+    @PostMapping("/changestatus")
+    public ResponseEntity<String> changestatusBody(
+            @RequestBody final List<ChangeStatusRequestDto> request
+    ) throws EBusinessException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para cambiar estado.");
+        }
+
+        for (ChangeStatusRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            if (item.getRecEstreg() == null || item.getRecEstreg().trim().isEmpty()) {
+                throw new EBusinessException("recEstreg es obligatorio.");
+            }
+
+            service.changestatus(item.getRecPKey(), item.getRecEstreg());
+        }
+
+        return ResponseEntity.ok("Estado actualizado correctamente.");
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable final Integer id
     ) throws EBusinessException {
         service.deleteBefore(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<String> deleteBody(
+            @RequestBody final List<DeleteRequestDto> request
+    ) throws EBusinessException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para eliminar.");
+        }
+
+        for (DeleteRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            service.deleteBefore(item.getRecPKey());
+        }
+
+        return ResponseEntity.ok("Registro(s) eliminado(s) correctamente.");
     }
 }

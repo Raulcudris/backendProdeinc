@@ -1,25 +1,21 @@
 package com.system.modules.evidencia.api;
+
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+
+import com.system.crosscutting.domain.model.ChangeStatusRequestDto;
+import com.system.crosscutting.domain.model.DeleteRequestDto;
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaDto;
 import com.system.crosscutting.domain.model.EntyEvitipmatipoevidenciaResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.crosscutting.utils.ResponsePayloadUtil;
 import com.system.modules.evidencia.usecase.EntyTipoEvidenciaService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(
         value = "/api/evidencias/tipos",
@@ -35,22 +31,40 @@ public class TipoEvidenciaController {
         return ResponseEntity.ok("Tipo evidencia service OK");
     }
 
-    @PostMapping("/create")
+    @PostMapping(
+            value = "/create",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
     public ResponseEntity<EntyEvitipmatipoevidenciaDto> create(
-            @RequestBody final EntyEvitipmatipoevidenciaDto dto
+            @RequestBody final EntyEvitipmatipoevidenciaResponse request
     ) throws EBusinessException, MicroEventException {
+
+        EntyEvitipmatipoevidenciaDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un tipo de evidencia en rspData."
+        );
+
         return new ResponseEntity<>(
                 service.saveBefore(dto),
                 HttpStatus.CREATED
         );
     }
 
-    @PostMapping("/create-list")
+    @PostMapping(
+            value = "/create-list",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
     public ResponseEntity<List<EntyEvitipmatipoevidenciaDto>> createList(
-            @RequestBody final List<EntyEvitipmatipoevidenciaDto> dtos
+            @RequestBody final EntyEvitipmatipoevidenciaResponse request
     ) throws EBusinessException, MicroEventException {
+
+        List<EntyEvitipmatipoevidenciaDto> dtoList = ResponsePayloadUtil.getData(
+                request.getRspData(),
+                "Debe enviar tipos de evidencia en rspData."
+        );
+
         return new ResponseEntity<>(
-                service.saveBefore(dtos),
+                service.saveBefore(dtoList),
                 HttpStatus.CREATED
         );
     }
@@ -107,11 +121,20 @@ public class TipoEvidenciaController {
         );
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping(
+            value = "/update/{id}",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
     public ResponseEntity<EntyEvitipmatipoevidenciaDto> update(
             @PathVariable final Integer id,
-            @RequestBody final EntyEvitipmatipoevidenciaDto dto
+            @RequestBody final EntyEvitipmatipoevidenciaResponse request
     ) throws EBusinessException, MicroEventException {
+
+        EntyEvitipmatipoevidenciaDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un tipo de evidencia en rspData."
+        );
+
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
                 HttpStatus.OK
@@ -129,11 +152,67 @@ public class TipoEvidenciaController {
         );
     }
 
+    @PostMapping(
+            value = "/changestatus",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> changestatusBody(
+            @RequestBody final List<ChangeStatusRequestDto> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para cambiar estado.");
+        }
+
+        for (ChangeStatusRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            if (item.getRecEstreg() == null || item.getRecEstreg().trim().isEmpty()) {
+                throw new EBusinessException("recEstreg es obligatorio.");
+            }
+
+            service.changestatus(item.getRecPKey(), item.getRecEstreg());
+        }
+
+        return new ResponseEntity<>(
+                "Estado actualizado correctamente.",
+                HttpStatus.OK
+        );
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable final Integer id
     ) throws EBusinessException, MicroEventException {
         service.deleteBefore(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(
+            value = "/delete",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> deleteBody(
+            @RequestBody final List<DeleteRequestDto> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para eliminar.");
+        }
+
+        for (DeleteRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            service.deleteBefore(item.getRecPKey());
+        }
+
+        return new ResponseEntity<>(
+                "Registro(s) eliminado(s) correctamente.",
+                HttpStatus.OK
+        );
     }
 }

@@ -1,0 +1,1418 @@
+{
+  "info": {
+    "name": "ObraCivilTech - Backend Gateway 8088",
+    "_postman_id": "f2e8d8f0-obra-civil-tech-gateway",
+    "description": "Colección Postman para probar API-Proveedores, API-Equipos-maquinaria, API-Control-obra y API-Evidencia usando Gateway http://localhost:8088. Incluye requests con wrapper rspData, delete por body y changestatus por body.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:8088"
+    },
+    {
+      "key": "proveedor_id",
+      "value": "1"
+    },
+    {
+      "key": "proveedor_key",
+      "value": "PRV-0001"
+    },
+    {
+      "key": "numero_nit",
+      "value": "900123456-7"
+    },
+    {
+      "key": "unidad_key",
+      "value": "HORA"
+    },
+    {
+      "key": "tipo_equipo_id",
+      "value": "1"
+    },
+    {
+      "key": "tipo_equipo_key",
+      "value": "EXC"
+    },
+    {
+      "key": "equipo_id",
+      "value": "1"
+    },
+    {
+      "key": "equipo_key",
+      "value": "EQ-0001"
+    },
+    {
+      "key": "orden_id",
+      "value": "1"
+    },
+    {
+      "key": "orden_key",
+      "value": "ORDE-0001"
+    },
+    {
+      "key": "sitio_id",
+      "value": "1"
+    },
+    {
+      "key": "punto_key",
+      "value": "PUNT-0001"
+    },
+    {
+      "key": "proyeccion_id",
+      "value": "1"
+    },
+    {
+      "key": "proyeccion_key",
+      "value": "PSEM-0001"
+    },
+    {
+      "key": "plan_id",
+      "value": "1"
+    },
+    {
+      "key": "plan_key",
+      "value": "PLTR-0001"
+    },
+    {
+      "key": "plan_semanal_id",
+      "value": "1"
+    },
+    {
+      "key": "plan_semanal_key",
+      "value": "PLSE-0001"
+    },
+    {
+      "key": "resumen_equipo_id",
+      "value": "1"
+    },
+    {
+      "key": "resumen_equipo_key",
+      "value": "RSEQ-0001"
+    },
+    {
+      "key": "reporte_diario_id",
+      "value": "1"
+    },
+    {
+      "key": "reporte_operacion_id",
+      "value": "1"
+    },
+    {
+      "key": "reporte_operacion_key",
+      "value": "ROPE-0001"
+    },
+    {
+      "key": "detalle_equipo_id",
+      "value": "1"
+    },
+    {
+      "key": "detalle_equipo_key",
+      "value": "DEOP-0001"
+    },
+    {
+      "key": "novedad_id",
+      "value": "1"
+    },
+    {
+      "key": "novedad_key",
+      "value": "NOVE-0001"
+    },
+    {
+      "key": "tipo_evidencia_id",
+      "value": "1"
+    },
+    {
+      "key": "tipo_evidencia_key",
+      "value": "FOTO"
+    },
+    {
+      "key": "referencia_id",
+      "value": "1"
+    },
+    {
+      "key": "referencia_key",
+      "value": "REFE-0001"
+    },
+    {
+      "key": "evidencia_id",
+      "value": "1"
+    },
+    {
+      "key": "evidencia_key",
+      "value": "EVID-0001"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Proveedores",
+      "item": [
+        {
+          "name": "Health proveedores",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/proveedores/proveedores/health"
+          }
+        },
+        {
+          "name": "Pages proveedores",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/proveedores/proveedores/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "All proveedores",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/proveedores/proveedores/all"
+          }
+        },
+        {
+          "name": "Get proveedor by id",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/proveedores/proveedores/get/{{proveedor_id}}"
+          }
+        },
+        {
+          "name": "Proveedor by key",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/proveedores/proveedores/by-key?proveedorKey={{proveedor_key}}"
+          }
+        },
+        {
+          "name": "Proveedor by NIT",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/proveedores/proveedores/by-nit?numeroNit={{numero_nit}}"
+          }
+        },
+        {
+          "name": "Proveedor by estado",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/proveedores/proveedores/by-estado?estado=1"
+          }
+        },
+        {
+          "name": "Create proveedor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"prvIdentifkeyMprv\": \"PRV-0001\",\n      \"prvNumeronitMprv\": \"900123456-7\",\n      \"prvRazonsocialMprv\": \"Maquinaria del Norte SAS\",\n      \"prvObjetosocialMprv\": \"Alquiler de maquinaria y equipos para obras civiles\",\n      \"sisTiposociedadTpso\": \"SAS\",\n      \"sisCodactividadCiiu\": \"7730\",\n      \"prvFechconstMprv\": \"2018-05-10\",\n      \"prvPaginawebMprv\": \"https://maquinariadelnorte.com\",\n      \"prvDireccionMprv\": \"Carrera 10 # 20-30\",\n      \"prvTelefonoMprv\": \"3105551234\",\n      \"prvCorreoMprv\": \"contacto@maquinariadelnorte.com\",\n      \"sisCodpaiSipa\": \"CO\",\n      \"sisIdedptSidp\": \"CUND\",\n      \"sisCodproSipr\": \"BOG\",\n      \"prvCodposMprv\": \"110111\",\n      \"prvIdentifkeyRelg\": \"RELG-0001\",\n      \"prvEstadoregMprv\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update proveedor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/update/{{proveedor_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"prvPrimarykeyMprv\": 1,\n      \"prvIdentifkeyMprv\": \"PRV-0001\",\n      \"prvNumeronitMprv\": \"900123456-7\",\n      \"prvRazonsocialMprv\": \"Maquinaria del Norte SAS Actualizado\",\n      \"prvCorreoMprv\": \"contacto@maquinariadelnorte.com\",\n      \"prvEstadoregMprv\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status proveedor body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Delete proveedor body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/proveedores/proveedores/delete",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Equipos maquinaria - Unidades",
+      "item": [
+        {
+          "name": "Health unidades",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/health"
+          }
+        },
+        {
+          "name": "Pages unidades",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Unidad by key",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/by-key?unidadKey={{unidad_key}}"
+          }
+        },
+        {
+          "name": "Unidad by estado",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/by-estado?estado=1"
+          }
+        },
+        {
+          "name": "Create unidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"prvTipunidamedUnme\": \"HORA\",\n      \"prvDescmedidaUnme\": \"Horas de operación\",\n      \"prvEstadoregUnme\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update unidad",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/update/{{unidad_key}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"prvTipunidamedUnme\": \"HORA\",\n      \"prvDescmedidaUnme\": \"Horas de operación actualizada\",\n      \"prvEstadoregUnme\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status unidad body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": \"HORA\",\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Delete unidad body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/unidades/delete",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": \"HORA\"\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Equipos maquinaria - Tipos",
+      "item": [
+        {
+          "name": "Health tipos",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/health"
+          }
+        },
+        {
+          "name": "Pages tipos",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Tipo by key",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/by-key?tipoEquipoKey={{tipo_equipo_key}}"
+          }
+        },
+        {
+          "name": "Tipo by unidad",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/by-unidad?unidadKey={{unidad_key}}"
+          }
+        },
+        {
+          "name": "Create tipo equipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"prvTipoequipoTieq\": \"EXC\",\n      \"prvIdentifkeyUnme\": \"HORA\",\n      \"prvDescripcionTieq\": \"Excavadora hidráulica\",\n      \"prvTiporegistTieq\": \"1\",\n      \"prvEstadoregTieq\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update tipo equipo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/update/{{tipo_equipo_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"prvPrimarykeyTieq\": 1,\n      \"prvTipoequipoTieq\": \"EXC\",\n      \"prvIdentifkeyUnme\": \"HORA\",\n      \"prvDescripcionTieq\": \"Excavadora hidráulica actualizada\",\n      \"prvTiporegistTieq\": \"1\",\n      \"prvEstadoregTieq\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status tipo body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Delete tipo body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/tipos/delete",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Equipos maquinaria - Equipos",
+      "item": [
+        {
+          "name": "Health equipos",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/health"
+          }
+        },
+        {
+          "name": "Pages equipos",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Equipo by key",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-key?equipoKey={{equipo_key}}"
+          }
+        },
+        {
+          "name": "Equipo by proveedor",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-proveedor?proveedorKey={{proveedor_key}}"
+          }
+        },
+        {
+          "name": "Equipo by tipo equipo",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-tipo-equipo?tipoEquipoKey={{tipo_equipo_key}}"
+          }
+        },
+        {
+          "name": "Equipo by disponible",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/by-disponible?disponible=1"
+          }
+        },
+        {
+          "name": "Create equipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"prvIdentifkeyInve\": \"EQ-0001\",\n      \"prvIdentifkeyMprv\": \"PRV-0001\",\n      \"prvTipoequipoTieq\": \"EXC\",\n      \"prvNombrequipoInve\": \"Excavadora hidráulica\",\n      \"prvRefermodeloInve\": \"CAT 320\",\n      \"prvEquipoestadoInve\": \"OPE\",\n      \"prvEquipoactivoInve\": \"1\",\n      \"prvEstadoregInve\": \"1\",\n      \"prvDescripcionInve\": \"Excavadora para adecuación hidráulica y movimiento de material\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update equipo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/update/{{equipo_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"prvPrimarykeyInve\": 1,\n      \"prvIdentifkeyInve\": \"EQ-0001\",\n      \"prvIdentifkeyMprv\": \"PRV-0001\",\n      \"prvTipoequipoTieq\": \"EXC\",\n      \"prvNombrequipoInve\": \"Excavadora hidráulica actualizada\",\n      \"prvRefermodeloInve\": \"CAT 320\",\n      \"prvEquipoestadoInve\": \"OPE\",\n      \"prvEquipoactivoInve\": \"1\",\n      \"prvEstadoregInve\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status equipo body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Change disponible equipo body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/changedisponible",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Delete equipo body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/equipos-maquinaria/equipos/delete",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Control obras - Ordenes",
+      "item": [
+        {
+          "name": "Health ordenes",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/ordenes/health"
+          }
+        },
+        {
+          "name": "Pages ordenes",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/ordenes/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Get orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/ordenes/get/{{orden_id}}"
+          }
+        },
+        {
+          "name": "Create orden",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/ordenes/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsEstadoregOrde\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update orden",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/ordenes/update/{{orden_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsPrimarykeyOrde\": 1,\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsEstadoregOrde\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status orden body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/ordenes/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Delete orden body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/ordenes/delete",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Control obras - Sitios",
+      "item": [
+        {
+          "name": "Health sitios",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/sitios/health"
+          }
+        },
+        {
+          "name": "Pages sitios",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/sitios/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Sitios by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/sitios/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Create sitio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/sitios/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyPunt\": \"PUNT-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsTiporegistPunt\": \"1\",\n      \"orsEstadoregPunt\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update sitio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/sitios/update/{{sitio_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsPrimarykeyPunt\": 1,\n      \"orsIdentifkeyPunt\": \"PUNT-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsTiporegistPunt\": \"1\",\n      \"orsEstadoregPunt\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status sitio body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/sitios/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Delete sitio body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/sitios/delete",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Control obras - Proyección semanal",
+      "item": [
+        {
+          "name": "Health proyección",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/health"
+          }
+        },
+        {
+          "name": "Pages proyección",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Proyección by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Create proyección",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyPsem\": \"PSEM-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsTiporegistPsem\": \"1\",\n      \"orsEstadoregPsem\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status proyección body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/proyeccion-semanal/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Control obras - Planes",
+      "item": [
+        {
+          "name": "Health planes",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/planes/health"
+          }
+        },
+        {
+          "name": "Pages planes",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/planes/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Planes by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/planes/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Planes by punto",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/planes/by-punto?puntoKey={{punto_key}}"
+          }
+        },
+        {
+          "name": "Create plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/planes/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyPltr\": \"PLTR-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsIdentifkeyPunt\": \"PUNT-0001\",\n      \"orsDesactividadPltr\": \"Excavación y retiro de material\",\n      \"orsIdentifkeyRseq\": \"RSEQ-0001\",\n      \"prvIdentifkeyInve\": \"EQ-0001\",\n      \"orsCantidunidadRseq\": 100,\n      \"orsValorunidadRseq\": 150000,\n      \"orsTiporegistPltr\": \"1\",\n      \"orsEstadoregPltr\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status plan body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/planes/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Control obras - Planes semanales",
+      "item": [
+        {
+          "name": "Health planes semanales",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/health"
+          }
+        },
+        {
+          "name": "Pages planes semanales",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Planes semanales by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Planes semanales by plan",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/by-plan?planKey={{plan_key}}"
+          }
+        },
+        {
+          "name": "Create plan semanal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/planes-semanales/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyPlse\": \"PLSE-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsIdentifkeyPltr\": \"PLTR-0001\",\n      \"orsIdentifkeyPsem\": \"PSEM-0001\",\n      \"orsTiporegistPlse\": \"1\",\n      \"orsEstadoregPlse\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Control obras - Reportes diarios",
+      "item": [
+        {
+          "name": "Health reportes diarios",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/health"
+          }
+        },
+        {
+          "name": "Pages reportes diarios",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Reportes diarios by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Reportes diarios by plan semanal",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/by-plan-semanal?planSemanalKey={{plan_semanal_key}}"
+          }
+        },
+        {
+          "name": "Create reporte diario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/reportes-diarios/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyPdia\": \"PDIA-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsIdentifkeyPlse\": \"PLSE-0001\",\n      \"orsIdentifkeyPsem\": \"PSEM-0001\",\n      \"orsTiporegistPdia\": \"1\",\n      \"orsEstadoregPdia\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Control obras - Resumen equipos",
+      "item": [
+        {
+          "name": "Health resumen equipos",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/resumen-equipos/health"
+          }
+        },
+        {
+          "name": "Pages resumen equipos",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/resumen-equipos/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Resumen equipos by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/resumen-equipos/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Create resumen equipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/resumen-equipos/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyRseq\": \"RSEQ-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"prvIdentifkeyInve\": \"EQ-0001\",\n      \"orsTiporegistRseq\": \"1\",\n      \"orsEstadoregRseq\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Control obras - Reportes operación",
+      "item": [
+        {
+          "name": "Pages reportes operación",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/reportes-operacion/pages?currentPage=1&pageSize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Create reporte operación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/reportes-operacion/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyRope\": \"ROPE-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsEstadoregRope\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Control obras - Detalles equipos operación",
+      "item": [
+        {
+          "name": "Health detalles equipos operación",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/detalles-equipos-operacion/health"
+          }
+        },
+        {
+          "name": "Pages detalles equipos operación",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/detalles-equipos-operacion/pages?currentPage=1&pageSize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Detalles by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/detalles-equipos-operacion/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Detalles by equipo",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/detalles-equipos-operacion/by-equipo?equipoKey={{equipo_key}}"
+          }
+        },
+        {
+          "name": "Create detalle equipo operación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/detalles-equipos-operacion/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyDeop\": \"DEOP-0001\",\n      \"orsIdentifkeyRope\": \"ROPE-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"prvIdentifkeyInve\": \"EQ-0001\",\n      \"orsEstadoregDeop\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Control obras - Novedades",
+      "item": [
+        {
+          "name": "Health novedades",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/novedades/health"
+          }
+        },
+        {
+          "name": "Pages novedades",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/novedades/pages?currentpage=1&pagesize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Novedades by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/novedades/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Novedades by registro base",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/novedades/by-registro-base?registroBase={{reporte_operacion_key}}"
+          }
+        },
+        {
+          "name": "Create novedad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/control-obras/novedades/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"orsIdentifkeyNove\": \"NOVE-0001\",\n      \"orsIdentifkeyOrde\": \"ORDE-0001\",\n      \"orsRegistbaseNove\": \"ROPE-0001\",\n      \"orsEstadoregNove\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Control obras - Avances",
+      "item": [
+        {
+          "name": "Health avances",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/avances/health"
+          }
+        },
+        {
+          "name": "Avance by orden",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/avances/by-orden?ordenKey={{orden_key}}"
+          }
+        },
+        {
+          "name": "Avance by plan",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/avances/by-plan?planKey={{plan_key}}"
+          }
+        },
+        {
+          "name": "Avance by plan semanal",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/avances/by-plan-semanal?planSemanalKey={{plan_semanal_key}}"
+          }
+        },
+        {
+          "name": "Avance orden consolidado",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/control-obras/avances/orden/{{orden_key}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Evidencias - Tipos",
+      "item": [
+        {
+          "name": "Health tipos evidencia",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/tipos/health"
+          }
+        },
+        {
+          "name": "Pages tipos evidencia",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/tipos/pages?currentPage=1&pageSize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Create tipo evidencia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/evidencias/tipos/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"eviIdentifkeyTiev\": \"FOTO\",\n      \"eviDescripcionTiev\": \"Fotografía\",\n      \"eviEstadoregTiev\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status tipo evidencia body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/evidencias/tipos/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 - Evidencias - Referencias",
+      "item": [
+        {
+          "name": "Health referencias evidencia",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/referencias/health"
+          }
+        },
+        {
+          "name": "Pages referencias evidencia",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/referencias/pages?currentPage=1&pageSize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Referencia by key",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/referencias/by-key?referenciaKey={{referencia_key}}"
+          }
+        },
+        {
+          "name": "Referencia by registro",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/referencias/by-registro?registroKey={{reporte_operacion_key}}"
+          }
+        },
+        {
+          "name": "Create referencia evidencia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/evidencias/referencias/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"eviIdentifkeyRefe\": \"REFE-0001\",\n      \"eviIdentifkeyEvid\": \"EVID-0001\",\n      \"eviRegistrokeyRefe\": \"ROPE-0001\",\n      \"eviTiporegistroRefe\": \"REPORTE_OPERACION\",\n      \"eviEstadoregRefe\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 - Evidencias - Evidencias",
+      "item": [
+        {
+          "name": "Health evidencias",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/evidencias/health"
+          }
+        },
+        {
+          "name": "Pages evidencias",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/evidencias/pages?currentPage=1&pageSize=10&parameter=TEXT&filter="
+          }
+        },
+        {
+          "name": "Evidencia by key",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/evidencias/by-key?evidenciaKey={{evidencia_key}}"
+          }
+        },
+        {
+          "name": "Evidencia by tipo",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway_url}}/api/evidencias/evidencias/by-tipo?tipoEvidenciaKey={{tipo_evidencia_key}}"
+          }
+        },
+        {
+          "name": "Create evidencia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/evidencias/evidencias/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rspValue\": \"\",\n  \"rspMessage\": \"\",\n  \"rspParentKey\": \"\",\n  \"rspAppKey\": \"\",\n  \"rspData\": [\n    {\n      \"eviIdentifkeyEvid\": \"EVID-0001\",\n      \"eviIdentifkeyTiev\": \"FOTO\",\n      \"eviNombrearchivoEvid\": \"foto_obra_001.jpg\",\n      \"eviRutaarchivoEvid\": \"https://storage.local/foto_obra_001.jpg\",\n      \"eviEstadoregEvid\": \"1\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Change status evidencia body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/evidencias/evidencias/changestatus",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1,\n    \"recEstreg\": \"2\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Delete evidencia body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{gateway_url}}/api/evidencias/evidencias/delete",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"recPKey\": 1\n  }\n]"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -3,9 +3,12 @@ package com.system.modules.controlobras.api;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.system.crosscutting.domain.model.ChangeStatusRequestDto;
+import com.system.crosscutting.domain.model.DeleteRequestDto;
 import com.system.crosscutting.domain.model.EntyOrsplamdreporteoperacionDto;
 import com.system.crosscutting.domain.model.EntyOrsplamdreporteoperacionResponse;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.crosscutting.utils.ResponsePayloadUtil;
 import com.system.modules.controlobras.usecase.EntyReporteOperacionService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,15 +30,27 @@ public class ReporteOperacionController {
 
     @PostMapping("/create")
     public ResponseEntity<EntyOrsplamdreporteoperacionDto> create(
-            @RequestBody final EntyOrsplamdreporteoperacionDto dto
+            @RequestBody final EntyOrsplamdreporteoperacionResponse request
     ) throws EBusinessException {
+
+        EntyOrsplamdreporteoperacionDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un reporte de operación en rspData."
+        );
+
         return ResponseEntity.ok(service.saveBefore(dto));
     }
 
     @PostMapping("/create-list")
     public ResponseEntity<List<EntyOrsplamdreporteoperacionDto>> createList(
-            @RequestBody final List<EntyOrsplamdreporteoperacionDto> dtoList
+            @RequestBody final EntyOrsplamdreporteoperacionResponse request
     ) throws EBusinessException {
+
+        List<EntyOrsplamdreporteoperacionDto> dtoList = ResponsePayloadUtil.getData(
+                request.getRspData(),
+                "Debe enviar reportes de operación en rspData."
+        );
+
         return ResponseEntity.ok(service.saveBefore(dtoList));
     }
 
@@ -105,10 +120,12 @@ public class ReporteOperacionController {
     }
 
     @GetMapping("/by-fecha")
-    public ResponseEntity<List<EntyOrsplamdreporteoperacionDto>> findByFechaReporte(
-            @RequestParam final String fechaReporte
+    public ResponseEntity<List<EntyOrsplamdreporteoperacionDto>> findByFecha(
+            @RequestParam final String fecha
     ) throws EBusinessException {
-        return ResponseEntity.ok(service.findByFechaReporte(LocalDate.parse(fechaReporte)));
+        return ResponseEntity.ok(
+                service.findByFechaReporte(LocalDate.parse(fecha))
+        );
     }
 
     @GetMapping("/by-estado")
@@ -121,8 +138,14 @@ public class ReporteOperacionController {
     @PutMapping("/update/{id}")
     public ResponseEntity<EntyOrsplamdreporteoperacionDto> update(
             @PathVariable final Integer id,
-            @RequestBody final EntyOrsplamdreporteoperacionDto dto
+            @RequestBody final EntyOrsplamdreporteoperacionResponse request
     ) throws EBusinessException {
+
+        EntyOrsplamdreporteoperacionDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un reporte de operación en rspData."
+        );
+
         return ResponseEntity.ok(service.updateBefore(id, dto));
     }
 
@@ -134,11 +157,55 @@ public class ReporteOperacionController {
         return ResponseEntity.ok(service.changestatus(id, estado));
     }
 
+    @PostMapping("/changestatus")
+    public ResponseEntity<String> changestatusBody(
+            @RequestBody final List<ChangeStatusRequestDto> request
+    ) throws EBusinessException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para cambiar estado.");
+        }
+
+        for (ChangeStatusRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            if (item.getRecEstreg() == null || item.getRecEstreg().trim().isEmpty()) {
+                throw new EBusinessException("recEstreg es obligatorio.");
+            }
+
+            service.changestatus(item.getRecPKey(), item.getRecEstreg());
+        }
+
+        return ResponseEntity.ok("Estado actualizado correctamente.");
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable final Integer id
     ) throws EBusinessException {
         service.deleteBefore(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<String> deleteBody(
+            @RequestBody final List<DeleteRequestDto> request
+    ) throws EBusinessException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para eliminar.");
+        }
+
+        for (DeleteRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            service.deleteBefore(item.getRecPKey());
+        }
+
+        return ResponseEntity.ok("Registro(s) eliminado(s) correctamente.");
     }
 }

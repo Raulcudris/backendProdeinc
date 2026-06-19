@@ -1,5 +1,7 @@
 package com.system.modules.controlobras.usecase;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,17 +33,33 @@ public class EntyOrdenServicioService {
             EntyOrsordmaordenservicioDto dto
     ) throws EBusinessException {
 
-        if (dto.getOrsEstadoregOrde() == null) {
-            dto.setOrsEstadoregOrde("1");
-        }
+        aplicarDefaults(dto);
 
         return dataProvider.save(dto);
+    }
+
+    public List<EntyOrsordmaordenservicioDto> saveBefore(
+            final List<EntyOrsordmaordenservicioDto> dtoList
+    ) throws EBusinessException {
+
+        if (dtoList == null || dtoList.isEmpty()) {
+            return List.of();
+        }
+
+        for (EntyOrsordmaordenservicioDto dto : dtoList) {
+            aplicarDefaults(dto);
+        }
+
+        return dataProvider.save(dtoList);
     }
 
     public EntyOrsordmaordenservicioDto updateBefore(
             Integer id,
             EntyOrsordmaordenservicioDto dto
     ) throws EBusinessException {
+
+        aplicarDefaults(dto);
+
         return dataProvider.update(id, dto);
     }
 
@@ -52,7 +70,7 @@ public class EntyOrdenServicioService {
 
         EntyOrsordmaordenservicioDto dto = dataProvider.get(id);
 
-        if (dto.getOrsPrimarykeyOrde() == null) {
+        if (dto == null || dto.getOrsPrimarykeyOrde() == null) {
             return "Registro no encontrado";
         }
 
@@ -65,5 +83,17 @@ public class EntyOrdenServicioService {
     public String deleteBefore(Integer id) throws EBusinessException {
         dataProvider.delete(id);
         return "Registro eliminado correctamente";
+    }
+
+    private void aplicarDefaults(
+            EntyOrsordmaordenservicioDto dto
+    ) {
+        if (dto == null) {
+            return;
+        }
+
+        if (dto.getOrsEstadoregOrde() == null || dto.getOrsEstadoregOrde().isBlank()) {
+            dto.setOrsEstadoregOrde("1");
+        }
     }
 }

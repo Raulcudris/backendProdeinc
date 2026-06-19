@@ -1,5 +1,7 @@
 package com.system.modules.controlobras.usecase;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,15 +33,24 @@ public class EntySitioService {
             EntyOrsordmdsitiospuntosDto dto
     ) throws EBusinessException {
 
-        if (dto.getOrsEstadoregPunt() == null) {
-            dto.setOrsEstadoregPunt("1");
-        }
-
-        if (dto.getOrsTiporegistPunt() == null) {
-            dto.setOrsTiporegistPunt("1");
-        }
+        aplicarDefaults(dto);
 
         return dataProvider.save(dto);
+    }
+
+    public List<EntyOrsordmdsitiospuntosDto> saveBefore(
+            final List<EntyOrsordmdsitiospuntosDto> dtoList
+    ) throws EBusinessException {
+
+        if (dtoList == null || dtoList.isEmpty()) {
+            return List.of();
+        }
+
+        for (EntyOrsordmdsitiospuntosDto dto : dtoList) {
+            aplicarDefaults(dto);
+        }
+
+        return dataProvider.save(dtoList);
     }
 
     public Object findByOrden(String ordenKey) throws EBusinessException {
@@ -50,6 +61,9 @@ public class EntySitioService {
             Integer id,
             EntyOrsordmdsitiospuntosDto dto
     ) throws EBusinessException {
+
+        aplicarDefaults(dto);
+
         return dataProvider.update(id, dto);
     }
 
@@ -60,7 +74,7 @@ public class EntySitioService {
 
         EntyOrsordmdsitiospuntosDto dto = dataProvider.get(id);
 
-        if (dto.getOrsPrimarykeyPunt() == null) {
+        if (dto == null || dto.getOrsPrimarykeyPunt() == null) {
             return "Registro no encontrado";
         }
 
@@ -73,5 +87,21 @@ public class EntySitioService {
     public String deleteBefore(Integer id) throws EBusinessException {
         dataProvider.delete(id);
         return "Registro eliminado correctamente";
+    }
+
+    private void aplicarDefaults(
+            EntyOrsordmdsitiospuntosDto dto
+    ) {
+        if (dto == null) {
+            return;
+        }
+
+        if (dto.getOrsEstadoregPunt() == null || dto.getOrsEstadoregPunt().isBlank()) {
+            dto.setOrsEstadoregPunt("1");
+        }
+
+        if (dto.getOrsTiporegistPunt() == null || dto.getOrsTiporegistPunt().isBlank()) {
+            dto.setOrsTiporegistPunt("1");
+        }
     }
 }

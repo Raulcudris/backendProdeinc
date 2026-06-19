@@ -1,6 +1,7 @@
 package com.system.modules.controlobras.usecase;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,23 +34,24 @@ public class EntyPlanSemanalService {
             EntyOrsplamdplantrabsemanaDto dto
     ) throws EBusinessException {
 
-        if (dto.getOrsEstadoregPlse() == null) {
-            dto.setOrsEstadoregPlse("1");
-        }
-
-        if (dto.getOrsTiporegistPlse() == null) {
-            dto.setOrsTiporegistPlse("1");
-        }
-
-        if (dto.getOrsEjecutunidadPlse() == null) {
-            dto.setOrsEjecutunidadPlse(0);
-        }
-
-        if (dto.getOrsValorejecutPlse() == null) {
-            dto.setOrsValorejecutPlse(BigDecimal.ZERO);
-        }
+        aplicarDefaults(dto);
 
         return dataProvider.save(dto);
+    }
+
+    public List<EntyOrsplamdplantrabsemanaDto> saveBefore(
+            final List<EntyOrsplamdplantrabsemanaDto> dtoList
+    ) throws EBusinessException {
+
+        if (dtoList == null || dtoList.isEmpty()) {
+            return List.of();
+        }
+
+        for (EntyOrsplamdplantrabsemanaDto dto : dtoList) {
+            aplicarDefaults(dto);
+        }
+
+        return dataProvider.save(dtoList);
     }
 
     public Object findByOrden(String ordenKey) throws EBusinessException {
@@ -68,6 +70,9 @@ public class EntyPlanSemanalService {
             Integer id,
             EntyOrsplamdplantrabsemanaDto dto
     ) throws EBusinessException {
+
+        aplicarDefaults(dto);
+
         return dataProvider.update(id, dto);
     }
 
@@ -78,7 +83,7 @@ public class EntyPlanSemanalService {
 
         EntyOrsplamdplantrabsemanaDto dto = dataProvider.get(id);
 
-        if (dto.getOrsPrimarykeyPlse() == null) {
+        if (dto == null || dto.getOrsPrimarykeyPlse() == null) {
             return "Registro no encontrado";
         }
 
@@ -91,5 +96,38 @@ public class EntyPlanSemanalService {
     public String deleteBefore(Integer id) throws EBusinessException {
         dataProvider.delete(id);
         return "Registro eliminado correctamente";
+    }
+
+    private void aplicarDefaults(
+            EntyOrsplamdplantrabsemanaDto dto
+    ) {
+        if (dto == null) {
+            return;
+        }
+
+        if (dto.getOrsEstadoregPlse() == null || dto.getOrsEstadoregPlse().isBlank()) {
+            dto.setOrsEstadoregPlse("1");
+        }
+
+        if (dto.getOrsTiporegistPlse() == null || dto.getOrsTiporegistPlse().isBlank()) {
+            dto.setOrsTiporegistPlse("1");
+        }
+
+        if (dto.getOrsEjecutunidadPlse() == null) {
+            dto.setOrsEjecutunidadPlse(0);
+        }
+
+        if (dto.getOrsValorejecutPlse() == null) {
+            dto.setOrsValorejecutPlse(BigDecimal.ZERO);
+        }
+
+        if (dto.getOrsCantidunidadPlse() != null &&
+                dto.getOrsValorunidadPlse() != null &&
+                dto.getOrsValortotalPlse() == null) {
+            dto.setOrsValortotalPlse(
+                    dto.getOrsValorunidadPlse()
+                            .multiply(BigDecimal.valueOf(dto.getOrsCantidunidadPlse()))
+            );
+        }
     }
 }

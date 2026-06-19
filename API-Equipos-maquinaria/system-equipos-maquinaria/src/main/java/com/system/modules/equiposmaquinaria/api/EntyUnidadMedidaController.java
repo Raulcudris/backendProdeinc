@@ -1,5 +1,8 @@
 package com.system.modules.equiposmaquinaria.api;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -8,8 +11,10 @@ import com.system.crosscutting.domain.model.EntyPrvinvmdunidamedequipoDto;
 import com.system.crosscutting.domain.model.EntyPrvinvmdunidamedequipoResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.crosscutting.utils.ResponsePayloadUtil;
 import com.system.modules.equiposmaquinaria.usecase.EntyUnidadMedidaService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(
         value = "/api/equipos-maquinaria/unidades",
@@ -76,10 +81,35 @@ public class EntyUnidadMedidaController {
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
     public ResponseEntity<EntyPrvinvmdunidamedequipoDto> create(
-            @RequestBody EntyPrvinvmdunidamedequipoDto dto
+            @RequestBody EntyPrvinvmdunidamedequipoResponse request
     ) throws EBusinessException, MicroEventException {
+
+        EntyPrvinvmdunidamedequipoDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar una unidad de medida en rspData."
+        );
+
         return new ResponseEntity<>(
                 service.saveBefore(dto),
+                HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping(
+            value = "/create-list",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<List<EntyPrvinvmdunidamedequipoDto>> createList(
+            @RequestBody EntyPrvinvmdunidamedequipoResponse request
+    ) throws EBusinessException, MicroEventException {
+
+        List<EntyPrvinvmdunidamedequipoDto> dtoList = ResponsePayloadUtil.getData(
+                request.getRspData(),
+                "Debe enviar unidades de medida en rspData."
+        );
+
+        return new ResponseEntity<>(
+                service.saveBefore(dtoList),
                 HttpStatus.CREATED
         );
     }
@@ -90,8 +120,14 @@ public class EntyUnidadMedidaController {
     )
     public ResponseEntity<EntyPrvinvmdunidamedequipoDto> update(
             @PathVariable String unidadKey,
-            @RequestBody EntyPrvinvmdunidamedequipoDto dto
+            @RequestBody EntyPrvinvmdunidamedequipoResponse request
     ) throws EBusinessException, MicroEventException {
+
+        EntyPrvinvmdunidamedequipoDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar una unidad de medida en rspData."
+        );
+
         return new ResponseEntity<>(
                 service.updateByKey(unidadKey, dto),
                 HttpStatus.OK
@@ -109,12 +145,73 @@ public class EntyUnidadMedidaController {
         );
     }
 
+    @PostMapping(
+            value = "/changestatus",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> changestatusBody(
+            @RequestBody List<Map<String, String>> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para cambiar estado.");
+        }
+
+        for (Map<String, String> item : request) {
+            String unidadKey = item.get("recPKey");
+            String estado = item.get("recEstreg");
+
+            if (unidadKey == null || unidadKey.trim().isEmpty()) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            if (estado == null || estado.trim().isEmpty()) {
+                throw new EBusinessException("recEstreg es obligatorio.");
+            }
+
+            service.changestatusByKey(unidadKey, estado);
+        }
+
+        return new ResponseEntity<>(
+                "Estado actualizado correctamente.",
+                HttpStatus.OK
+        );
+    }
+
     @DeleteMapping("/delete/{unidadKey}")
     public ResponseEntity<String> delete(
             @PathVariable String unidadKey
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.deleteByKey(unidadKey),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping(
+            value = "/delete",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> deleteBody(
+            @RequestBody List<Map<String, String>> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para eliminar.");
+        }
+
+        for (Map<String, String> item : request) {
+            String unidadKey = item.get("recPKey");
+
+            if (unidadKey == null || unidadKey.trim().isEmpty()) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            service.deleteByKey(unidadKey);
+        }
+
+        return new ResponseEntity<>(
+                "Registro(s) eliminado(s) correctamente.",
                 HttpStatus.OK
         );
     }

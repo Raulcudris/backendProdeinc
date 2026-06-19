@@ -1,15 +1,21 @@
 package com.system.modules.equiposmaquinaria.api;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import com.system.crosscutting.domain.model.ChangeStatusRequestDto;
+import com.system.crosscutting.domain.model.DeleteRequestDto;
 import com.system.crosscutting.domain.model.EntyPrvinvmainventarioequiposDto;
 import com.system.crosscutting.domain.model.EntyPrvinvmainventarioequiposResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.crosscutting.utils.ResponsePayloadUtil;
 import com.system.modules.equiposmaquinaria.usecase.EntyEquipoService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(
         value = "/api/equipos-maquinaria/equipos",
@@ -106,8 +112,14 @@ public class EntyEquipoController {
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
     public ResponseEntity<EntyPrvinvmainventarioequiposDto> create(
-            @RequestBody EntyPrvinvmainventarioequiposDto dto
+            @RequestBody EntyPrvinvmainventarioequiposResponse request
     ) throws EBusinessException, MicroEventException {
+
+        EntyPrvinvmainventarioequiposDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un equipo en rspData."
+        );
+
         return new ResponseEntity<>(
                 service.saveBefore(dto),
                 HttpStatus.CREATED
@@ -118,11 +130,17 @@ public class EntyEquipoController {
             value = "/create-list",
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
-    public ResponseEntity<?> createList(
-            @RequestBody java.util.List<EntyPrvinvmainventarioequiposDto> dtos
+    public ResponseEntity<List<EntyPrvinvmainventarioequiposDto>> createList(
+            @RequestBody EntyPrvinvmainventarioequiposResponse request
     ) throws EBusinessException, MicroEventException {
+
+        List<EntyPrvinvmainventarioequiposDto> dtoList = ResponsePayloadUtil.getData(
+                request.getRspData(),
+                "Debe enviar equipos en rspData."
+        );
+
         return new ResponseEntity<>(
-                service.saveBefore(dtos),
+                service.saveBefore(dtoList),
                 HttpStatus.CREATED
         );
     }
@@ -133,8 +151,14 @@ public class EntyEquipoController {
     )
     public ResponseEntity<EntyPrvinvmainventarioequiposDto> update(
             @PathVariable Integer id,
-            @RequestBody EntyPrvinvmainventarioequiposDto dto
+            @RequestBody EntyPrvinvmainventarioequiposResponse request
     ) throws EBusinessException, MicroEventException {
+
+        EntyPrvinvmainventarioequiposDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un equipo en rspData."
+        );
+
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
                 HttpStatus.OK
@@ -152,6 +176,36 @@ public class EntyEquipoController {
         );
     }
 
+    @PostMapping(
+            value = "/changestatus",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> changestatusBody(
+            @RequestBody List<ChangeStatusRequestDto> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para cambiar estado.");
+        }
+
+        for (ChangeStatusRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            if (item.getRecEstreg() == null || item.getRecEstreg().trim().isEmpty()) {
+                throw new EBusinessException("recEstreg es obligatorio.");
+            }
+
+            service.changestatus(item.getRecPKey(), item.getRecEstreg());
+        }
+
+        return new ResponseEntity<>(
+                "Estado actualizado correctamente.",
+                HttpStatus.OK
+        );
+    }
+
     @PatchMapping("/changedisponible/{id}")
     public ResponseEntity<String> cambiarDisponibilidad(
             @PathVariable Integer id,
@@ -163,12 +217,68 @@ public class EntyEquipoController {
         );
     }
 
+    @PostMapping(
+            value = "/changedisponible",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> cambiarDisponibilidadBody(
+            @RequestBody List<ChangeStatusRequestDto> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para cambiar disponibilidad.");
+        }
+
+        for (ChangeStatusRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            if (item.getRecEstreg() == null || item.getRecEstreg().trim().isEmpty()) {
+                throw new EBusinessException("recEstreg es obligatorio.");
+            }
+
+            service.cambiarDisponibilidad(item.getRecPKey(), item.getRecEstreg());
+        }
+
+        return new ResponseEntity<>(
+                "Disponibilidad actualizada correctamente.",
+                HttpStatus.OK
+        );
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.deleteBefore(id),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping(
+            value = "/delete",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> deleteBody(
+            @RequestBody List<DeleteRequestDto> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para eliminar.");
+        }
+
+        for (DeleteRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            service.deleteBefore(item.getRecPKey());
+        }
+
+        return new ResponseEntity<>(
+                "Registro(s) eliminado(s) correctamente.",
                 HttpStatus.OK
         );
     }

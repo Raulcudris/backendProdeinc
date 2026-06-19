@@ -1,6 +1,7 @@
 package com.system.modules.controlobras.usecase;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,19 +34,24 @@ public class EntyReporteDiarioService {
             EntyOrsplamdreportediarioDto dto
     ) throws EBusinessException {
 
-        if (dto.getOrsEstadoregPdia() == null) {
-            dto.setOrsEstadoregPdia("1");
-        }
-
-        if (dto.getOrsTiporegistPdia() == null) {
-            dto.setOrsTiporegistPdia("1");
-        }
-
-        if (dto.getOrsFechasistemaPdia() == null) {
-            dto.setOrsFechasistemaPdia(LocalDate.now());
-        }
+        aplicarDefaults(dto);
 
         return dataProvider.save(dto);
+    }
+
+    public List<EntyOrsplamdreportediarioDto> saveBefore(
+            final List<EntyOrsplamdreportediarioDto> dtoList
+    ) throws EBusinessException {
+
+        if (dtoList == null || dtoList.isEmpty()) {
+            return List.of();
+        }
+
+        for (EntyOrsplamdreportediarioDto dto : dtoList) {
+            aplicarDefaults(dto);
+        }
+
+        return dataProvider.save(dtoList);
     }
 
     public Object findByOrden(String ordenKey) throws EBusinessException {
@@ -64,6 +70,9 @@ public class EntyReporteDiarioService {
             Integer id,
             EntyOrsplamdreportediarioDto dto
     ) throws EBusinessException {
+
+        aplicarDefaults(dto);
+
         return dataProvider.update(id, dto);
     }
 
@@ -74,7 +83,7 @@ public class EntyReporteDiarioService {
 
         EntyOrsplamdreportediarioDto dto = dataProvider.get(id);
 
-        if (dto.getOrsPrimarykeyPdia() == null) {
+        if (dto == null || dto.getOrsPrimarykeyPdia() == null) {
             return "Registro no encontrado";
         }
 
@@ -87,5 +96,25 @@ public class EntyReporteDiarioService {
     public String deleteBefore(Integer id) throws EBusinessException {
         dataProvider.delete(id);
         return "Registro eliminado correctamente";
+    }
+
+    private void aplicarDefaults(
+            EntyOrsplamdreportediarioDto dto
+    ) {
+        if (dto == null) {
+            return;
+        }
+
+        if (dto.getOrsEstadoregPdia() == null || dto.getOrsEstadoregPdia().isBlank()) {
+            dto.setOrsEstadoregPdia("1");
+        }
+
+        if (dto.getOrsTiporegistPdia() == null || dto.getOrsTiporegistPdia().isBlank()) {
+            dto.setOrsTiporegistPdia("1");
+        }
+
+        if (dto.getOrsFechasistemaPdia() == null) {
+            dto.setOrsFechasistemaPdia(LocalDate.now());
+        }
     }
 }

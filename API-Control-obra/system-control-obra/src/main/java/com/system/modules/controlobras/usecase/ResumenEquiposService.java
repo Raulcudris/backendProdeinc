@@ -1,5 +1,7 @@
 package com.system.modules.controlobras.usecase;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,21 +37,33 @@ public class ResumenEquiposService {
             EntyOrsordmdresumenequiposDto dto
     ) throws EBusinessException {
 
-        if (dto.getOrsEstadoregRseq() == null) {
-            dto.setOrsEstadoregRseq("1");
-        }
-
-        if (dto.getOrsTiporegistRseq() == null) {
-            dto.setOrsTiporegistRseq("1");
-        }
+        aplicarDefaults(dto);
 
         return dataProvider.save(dto);
+    }
+
+    public List<EntyOrsordmdresumenequiposDto> saveBefore(
+            final List<EntyOrsordmdresumenequiposDto> dtoList
+    ) throws EBusinessException {
+
+        if (dtoList == null || dtoList.isEmpty()) {
+            return List.of();
+        }
+
+        for (EntyOrsordmdresumenequiposDto dto : dtoList) {
+            aplicarDefaults(dto);
+        }
+
+        return dataProvider.save(dtoList);
     }
 
     public EntyOrsordmdresumenequiposDto updateBefore(
             Integer id,
             EntyOrsordmdresumenequiposDto dto
     ) throws EBusinessException {
+
+        aplicarDefaults(dto);
+
         return dataProvider.update(id, dto);
     }
 
@@ -60,7 +74,7 @@ public class ResumenEquiposService {
 
         EntyOrsordmdresumenequiposDto dto = dataProvider.get(id);
 
-        if (dto.getOrsPrimarykeyRseq() == null) {
+        if (dto == null || dto.getOrsPrimarykeyRseq() == null) {
             return "Registro no encontrado";
         }
 
@@ -73,5 +87,21 @@ public class ResumenEquiposService {
     public String deleteBefore(Integer id) throws EBusinessException {
         dataProvider.delete(id);
         return "Registro eliminado correctamente";
+    }
+
+    private void aplicarDefaults(
+            EntyOrsordmdresumenequiposDto dto
+    ) {
+        if (dto == null) {
+            return;
+        }
+
+        if (dto.getOrsEstadoregRseq() == null || dto.getOrsEstadoregRseq().isBlank()) {
+            dto.setOrsEstadoregRseq("1");
+        }
+
+        if (dto.getOrsTiporegistRseq() == null || dto.getOrsTiporegistRseq().isBlank()) {
+            dto.setOrsTiporegistRseq("1");
+        }
     }
 }

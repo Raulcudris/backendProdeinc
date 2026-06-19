@@ -1,10 +1,8 @@
 package com.system.modules.controlobras.usecase;
-
 import java.time.LocalDate;
-
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.system.crosscutting.domain.model.EntyOrsconfnovedadhistoriDto;
 import com.system.crosscutting.domain.model.EntyOrsconfnovedadhistoriResponse;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
@@ -33,21 +31,33 @@ public class EntyNovedadService {
             EntyOrsconfnovedadhistoriDto dto
     ) throws EBusinessException {
 
-        if (dto.getOrsEstadoregNove() == null) {
-            dto.setOrsEstadoregNove("1");
-        }
-
-        if (dto.getOrsFechreportNove() == null) {
-            dto.setOrsFechreportNove(LocalDate.now());
-        }
+        aplicarDefaults(dto);
 
         return dataProvider.save(dto);
+    }
+
+    public List<EntyOrsconfnovedadhistoriDto> saveBefore(
+            List<EntyOrsconfnovedadhistoriDto> dtoList
+    ) throws EBusinessException {
+
+        if (dtoList == null || dtoList.isEmpty()) {
+            return List.of();
+        }
+
+        for (EntyOrsconfnovedadhistoriDto dto : dtoList) {
+            aplicarDefaults(dto);
+        }
+
+        return dataProvider.save(dtoList);
     }
 
     public EntyOrsconfnovedadhistoriDto updateBefore(
             Integer id,
             EntyOrsconfnovedadhistoriDto dto
     ) throws EBusinessException {
+
+        aplicarDefaults(dto);
+
         return dataProvider.update(id, dto);
     }
 
@@ -66,7 +76,7 @@ public class EntyNovedadService {
 
         EntyOrsconfnovedadhistoriDto dto = dataProvider.get(id);
 
-        if (dto.getOrsPrimarykeyNove() == null) {
+        if (dto == null || dto.getOrsPrimarykeyNove() == null) {
             return "Registro no encontrado";
         }
 
@@ -79,5 +89,21 @@ public class EntyNovedadService {
     public String deleteBefore(Integer id) throws EBusinessException {
         dataProvider.delete(id);
         return "Registro eliminado correctamente";
+    }
+
+    private void aplicarDefaults(
+            EntyOrsconfnovedadhistoriDto dto
+    ) {
+        if (dto == null) {
+            return;
+        }
+
+        if (dto.getOrsEstadoregNove() == null || dto.getOrsEstadoregNove().isBlank()) {
+            dto.setOrsEstadoregNove("1");
+        }
+
+        if (dto.getOrsFechreportNove() == null) {
+            dto.setOrsFechreportNove(LocalDate.now());
+        }
     }
 }

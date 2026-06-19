@@ -1,15 +1,21 @@
 package com.system.modules.controlobras.api;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import com.system.crosscutting.domain.model.ChangeStatusRequestDto;
+import com.system.crosscutting.domain.model.DeleteRequestDto;
 import com.system.crosscutting.domain.model.EntyOrsordmdresumenequiposDto;
 import com.system.crosscutting.domain.model.EntyOrsordmdresumenequiposResponse;
 import com.system.crosscutting.exceptions.MicroEventException;
 import com.system.crosscutting.exceptions.Main.EBusinessException;
+import com.system.crosscutting.utils.ResponsePayloadUtil;
 import com.system.modules.controlobras.usecase.ResumenEquiposService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(
         value = "/api/control-obras/resumen-equipos",
@@ -19,6 +25,11 @@ public class ResumenEquiposController {
 
     @Autowired
     private ResumenEquiposService service;
+
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("Resumen equipos service OK");
+    }
 
     @GetMapping("/pages")
     public ResponseEntity<EntyOrsordmdresumenequiposResponse> getAll(
@@ -53,21 +64,58 @@ public class ResumenEquiposController {
         );
     }
 
-    @PostMapping("/create")
+    @PostMapping(
+            value = "/create",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
     public ResponseEntity<EntyOrsordmdresumenequiposDto> create(
-            @RequestBody EntyOrsordmdresumenequiposDto dto
+            @RequestBody EntyOrsordmdresumenequiposResponse request
     ) throws EBusinessException, MicroEventException {
+
+        EntyOrsordmdresumenequiposDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un resumen de equipos en rspData."
+        );
+
         return new ResponseEntity<>(
                 service.saveBefore(dto),
                 HttpStatus.CREATED
         );
     }
 
-    @PutMapping("/update/{id}")
+    @PostMapping(
+            value = "/create-list",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<List<EntyOrsordmdresumenequiposDto>> createList(
+            @RequestBody EntyOrsordmdresumenequiposResponse request
+    ) throws EBusinessException, MicroEventException {
+
+        List<EntyOrsordmdresumenequiposDto> dtoList = ResponsePayloadUtil.getData(
+                request.getRspData(),
+                "Debe enviar resúmenes de equipos en rspData."
+        );
+
+        return new ResponseEntity<>(
+                service.saveBefore(dtoList),
+                HttpStatus.CREATED
+        );
+    }
+
+    @PutMapping(
+            value = "/update/{id}",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
     public ResponseEntity<EntyOrsordmdresumenequiposDto> update(
             @PathVariable Integer id,
-            @RequestBody EntyOrsordmdresumenequiposDto dto
+            @RequestBody EntyOrsordmdresumenequiposResponse request
     ) throws EBusinessException, MicroEventException {
+
+        EntyOrsordmdresumenequiposDto dto = ResponsePayloadUtil.getFirstData(
+                request.getRspData(),
+                "Debe enviar un resumen de equipos en rspData."
+        );
+
         return new ResponseEntity<>(
                 service.updateBefore(id, dto),
                 HttpStatus.OK
@@ -85,12 +133,68 @@ public class ResumenEquiposController {
         );
     }
 
+    @PostMapping(
+            value = "/changestatus",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> changestatusBody(
+            @RequestBody List<ChangeStatusRequestDto> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para cambiar estado.");
+        }
+
+        for (ChangeStatusRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            if (item.getRecEstreg() == null || item.getRecEstreg().trim().isEmpty()) {
+                throw new EBusinessException("recEstreg es obligatorio.");
+            }
+
+            service.changestatus(item.getRecPKey(), item.getRecEstreg());
+        }
+
+        return new ResponseEntity<>(
+                "Estado actualizado correctamente.",
+                HttpStatus.OK
+        );
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(
             @PathVariable Integer id
     ) throws EBusinessException, MicroEventException {
         return new ResponseEntity<>(
                 service.deleteBefore(id),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping(
+            value = "/delete",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    public ResponseEntity<String> deleteBody(
+            @RequestBody List<DeleteRequestDto> request
+    ) throws EBusinessException, MicroEventException {
+
+        if (request == null || request.isEmpty()) {
+            throw new EBusinessException("Debe enviar al menos un registro para eliminar.");
+        }
+
+        for (DeleteRequestDto item : request) {
+            if (item.getRecPKey() == null) {
+                throw new EBusinessException("recPKey es obligatorio.");
+            }
+
+            service.deleteBefore(item.getRecPKey());
+        }
+
+        return new ResponseEntity<>(
+                "Registro(s) eliminado(s) correctamente.",
                 HttpStatus.OK
         );
     }
