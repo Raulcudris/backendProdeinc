@@ -43,10 +43,10 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
 
       routes:
-        - id: msvc-control-obras
-          uri: lb://msvc-control-obras
+        - id: msvc-work-control
+          uri: lb://msvc-work-control
           predicates:
-            - Path=/api/control-obras/**
+            - Path=/api/work-control/**
 
         - id: msvc-equipos-maquinaria
           uri: lb://msvc-equipos-maquinaria
