@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: msvc-work-control
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  cloud:
+    config:
+      enabled: true
+      uri: http://localhost:8089
+      fail-fast: true
+      retry:
+        max-attempts: 2
+        multiplier: 1.2
+        initial-interval: 300
+
+  datasource:
+    db-ebusiness:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3306/dbinfraestructurapro
+      password: root
+      username: root
+      hikari:
+        minimum-idle: 1
+        maximum-pool-size: 8
+        idle-timeout: 3000
+        connection-timeout: 5000
+        max-lifetime: 600000
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
